@@ -89,7 +89,15 @@ export function useTemplateManager(
   // Apply a template: deep-clone + regenerate IDs → persist draft → call back.
   const applyTemplate = useCallback(
     async (template: StoreTemplate, onApplied: (data: Data) => void) => {
-      if (!tenantId || !pageSlug) return
+      if (!tenantId || !pageSlug) {
+        notify(
+          'error',
+          !tenantId
+            ? 'No active tenant session — close and reopen the editor.'
+            : 'No page is currently open — open or create a page before applying a template.',
+        )
+        return
+      }
       setApplying(template.id)
       try {
         const freshData = regenerateIds(template.puckState)
