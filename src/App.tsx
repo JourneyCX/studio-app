@@ -63,6 +63,7 @@ export default function App() {
   const [pageName,   setPageName]   = useState('Page')
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
+  const [liveUrl, setLiveUrl] = useState('')
   const [status,     setStatus]     = useState<'loading' | 'ready' | 'error'>('loading')
   const [errorMsg,   setErrorMsg]   = useState('')
   const [lastChange, setLastChange] = useState<Data | null>(null)
@@ -189,14 +190,16 @@ export default function App() {
         // Parallel, not sequential — page content and site settings are independent
         // fetches (both only need tenantId), matching the same no-added-latency
         // pattern used for the storefront's settings fetch.
-        const [page, settingsResult] = await Promise.all([
+        const [page, settingsResult, liveUrlResult] = await Promise.all([
           stratumApi.loadPage(sess.tenantId, sess.pageSlug, token),
           stratumApi.getSiteSettings(sess.tenantId, token).catch(() => ({ settings: null })),
+          stratumApi.getLiveUrl(sess.tenantId, token).catch(() => ({ liveUrl: '' })),
         ])
         const loaded = (page.puckJson as Data) ?? EMPTY_DATA
         setPuckData(stripChromeEntries(loaded))
         setPageName(page.name)
         setSiteSettings({ ...DEFAULT_SITE_SETTINGS, ...(settingsResult.settings ?? {}) })
+        setLiveUrl(liveUrlResult.liveUrl)
         setStatus('ready')
       })
       .catch(err => {
@@ -346,6 +349,32 @@ export default function App() {
               >
                 🎨 Templates
               </button>
+
+              {liveUrl && (
+                <a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Open the live storefront in a new tab"
+                  style={{
+                    padding: '7px 14px',
+                    backgroundColor: '#f8fafc',
+                    color: '#0f172a',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    lineHeight: 1,
+                    textDecoration: 'none',
+                  }}
+                >
+                  🔗 View Live Site
+                </a>
+              )}
               {children}
             </>
           ),

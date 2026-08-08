@@ -68,6 +68,12 @@ export const stratumApi = {
     return request('GET', `/admin/store_builder_api/page/${tenantId}/${pageSlug}`, token)
   },
 
+  // Resolves to the tenant's verified custom domain if set, else their
+  // platform preview subdomain — always returns a URL, even pre-provisioning.
+  getLiveUrl(tenantId: number, token: string): Promise<{ liveUrl: string }> {
+    return request('GET', `/admin/store_builder_api/live_url/${tenantId}`, token)
+  },
+
   // Single source of truth for Header/Footer chrome + site-wide branding — no auth
   // required server-side (same precedent as branding()/published_page()), but the
   // token is sent anyway since request() always attaches it.
