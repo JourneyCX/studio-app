@@ -1,0 +1,53 @@
+import type { ComponentConfig } from '@measured/puck'
+import { ImageUploadField } from '../shared/ImageUploadField'
+
+export type ProductCardProps = {
+  productName:  string
+  productPrice: string
+  productImage: string
+  productSlug:  string
+  buttonText:   string
+  buttonColor:  string
+  showPrice:    boolean
+}
+
+export const ProductCard: ComponentConfig<ProductCardProps> = {
+  label: 'Product Card',
+  fields: {
+    productName:  { type: 'text',  label: 'Product Name (manual fallback)' },
+    productPrice: { type: 'text',  label: 'Price (manual fallback)' },
+    productImage: { type: 'custom', label: 'Image (manual fallback)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    productSlug:  { type: 'text',  label: 'WooCommerce Product Slug (overrides manual fields when set)' },
+    buttonText:   { type: 'text',  label: 'Button Text' },
+    buttonColor:  { type: 'text',  label: 'Button Colour (hex)' },
+    showPrice:    { type: 'radio', label: 'Show Price', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
+  },
+  defaultProps: {
+    productName:  'Product Name',
+    productPrice: 'R 299.00',
+    productImage: '',
+    productSlug:  '',
+    buttonText:   'Add to Cart',
+    buttonColor:  '#3182ce',
+    showPrice:    true,
+  },
+  render({ productName, productPrice, productImage, buttonText, buttonColor, showPrice }) {
+    return (
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff', maxWidth: 320 }}>
+        <div style={{ height: 220, overflow: 'hidden', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          {productImage
+            ? <img src={productImage} alt={productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : <span style={{ color: '#a0aec0', fontSize: 13 }}>📷 Product Image</span>
+          }
+        </div>
+        <div style={{ padding: 16 }}>
+          <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: '#2d3748' }}>{productName}</p>
+          {showPrice && <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: 17, color: '#2d3748' }}>{productPrice}</p>}
+          <button style={{ width: '100%', background: buttonColor, color: '#fff', border: 'none', padding: '10px 0', borderRadius: 4, cursor: 'pointer', fontWeight: 600, fontSize: 14 }}>
+            {buttonText}
+          </button>
+        </div>
+      </div>
+    )
+  },
+}

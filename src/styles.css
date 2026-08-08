@@ -1,0 +1,29 @@
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #f7f8fa;
+  color: #1a202c;
+}
+
+.error-screen,
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  flex-direction: column;
+  gap: 12px;
+  color: #718096;
+  font-size: 15px;
+}
+
+.error-screen {
+  color: #e53e3e;
+}
+
+/* Override Puck to fill the viewport */
+[class*="Puck-"] {
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
