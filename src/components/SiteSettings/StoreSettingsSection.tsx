@@ -5,9 +5,7 @@ interface SectionProps {
   onChange: (patch: Partial<SiteSettings>) => void
 }
 
-type LinkPair = { label: string; url: string }
 type SocialPair = { platform: string; url: string }
-type FooterColumn = { heading: string; links: LinkPair[] }
 
 const label: React.CSSProperties      = { display: 'block', fontSize: 12.5, fontWeight: 700, color: '#334155', marginBottom: 6 }
 const input: React.CSSProperties      = { width: '100%', fontSize: 13, padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 6, boxSizing: 'border-box' }
@@ -80,44 +78,6 @@ function PairRepeater<T extends Record<string, string>>({
   )
 }
 
-function FooterColumnsEditor({ columns, onChange }: { columns: FooterColumn[]; onChange: (c: FooterColumn[]) => void }) {
-  const updateHeading = (i: number, heading: string) => {
-    const next = columns.slice()
-    next[i] = { ...next[i], heading }
-    onChange(next)
-  }
-  const updateLinks = (i: number, links: LinkPair[]) => {
-    const next = columns.slice()
-    next[i] = { ...next[i], links }
-    onChange(next)
-  }
-  const removeColumn = (i: number) => onChange(columns.filter((_, idx) => idx !== i))
-  const addColumn = () => onChange([...columns, { heading: '', links: [] }])
-
-  return (
-    <div style={{ marginBottom: 20 }}>
-      <label style={label}>Footer Link Columns</label>
-      {columns.map((col, i) => (
-        <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 10 }}>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-            <input style={input} placeholder="Column heading" value={col.heading} onChange={e => updateHeading(i, e.target.value)} />
-            <button style={removeBtn} onClick={() => removeColumn(i)}>✕</button>
-          </div>
-          <PairRepeater
-            title=""
-            items={col.links}
-            keyA="label" keyB="url"
-            placeholderA="Label" placeholderB="/url"
-            addLabel="Link"
-            onChange={links => updateLinks(i, links)}
-          />
-        </div>
-      ))}
-      <button style={smallBtn} onClick={addColumn}>+ Column</button>
-    </div>
-  )
-}
-
 // The rest of what the old admin page's "Site Settings" panel had, minus Header/
 // Footer colors (now their own Colors tab) — business identity, contact info, the
 // header CTA/sticky toggle, and every repeatable field (nav, social, footer columns).
@@ -180,14 +140,11 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
           <TextInput text="CTA Button URL" value={settings.headerCtaUrl} onChange={v => onChange({ headerCtaUrl: v })} />
         </div>
       </div>
-      <PairRepeater<LinkPair>
-        title="Navigation Links"
-        items={settings.navLinks}
-        keyA="label" keyB="url"
-        placeholderA="Label" placeholderB="/url"
-        addLabel="Add"
-        onChange={navLinks => onChange({ navLinks })}
-      />
+      <p style={{ fontSize: 12.5, color: '#64748b', margin: '0 0 4px' }}>
+        Navigation Links are now managed from the 📄 Pages panel — assign a page to
+        the Main Menu there, drag to reorder, or nest it under another page for a
+        dropdown submenu.
+      </p>
 
       <div style={sectionTitle}>Footer</div>
       <TextInput text="Copyright Text" value={settings.footerCopyrightText} onChange={v => onChange({ footerCopyrightText: v })} />
@@ -199,7 +156,10 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
         addLabel="Add"
         onChange={socialLinks => onChange({ socialLinks })}
       />
-      <FooterColumnsEditor columns={settings.footerColumns} onChange={footerColumns => onChange({ footerColumns })} />
+      <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0' }}>
+        Footer Link Columns are now managed from the 📄 Pages panel — assign a page
+        to the Footer Menu, and any pages nested under it become that column's links.
+      </p>
     </div>
   )
 }

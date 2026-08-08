@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+import type { StorePage, PageTypeConfig, MenuLocation } from './pages'
 // Stratum API client for the Studio app.
 // All calls include the JWT as X-Stratum-Token header.
 
@@ -15,6 +16,10 @@ function resolveStratumOrigin(): string {
     return (import.meta.env.VITE_STRATUM_URL || 'https://stage.journeycx.net').replace(/\/$/, '')
 }
 const STRATUM_ORIGIN = resolveStratumOrigin()
+// Exported so PagesPanel/App.tsx can build a full admin URL (`${STRATUM_ORIGIN}/admin/...`)
+// for the "Edit" action's full-page navigation — the same origin every other
+// call in this file already targets.
+export { STRATUM_ORIGIN }
 
 // Module-level active token — set once after verifyToken succeeds.
 // Allows components deep in the Puck config (e.g. ImageBlock custom field)
@@ -59,6 +64,22 @@ export interface PageData {
   name: string
 }
 
+export interface ReorderChange {
+  id: number
+  menuLocation: MenuLocation
+  menuOrder: number
+  menuParentId: number | null
+}
+
+export interface PageSettingsPatch {
+  pageType?: string
+  pageTypeConfig?: PageTypeConfig | null
+  seoTitle?: string | null
+  seoDescription?: string | null
+  ogImageUrl?: string | null
+  pageName?: string
+}
+
 export const stratumApi = {
   verifyToken(token: string): Promise<StudioSession> {
     return request('GET', '/admin/store_builder_api/verify_token', token)
@@ -92,6 +113,31 @@ export const stratumApi = {
     token: string,
   ): Promise<{ success: boolean }> {
     return request('PUT', `/admin/store_builder_api/update_site_settings/${tenantId}`, token, data)
+  },
+
+  // ── Pages panel ────────────────────────────────────────────────────────
+  // pages() above already returns the full StorePage shape once
+  // Store_builder_model::get_pages() carries the new columns — no separate
+  // fetch needed; getPages() here is just a typed alias for readability at
+  // PagesPanel's call site.
+  getPages(tenantId: number, token: string): Promise<{ pages: StorePage[] }> {
+    return request('GET', `/admin/store_builder_api/pages/${tenantId}`, token)
+  },
+
+  createPage(tenantId: number, pageName: string, token: string): Promise<{ success: boolean; page: StorePage }> {
+    return request('POST', `/admin/store_builder_api/create_page/${tenantId}`, token, { pageName })
+  },
+
+  deletePage(tenantId: number, pageId: number, token: string): Promise<{ success: boolean }> {
+    return request('DELETE', `/admin/store_builder_api/page_delete/${tenantId}/${pageId}`, token)
+  },
+
+  updatePageSettings(tenantId: number, pageId: number, data: PageSettingsPatch, token: string): Promise<{ success: boolean }> {
+    return request('PUT', `/admin/store_builder_api/page_settings/${tenantId}/${pageId}`, token, data)
+  },
+
+  reorderPages(tenantId: number, changes: ReorderChange[], token: string): Promise<{ success: boolean }> {
+    return request('PUT', `/admin/store_builder_api/reorder_pages/${tenantId}`, token, { changes })
   },
 
   saveDraft(tenantId: number, pageSlug: string, puckJson: unknown, pageName: string, token: string): Promise<{ success: boolean }> {

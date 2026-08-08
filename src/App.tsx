@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Puck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
-import { stratumApi, setActiveToken, type StudioSession } from './lib/api'
+import { stratumApi, setActiveToken, STRATUM_ORIGIN, type StudioSession } from './lib/api'
 import { useTemplateManager } from './lib/useTemplateManager'
 import { TemplateSelector } from './components/TemplateSelector'
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
 import { SiteFooter } from './components/Navigation/SiteFooter'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
+import { PagesPanel } from './components/Pages/PagesPanel'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -63,6 +64,12 @@ export default function App() {
   const [pageName,   setPageName]   = useState('Page')
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
+  const [pagesOpen, setPagesOpen] = useState(false)
+  // Slug queued for navigation once the unsaved-changes dialog resolves — set
+  // only when onNavigateToPage is called while isDirty; null means the dialog
+  // (when shown at all) is here because of the parent-window back-button guard
+  // instead, which doExit() already handles.
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null)
   const [liveUrl, setLiveUrl] = useState('')
   const [status,     setStatus]     = useState<'loading' | 'ready' | 'error'>('loading')
   const [errorMsg,   setErrorMsg]   = useState('')
@@ -149,6 +156,15 @@ export default function App() {
     }
   }
 
+  // Full-page navigation to a different page's editor — mints a fresh JWT
+  // server-side (Store_builder::editor()), same one-JWT-per-page model the
+  // rest of Studio already uses. Reconstructs the tenant-scoped admin path
+  // the same way studio.php derives it: admin_url('') minus its trailing
+  // /admin, /admin/... re-appended.
+  const goToPage = (slug: string) => {
+    window.top!.location.href = `${STRATUM_ORIGIN}/admin/store_builder/editor/${slug}`
+  }
+
   const handleDialogSaveAndExit = async () => {
     setDialogSaving(true)
     try {
@@ -160,12 +176,37 @@ export default function App() {
     } finally {
       setDialogSaving(false)
     }
+    if (pendingNavigation) {
+      goToPage(pendingNavigation)
+      return
+    }
     doExit()
   }
 
-  const handleDialogExitWithoutSaving = () => doExit()
+  const handleDialogExitWithoutSaving = () => {
+    if (pendingNavigation) {
+      goToPage(pendingNavigation)
+      return
+    }
+    doExit()
+  }
 
-  const handleDialogKeepEditing = () => setShowExitDialog(false)
+  const handleDialogKeepEditing = () => {
+    setShowExitDialog(false)
+    setPendingNavigation(null)
+  }
+
+  // Pages panel's "Edit" action — routed through the same unsaved-changes
+  // guard as the parent-window back button, rather than a bare navigation
+  // that could silently discard in-progress Puck edits.
+  const handleNavigateToPage = (slug: string) => {
+    if (!isDirtyRef.current) {
+      goToPage(slug)
+      return
+    }
+    setPendingNavigation(slug)
+    setShowExitDialog(true)
+  }
 
   // ── Template manager ───────────────────────────────────────────────────────
 
@@ -290,7 +331,18 @@ export default function App() {
           // same panel frame — no collision with anything Puck already renders there.
           components: ({ children }) => (
             <>
-              <div style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0' }}>
+              <div style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <button
+                  onClick={() => setPagesOpen(true)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
+                    backgroundColor: '#f8fafc', color: '#0f172a', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>📄</span> Pages
+                </button>
                 <button
                   onClick={() => setSiteSettingsOpen(true)}
                   style={{
@@ -393,6 +445,16 @@ export default function App() {
           onApply={template => tm.applyTemplate(template, handleTemplateApplied)}
           onSaveAsTemplate={tm.saveAsTemplate}
           onClose={tm.closeSelector}
+        />
+      )}
+
+      {/* Pages panel (📄 Pages, top of the Blocks panel) */}
+      {pagesOpen && session && (
+        <PagesPanel
+          tenantId={session.tenantId}
+          token={token}
+          onClose={() => setPagesOpen(false)}
+          onNavigateToPage={handleNavigateToPage}
         />
       )}
 

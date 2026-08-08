@@ -15,7 +15,10 @@ export interface SiteSettings {
   contactEmail: string | null
   contactAddress: string | null
   socialLinks: { platform: string; url: string }[]
-  navLinks: { label: string; url: string }[]
+  // children = one level of dropdown nesting, derived server-side from the
+  // Pages panel's menu tree (Store_builder_model::build_nav_links()) — a
+  // top-level entry with no children renders as a plain link.
+  navLinks: { label: string; url: string; children?: { label: string; url: string }[] }[]
   headerBackgroundColor: string | null
   headerTextColor: string | null
   headerAccentColor: string | null
