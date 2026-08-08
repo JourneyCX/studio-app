@@ -7,6 +7,7 @@ import { TemplateSelector } from './components/TemplateSelector'
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
 import { SiteFooter } from './components/Navigation/SiteFooter'
+import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -61,6 +62,7 @@ export default function App() {
   const [puckData,   setPuckData]   = useState<Data>(EMPTY_DATA)
   const [pageName,   setPageName]   = useState('Page')
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
+  const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
   const [status,     setStatus]     = useState<'loading' | 'ready' | 'error'>('loading')
   const [errorMsg,   setErrorMsg]   = useState('')
   const [lastChange, setLastChange] = useState<Data | null>(null)
@@ -278,6 +280,29 @@ export default function App() {
         onChange={handleChange}
         overrides={{
           iframe: PuckIframeZoom,
+          // Gear icon at the top of the Blocks panel (not the page header, where
+          // Templates/unsaved-changes already live via headerActions below) — opens
+          // the Site Settings overlay. `components` wraps Puck's own categorized
+          // component list, so this renders as a header row above it, inside the
+          // same panel frame — no collision with anything Puck already renders there.
+          components: ({ children }) => (
+            <>
+              <div style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0' }}>
+                <button
+                  onClick={() => setSiteSettingsOpen(true)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
+                    backgroundColor: '#f8fafc', color: '#0f172a', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
+                </button>
+              </div>
+              {children}
+            </>
+          ),
           // Inject a "Templates" button and an unsaved-changes badge into the
           // Puck header alongside the default actions.
           headerActions: ({ children }) => (
@@ -339,6 +364,17 @@ export default function App() {
           onApply={template => tm.applyTemplate(template, handleTemplateApplied)}
           onSaveAsTemplate={tm.saveAsTemplate}
           onClose={tm.closeSelector}
+        />
+      )}
+
+      {/* Site Settings overlay (gear icon, top of the Blocks panel) */}
+      {siteSettingsOpen && session && (
+        <SiteSettingsPanel
+          tenantId={session.tenantId}
+          token={token}
+          initialSettings={siteSettings}
+          onClose={() => setSiteSettingsOpen(false)}
+          onSaved={updated => setSiteSettings(updated)}
         />
       )}
 

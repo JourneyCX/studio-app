@@ -75,6 +75,19 @@ export const stratumApi = {
     return request('GET', `/admin/store_builder_api/site_settings?tenantId=${tenantId}`, token)
   },
 
+  // Studio's write path for the Site Settings panel (Branding/Colors/Store Settings).
+  // `data` is any subset of the SiteSettings shape — only keys actually present are
+  // saved server-side, so a Branding-only save doesn't touch Colors/Store Settings.
+  // Named update_site_settings (not site_settings) on the backend to avoid colliding
+  // with the GET route above — see the controller for why.
+  saveSiteSettings(
+    tenantId: number,
+    data: Partial<import('./siteSettings').SiteSettings>,
+    token: string,
+  ): Promise<{ success: boolean }> {
+    return request('PUT', `/admin/store_builder_api/update_site_settings/${tenantId}`, token, data)
+  },
+
   saveDraft(tenantId: number, pageSlug: string, puckJson: unknown, pageName: string, token: string): Promise<{ success: boolean }> {
     return request('PUT', `/admin/store_builder_api/save_draft/${tenantId}/${pageSlug}`, token, { puckJson, name: pageName })
   },
