@@ -2,6 +2,9 @@ import type { Config } from '@measured/puck'
 import { BobgoShippingOptions } from '@/components/Checkout/BobgoShippingOptions'
 import { BobgoPickupSelector }  from '@/components/Checkout/BobgoPickupSelector'
 import { BobgoShippingSummary } from '@/components/Checkout/BobgoShippingSummary'
+import { ShippingOptions } from '@/components/Checkout/ShippingOptions'
+import { PickupSelector }  from '@/components/Checkout/PickupSelector'
+import { ShippingSummary } from '@/components/Checkout/ShippingSummary'
 import { Container }     from '@/components/Layout/Container'
 import { Columns }       from '@/components/Layout/Columns'
 import { TextBlock }     from '@/components/Content/TextBlock'
@@ -88,6 +91,9 @@ export const puckConfig: Config = {
     BobgoShippingOptions,
     BobgoPickupSelector,
     BobgoShippingSummary,
+    ShippingOptions,
+    PickupSelector,
+    ShippingSummary,
   },
 
   categories: {
@@ -125,7 +131,7 @@ export const puckConfig: Config = {
     },
     checkout: {
       title: 'Checkout',
-      components: ['BobgoShippingOptions', 'BobgoPickupSelector', 'BobgoShippingSummary'],
+      components: ['BobgoShippingOptions', 'BobgoPickupSelector', 'BobgoShippingSummary', 'ShippingOptions', 'PickupSelector', 'ShippingSummary'],
     },
   },
 }
