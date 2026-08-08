@@ -30,6 +30,12 @@ export interface SiteSettings {
   footerAccentColor: string | null
   footerCopyrightText: string | null
   footerColumns: { heading: string; links: { label: string; url: string }[] }[]
+  whatsappEnabled: boolean
+  whatsappPopupEnabled: boolean
+  whatsappPhone: string | null
+  whatsappMessageTitle: string | null
+  whatsappMessageBody: string | null
+  whatsappButtonColor: string | null
 }
 
 // Graceful defaults — a brand-new tenant mid-provisioning (no sb_site_settings row
@@ -43,4 +49,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   headerSticky: true, headerCtaText: null, headerCtaUrl: null,
   footerBackgroundColor: '#1a202c', footerTextColor: '#a0aec0', footerAccentColor: '#ffffff',
   footerCopyrightText: null, footerColumns: [],
+  whatsappEnabled: false, whatsappPopupEnabled: true, whatsappPhone: null,
+  whatsappMessageTitle: 'Chat with us on WhatsApp!', whatsappMessageBody: 'Hello, how can we help you?',
+  whatsappButtonColor: '#25D366',
 }

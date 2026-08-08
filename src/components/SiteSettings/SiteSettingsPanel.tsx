@@ -5,14 +5,16 @@ import { BrandingSection } from './BrandingSection'
 import { ColorsSection } from './ColorsSection'
 import { FontsSection } from './FontsSection'
 import { StoreSettingsSection } from './StoreSettingsSection'
+import { WhatsAppSection } from './WhatsAppSection'
 
-type SectionKey = 'branding' | 'colors' | 'fonts' | 'store'
+type SectionKey = 'branding' | 'colors' | 'fonts' | 'store' | 'whatsapp'
 
 const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
   { key: 'branding', label: 'Branding', icon: '🖼️' },
   { key: 'colors', label: 'Colors', icon: '🎨' },
   { key: 'fonts', label: 'Fonts', icon: '🔤' },
   { key: 'store', label: 'Store Settings', icon: '⚙️' },
+  { key: 'whatsapp', label: 'WhatsApp', icon: '💬' },
 ]
 
 interface SiteSettingsPanelProps {
@@ -153,6 +155,7 @@ export function SiteSettingsPanel({ tenantId, token, initialSettings, onClose, o
             {active === 'colors'   && <ColorsSection settings={settings} onChange={patch} />}
             {active === 'fonts'    && <FontsSection />}
             {active === 'store'    && <StoreSettingsSection settings={settings} onChange={patch} />}
+            {active === 'whatsapp' && <WhatsAppSection settings={settings} onChange={patch} />}
           </div>
         </div>
       </div>

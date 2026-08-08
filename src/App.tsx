@@ -7,6 +7,7 @@ import { TemplateSelector } from './components/TemplateSelector'
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
 import { SiteFooter } from './components/Navigation/SiteFooter'
+import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
@@ -433,6 +434,7 @@ export default function App() {
         }}
       />
       <SiteFooter settings={siteSettings} />
+      <WhatsAppWidget settings={siteSettings} />
 
       {/* Template selector modal */}
       {tm.isOpen && (
