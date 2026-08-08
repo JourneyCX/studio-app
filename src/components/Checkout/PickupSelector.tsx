@@ -3,14 +3,18 @@ import type { ComponentConfig } from '@measured/puck'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 //
-// Provider-agnostic counterpart to BobgoPickupSelector.tsx. Unlike Bob Go's
-// widget (which pulled pickup points off the rate object itself), this one
-// fetches them from Shipping_checkout.php's own pickup_points endpoint —
-// the normalized rate shape has no embedded points, only an
-// is_pickup_point flag. Works for any active provider whose adapter
-// implements get_pickup_points() (The Courier Guy's is live; Bob Go's
-// currently returns an empty list — a pre-existing gap in Bobgorates_model,
-// not something this widget can work around).
+// Provider-agnostic counterpart to BobgoPickupSelector.tsx. Two genuinely
+// different pickup models exist across providers, and this widget only
+// needs to act for one of them:
+//   - The Courier Guy: a rate is generically "pickup type" and the real
+//     location still needs to be looked up (shipping_checkout/pickup_points,
+//     live/working). This widget opens and does that lookup.
+//   - Bob Go: has no standalone pickup-points endpoint at all (confirmed
+//     404 on Bob Go's real API) — each nearby Bob Box comes back as its
+//     OWN separate, already-fully-resolved rate entry (pickup_point_id/
+//     pickup_point_name on the rate itself, see Bobgo_provider::_normalize_rates()).
+//     Selecting that rate in ShippingOptions IS the final choice; this
+//     widget has nothing further to do and stays hidden.
 
 export type PickupSelectorProps = {
   apiUrl:       string
@@ -80,8 +84,14 @@ function PickupSelectorInner(props: PickupSelectorProps) {
 
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail ?? {}
-      if (detail.is_pickup_point) {
-        setRateData(detail.rate ?? null)
+      const rate   = (detail.rate ?? null) as { pickup_point_id?: string } | null
+      // Only open for a rate that needs a further location lookup. A rate
+      // that already carries pickup_point_id (Bob Go) is already the final
+      // choice — nothing for this widget to do.
+      const needsLookup = !!detail.is_pickup_point && !rate?.pickup_point_id
+
+      if (needsLookup) {
+        setRateData(rate)
         setSelected(null)
         setVisible(true)
         sessionRef.current = detail.session_token ?? ''

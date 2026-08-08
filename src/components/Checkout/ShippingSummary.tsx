@@ -22,6 +22,11 @@ interface ShippingRate {
   eta_days?:        number | null
   is_pickup_point?: boolean
   courier_name?:    string | null
+  // Present when this rate already resolves to one specific pickup
+  // location (Bob Go). See ShippingOptions.tsx / Shipping_provider_interface.php.
+  pickup_point_id?:          string
+  pickup_point_name?:        string
+  pickup_point_distance_km?: number | null
 }
 
 interface PickupPoint {
@@ -75,8 +80,12 @@ function ShippingSummaryInner({ showCourier, showEta, accentColor, borderRadius,
   const currency  = rate.currency || 'ZAR'
   const isFree    = cost === 0
   const isPickup  = !!rate.is_pickup_point
+  // Bob Go's rate already names its own location; The Courier Guy's
+  // generic pickup rate gets its location from the separate pickupPoint
+  // event once PickupSelector's live lookup resolves it.
+  const resolvedPickupName = rate.pickup_point_name || pickupPoint?.name
   const icon      = isPickup ? '📦' : isFree ? '🎁' : '🚚'
-  const name      = rate.service_name || 'Delivery'
+  const name      = resolvedPickupName || rate.service_name || 'Delivery'
   const courier   = showCourier && rate.courier_name ? ` · ${rate.courier_name}` : ''
   const eta       = showEta && rate.eta_days ? `${rate.eta_days} day${rate.eta_days !== 1 ? 's' : ''}` : ''
 
@@ -84,11 +93,13 @@ function ShippingSummaryInner({ showCourier, showEta, accentColor, borderRadius,
     ? <span style={{ fontWeight: 700, fontSize: 13, color: '#16a34a', background: '#dcfce7', padding: '2px 8px', borderRadius: 20 }}>FREE</span>
     : <span style={{ fontWeight: 700, fontSize: 15, color: '#1f2937' }}>{currency === 'ZAR' ? 'R' : currency} {cost.toFixed(2)}</span>
 
+  const hasResolvedPickup = isPickup && !!(pickupPoint || rate.pickup_point_id)
+
   const blockStyle: React.CSSProperties = {
     padding:     '14px 16px',
-    border:      isPickup && pickupPoint ? `1.5px solid ${accentColor}` : '1.5px solid #e5e7eb',
+    border:      hasResolvedPickup ? `1.5px solid ${accentColor}` : '1.5px solid #e5e7eb',
     borderRadius,
-    background:  isPickup && pickupPoint ? `${accentColor}14` : '#fff',
+    background:  hasResolvedPickup ? `${accentColor}14` : '#fff',
     marginTop:   8,
   }
 
@@ -100,12 +111,16 @@ function ShippingSummaryInner({ showCourier, showEta, accentColor, borderRadius,
           {priceEl}
         </div>
 
-        {isPickup && pickupPoint ? (
+        {pickupPoint ? (
           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
             {pickupPoint.name}{pickupPoint.address ? `, ${pickupPoint.address}` : ''}
             {pickupPoint.trading_hours && (
               <span style={{ color: '#9ca3af' }}> · {pickupPoint.trading_hours}</span>
             )}
+          </div>
+        ) : rate.pickup_point_id ? (
+          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+            {rate.pickup_point_distance_km != null && `${rate.pickup_point_distance_km.toFixed(1)} km away`}
           </div>
         ) : eta ? (
           <div style={{ fontSize: 12, color: '#6b7280', marginTop: 3 }}>

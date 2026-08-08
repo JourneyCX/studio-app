@@ -33,6 +33,14 @@ interface ShippingRate {
   eta_days?:        number | null
   is_pickup_point?: boolean
   courier_name?:    string | null
+  // Present only when this rate already resolves to one specific pickup
+  // location (e.g. Bob Go — a separate rate entry per nearby Bob Box).
+  // Absent when is_pickup_point is true but the location still needs to
+  // be looked up separately (e.g. The Courier Guy's PUDO network) — see
+  // Shipping_provider_interface.php.
+  pickup_point_id?:          string
+  pickup_point_name?:        string
+  pickup_point_distance_km?: number | null
 }
 
 type State = 'idle' | 'loading' | 'loaded' | 'error' | 'no_rates'
@@ -243,14 +251,23 @@ function ShippingOptionsInner(props: ShippingOptionsProps) {
         const currency  = rate.currency || 'ZAR'
         const isFree    = cost === 0
         const isPickup  = !!rate.is_pickup_point
+        // A pickup rate that already names its own location (Bob Go: one
+        // rate entry per nearby Bob Box) needs no further drill-down step.
+        // One without a resolved location (The Courier Guy: a generic PUDO
+        // rate) still needs the PickupSelector widget's live lookup.
+        const isResolvedPickup = isPickup && !!rate.pickup_point_id
+        const needsPickupPick  = isPickup && !rate.pickup_point_id
         const isSelected = selected === rate
         const icon      = isFree ? '🎁' : isPickup ? '📦' : rate.eta_days === 1 ? '⚡' : '🚚'
-        const name      = rate.service_name || 'Delivery'
+        const name      = (isResolvedPickup ? rate.pickup_point_name : rate.service_name) || 'Delivery'
         const courier   = showCourierNames ? (rate.courier_name ?? '') : ''
         const eta       = showEstDelivery && rate.eta_days
           ? ` · ${rate.eta_days} day${rate.eta_days !== 1 ? 's' : ''}`
           : ''
-        const meta      = [courier, eta].filter(Boolean).join('')
+        const distance  = isResolvedPickup && rate.pickup_point_distance_km != null
+          ? ` · ${rate.pickup_point_distance_km.toFixed(1)} km`
+          : ''
+        const meta      = [courier, eta, distance].filter(Boolean).join('')
 
         return (
           <div
@@ -281,10 +298,10 @@ function ShippingOptionsInner(props: ShippingOptionsProps) {
                 <span style={{ fontWeight: 600, fontSize: 14, color: '#1f2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {icon} {name}
                 </span>
-                {meta && (
+                {(meta || needsPickupPick) && (
                   <span style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
                     {meta}
-                    {isPickup && <span style={{ color: accentColor, fontWeight: 500 }}> › Select pickup point</span>}
+                    {needsPickupPick && <span style={{ color: accentColor, fontWeight: 500 }}> › Select pickup point</span>}
                   </span>
                 )}
               </div>
