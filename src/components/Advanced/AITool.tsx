@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { stratumApi } from '../../lib/api'
 
 type Mode   = 'recommender' | 'planner' | 'assistant'
 type Msg    = { role: 'user' | 'assistant'; content: string }
@@ -202,7 +203,7 @@ function ChatInner(props: AIToolProps) {
 
         {!proxyEndpoint && (
           <p style={{ color: textColor, opacity: 0.4, fontSize: 12, textAlign: 'center', marginTop: 12 }}>
-            ℹ️ Demo mode — go to <strong>AI Settings → Storefront AI Block</strong> in your Stratum admin to generate your endpoint URL and API key, then paste them into this block's settings.
+            ℹ️ This block configures itself automatically — if this message persists, check <strong>AI Settings → Storefront AI Block</strong> in your Stratum admin, or set the Proxy Endpoint/API Key fields manually below.
           </p>
         )}
       </div>
@@ -216,8 +217,8 @@ export const AITool: ComponentConfig<AIToolProps> = {
     mode:             { type: 'select',   label: 'Tool Mode', options: [{ label: '🛍 Product Recommender', value: 'recommender' }, { label: '🗺 Travel Planner', value: 'planner' }, { label: '💬 Store Assistant', value: 'assistant' }] },
     headline:         { type: 'text',     label: 'Section Headline' },
     subheadline:      { type: 'textarea', label: 'Section Subheadline' },
-    proxyEndpoint:    { type: 'text',     label: 'Proxy Endpoint URL — from AI Settings → Storefront AI Block' },
-    apiKey:           { type: 'text',     label: 'API Key — from AI Settings → Storefront AI Block (sent as X-AI-Key header)' },
+    proxyEndpoint:    { type: 'text',     label: 'Proxy Endpoint URL (auto-configured — override only for a custom AI backend)' },
+    apiKey:           { type: 'text',     label: 'API Key (auto-configured — override only for a custom AI backend)' },
     systemPrompt:     { type: 'textarea', label: 'System Prompt (optional override — leave blank for default)' },
     starterPrompts:   { type: 'textarea', label: 'Starter Prompts (one per line, shown as clickable chips)' },
     inputPlaceholder: { type: 'text',     label: 'Input Placeholder Text' },
@@ -248,5 +249,22 @@ export const AITool: ComponentConfig<AIToolProps> = {
     borderRadius:     16,
     maxHeight:        400,
   },
+  // Fills proxyEndpoint/apiKey the first time this block is dropped onto a page,
+  // so a merchant never has to visit AI Settings and paste them in by hand. Only
+  // fires when both are still blank — an existing published block (or one whose
+  // fields were deliberately overridden) is never touched. See
+  // Store_builder_api::ai_storefront_key() for what this resolves to.
+  async resolveData(data) {
+    if (data.props.proxyEndpoint || data.props.apiKey) {
+      return { props: {} }
+    }
+    try {
+      const { key, endpoint } = await stratumApi.getActiveAiStorefrontKey()
+      return { props: { apiKey: key, proxyEndpoint: endpoint } }
+    } catch {
+      return { props: {} }
+    }
+  },
+
   render(props) { return <ChatInner {...props} /> },
 }

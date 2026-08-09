@@ -223,6 +223,19 @@ export const stratumApi = {
     return stratumApi.getProducts(_activeTenantId, _activeToken, opts)
   },
 
+  // AITool block's resolveData() — this tenant's Storefront AI Block proxy
+  // endpoint + API key, generated server-side on first call. See
+  // Store_builder_api::ai_storefront_key() for why this never needs the
+  // cross-context lookups the calls above use.
+  getAiStorefrontKey(tenantId: number, token: string): Promise<{ key: string; endpoint: string }> {
+    return request('GET', `/admin/store_builder_api/ai_storefront_key/${tenantId}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveAiStorefrontKey(): Promise<{ key: string; endpoint: string }> {
+    return stratumApi.getAiStorefrontKey(_activeTenantId, _activeToken)
+  },
+
   // ── Template management ────────────────────────────────────────────────
   // Backend routes to implement in store_builder_api controller:
   //   GET    /admin/store_builder_api/templates/{tenantId}
