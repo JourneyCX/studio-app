@@ -206,20 +206,22 @@ export const stratumApi = {
   // Real synced products for ProductGrid/Carousel/Showcase's live-preview render
   // inside the Puck editor — see Store_builder_api::products() for the WC-backed
   // implementation and the wc_image proxy image_url is already rewritten through.
+  // categorySlug accepts a comma-separated list (ProductFilter's multi-select).
   getProducts(
     tenantId: number,
     token: string,
-    opts?: { categorySlug?: string; perPage?: number },
+    opts?: { categorySlug?: string; perPage?: number; maxPrice?: number },
   ): Promise<{ products: StoreProduct[] }> {
     const params = new URLSearchParams()
     if (opts?.categorySlug) params.set('category_slug', opts.categorySlug)
     if (opts?.perPage) params.set('per_page', String(opts.perPage))
+    if (opts?.maxPrice != null) params.set('max_price', String(opts.maxPrice))
     const qs = params.toString()
     return request('GET', `/admin/store_builder_api/products/${tenantId}${qs ? `?${qs}` : ''}`, token)
   },
 
   // Convenience wrapper — uses the module-level active token/tenant (set after login).
-  getActiveProducts(opts?: { categorySlug?: string; perPage?: number }): Promise<{ products: StoreProduct[] }> {
+  getActiveProducts(opts?: { categorySlug?: string; perPage?: number; maxPrice?: number }): Promise<{ products: StoreProduct[] }> {
     return stratumApi.getProducts(_activeTenantId, _activeToken, opts)
   },
 

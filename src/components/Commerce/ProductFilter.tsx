@@ -1,7 +1,16 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { CategoryFilterListField } from '../shared/CategoryFilterListField'
 
-type Category = { label: string; count: number }
+type Category = { label: string; slug: string; count: number }
+
+// Puck's canvas renders every block inside a single iframe document, but Puck
+// gives independent blocks like ProductFilter/ProductGrid no shared state or
+// prop channel to talk to each other with — so the filter widget broadcasts its
+// selection on the iframe's own `window` and ProductGrid listens for it (see
+// ProductGrid.tsx). Scoped to this one event name/shape only.
+export const PRODUCT_FILTER_EVENT = 'stratum:product-filter'
+export type ProductFilterEventDetail = { categorySlugs: string[]; maxPrice?: number }
 
 export type ProductFilterProps = {
   layout: 'sidebar' | 'topbar'
@@ -56,6 +65,18 @@ function FilterPanel({ layout, showSearch, showCategories, showCategoryCounts, s
   const [priceOpen, setPriceOpen] = useState(true)
   const [checkedCats, setChecked] = useState<number[]>([0])
   const [priceVal, setPriceVal]   = useState(maxPrice)
+
+  useEffect(() => {
+    const categorySlugs = showCategories
+      ? checkedCats.map(i => categories[i]?.slug).filter((s): s is string => !!s)
+      : []
+    const detail: ProductFilterEventDetail = {
+      categorySlugs,
+      maxPrice: showPriceRange ? priceVal : undefined,
+    }
+    window.dispatchEvent(new CustomEvent<ProductFilterEventDetail>(PRODUCT_FILTER_EVENT, { detail }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkedCats, priceVal, showCategories, showPriceRange, categories])
 
   const inputBase: React.CSSProperties = {
     width: '100%',
@@ -221,14 +242,11 @@ export const ProductFilter: ComponentConfig<ProductFilterProps> = {
     minPrice:          { type: 'number', label: 'Min Price' },
     maxPrice:          { type: 'number', label: 'Max Price' },
     categories: {
-      type: 'array',
+      type: 'custom',
       label: 'Categories',
-      arrayFields: {
-        label: { type: 'text',   label: 'Category Name' },
-        count: { type: 'number', label: 'Product Count' },
-      },
-      defaultItemProps: { label: 'Category', count: 12 },
-      getItemSummary: (item: Category) => item.label || 'Category',
+      render: ({ value, onChange }) => (
+        <CategoryFilterListField value={value as Category[]} onChange={onChange as (v: Category[]) => void} />
+      ),
     },
   },
   defaultProps: {
@@ -246,13 +264,16 @@ export const ProductFilter: ComponentConfig<ProductFilterProps> = {
     currency:          'R ',
     minPrice:          0,
     maxPrice:          2000,
+    // No slug on these placeholder defaults — they're display-only until a
+    // merchant picks real categories via the dropdown, at which point real
+    // slugs are set and filtering activates.
     categories: [
-      { label: 'All Products', count: 124 },
-      { label: 'New Arrivals', count: 32 },
-      { label: 'Best Sellers', count: 48 },
-      { label: 'Sale', count: 21 },
-      { label: 'Clothing', count: 56 },
-      { label: 'Accessories', count: 38 },
+      { label: 'All Products', slug: '', count: 124 },
+      { label: 'New Arrivals', slug: '', count: 32 },
+      { label: 'Best Sellers', slug: '', count: 48 },
+      { label: 'Sale', slug: '', count: 21 },
+      { label: 'Clothing', slug: '', count: 56 },
+      { label: 'Accessories', slug: '', count: 38 },
     ],
   },
   render(props) {

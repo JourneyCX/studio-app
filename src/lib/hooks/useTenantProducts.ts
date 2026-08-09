@@ -13,14 +13,17 @@ export type UseTenantProductsResult =
 
 // enabled=false skips the fetch entirely — used when a widget's "Show Placeholder"
 // is on, so previewing fake layout doesn't also poll WooCommerce in the background.
-export function useTenantProducts(categorySlug: string, count: number, enabled: boolean = true): UseTenantProductsResult {
+// maxPrice comes from a Product Filter block elsewhere on the same preview canvas
+// (see ProductGrid's stratum:product-filter listener) — optional, on top of the
+// grid's own design-time categorySlug.
+export function useTenantProducts(categorySlug: string, count: number, enabled: boolean = true, maxPrice?: number): UseTenantProductsResult {
   const [state, setState] = useState<UseTenantProductsResult>({ status: 'loading', products: [] })
 
   useEffect(() => {
     if (!enabled) return
     let cancelled = false
     setState({ status: 'loading', products: [] })
-    stratumApi.getActiveProducts({ categorySlug: categorySlug || undefined, perPage: count })
+    stratumApi.getActiveProducts({ categorySlug: categorySlug || undefined, perPage: count, maxPrice })
       .then(result => {
         if (cancelled) return
         const products = result.products ?? []
@@ -30,7 +33,7 @@ export function useTenantProducts(categorySlug: string, count: number, enabled: 
         if (!cancelled) setState({ status: 'error', products: [] })
       })
     return () => { cancelled = true }
-  }, [categorySlug, count, enabled])
+  }, [categorySlug, count, enabled, maxPrice])
 
   return state
 }

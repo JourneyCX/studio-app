@@ -1,8 +1,25 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
 import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
 import type { StoreProduct } from '../../lib/api'
+import { PRODUCT_FILTER_EVENT, type ProductFilterEventDetail } from './ProductFilter'
+
+// Listens for a Product Filter block's selection broadcast on the shared Puck
+// iframe window (see ProductFilter.tsx for why this is an event, not a prop).
+// Any category/price selection there takes precedence over this grid's own
+// design-time categorySlug; with nothing selected, falls back to it unchanged.
+function useProductFilterOverride() {
+  const [override, setOverride] = useState<ProductFilterEventDetail>({ categorySlugs: [] })
+  useEffect(() => {
+    function handler(e: Event) {
+      setOverride((e as CustomEvent<ProductFilterEventDetail>).detail)
+    }
+    window.addEventListener(PRODUCT_FILTER_EVENT, handler)
+    return () => window.removeEventListener(PRODUCT_FILTER_EVENT, handler)
+  }, [])
+  return override
+}
 
 export type ProductGridProps = {
   headline:        string
@@ -93,7 +110,11 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
     // ?? not || : a page saved before this field existed has no showPlaceholder key
     // at all and must keep rendering exactly as it did before (fake grid).
     const useFake = showPlaceholder ?? true
-    const { status, products } = useTenantProducts(categorySlug, count, !useFake)
+    const filterOverride = useProductFilterOverride()
+    const effectiveCategorySlug = filterOverride.categorySlugs.length > 0
+      ? filterOverride.categorySlugs.join(',')
+      : categorySlug
+    const { status, products } = useTenantProducts(effectiveCategorySlug, count, !useFake, filterOverride.maxPrice)
 
     let body: React.ReactNode
     if (useFake || status === 'loading' || status === 'error') {
