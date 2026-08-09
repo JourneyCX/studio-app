@@ -28,6 +28,13 @@ let _activeToken = ''
 export function setActiveToken(token: string) { _activeToken = token }
 export function getActiveToken() { return _activeToken }
 
+// Module-level active tenant ID — same rationale as _activeToken above, needed
+// by the Product Category custom field (ProductGrid/Carousel/Showcase), which
+// is a static ComponentConfig import with no tenant context threaded through props.
+let _activeTenantId = 0
+export function setActiveTenantId(tenantId: number) { _activeTenantId = tenantId }
+export function getActiveTenantId() { return _activeTenantId }
+
 async function request<T>(
   method: string,
   path: string,
@@ -164,6 +171,19 @@ export const stratumApi = {
   // Convenience wrapper — uses the module-level active token (set after login).
   uploadActiveImage(file: File): Promise<{ url: string; error?: string }> {
     return stratumApi.uploadImage(file, _activeToken)
+  },
+
+  // Product Category dropdown fields (ProductGrid/Carousel/Showcase). Reads the
+  // tenant's real, live WooCommerce categories so a merchant picks a category by
+  // name instead of typing a slug — see Store_builder_api::categories() for why
+  // this hits WC directly rather than sb_category_pages/items_groups.
+  getCategories(tenantId: number, token: string): Promise<{ categories: Array<{ name: string; slug: string }> }> {
+    return request('GET', `/admin/store_builder_api/categories/${tenantId}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveCategories(): Promise<{ categories: Array<{ name: string; slug: string }> }> {
+    return stratumApi.getCategories(_activeTenantId, _activeToken)
   },
 
   // ── Template management ────────────────────────────────────────────────

@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { CategorySelectField } from '../shared/CategorySelectField'
 
 type CardStyle = 'classic' | 'minimal' | 'overlay'
 type AspectRatio = '1/1' | '4/3' | '3/4'
@@ -180,7 +181,13 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
     textColor:        { type: 'text',    label: 'Text Colour (hex)' },
     cardRadius:       { type: 'number',  label: 'Card Border Radius (px)' },
     gap:              { type: 'number',  label: 'Gap Between Cards (px)' },
-    categorySlug:     { type: 'text',    label: 'WooCommerce Category Slug (live storefront)' },
+    categorySlug: {
+      type: 'custom',
+      label: 'Product Category (live storefront)',
+      render: ({ value, onChange }) => (
+        <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="All Categories" />
+      ),
+    },
   },
   defaultProps: {
     headline: 'Featured Products',

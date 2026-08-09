@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { CategorySelectField } from '../shared/CategorySelectField'
 
 export type ProductCarouselProps = {
   headline: string
@@ -185,7 +186,13 @@ export const ProductCarousel: ComponentConfig<ProductCarouselProps> = {
     backgroundColor: { type: 'text', label: 'Section Background (hex)' },
     textColor:     { type: 'text',   label: 'Text Colour (hex)' },
     cardRadius:    { type: 'number', label: 'Card Border Radius (px)' },
-    categorySlug:  { type: 'text',   label: 'WooCommerce Category Slug (live storefront)' },
+    categorySlug: {
+      type: 'custom',
+      label: 'Product Category (live storefront)',
+      render: ({ value, onChange }) => (
+        <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="All Categories" />
+      ),
+    },
   },
   defaultProps: {
     headline:        'Trending Now',

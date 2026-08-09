@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Puck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
-import { stratumApi, setActiveToken, STRATUM_ORIGIN, type StudioSession } from './lib/api'
+import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, type StudioSession } from './lib/api'
 import { useTemplateManager } from './lib/useTemplateManager'
 import { TemplateSelector } from './components/TemplateSelector'
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog'
@@ -228,6 +228,7 @@ export default function App() {
     stratumApi.verifyToken(token)
       .then(async sess => {
         setActiveToken(token)
+        setActiveTenantId(sess.tenantId)
         setSession(sess)
         // Parallel, not sequential — page content and site settings are independent
         // fetches (both only need tenantId), matching the same no-added-latency

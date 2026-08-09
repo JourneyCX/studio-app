@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { CategorySelectField } from '../shared/CategorySelectField'
 
 export type ProductGridProps = {
   headline:        string
@@ -47,7 +48,13 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
     headline:        { type: 'text',   label: 'Section Headline' },
     columns:         { type: 'number', label: 'Columns (1–6)' },
     rows:            { type: 'number', label: 'Rows (1–10)' },
-    categorySlug:    { type: 'text',   label: 'WooCommerce Category Slug (leave blank for all)' },
+    categorySlug: {
+      type: 'custom',
+      label: 'Product Category (leave blank for all)',
+      render: ({ value, onChange }) => (
+        <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="All Categories" />
+      ),
+    },
     showPlaceholder: { type: 'radio',  label: 'Show Placeholder (Phase 1)', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
     gap:             { type: 'number', label: 'Gap (px)' },
