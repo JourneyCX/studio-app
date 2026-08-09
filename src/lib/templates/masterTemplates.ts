@@ -1276,9 +1276,109 @@ const jewelryPuckState: Data = {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GENERAL  ▸  Shop / Category page layout
+// Sidebar filters beside a product grid — the Columns "Sidebar Left (1:3)" preset
+// pre-wired with ProductFilter (col-0) + ProductGrid (col-1), so merchants don't
+// have to assemble the layout by hand to get filters sitting next to products.
+// ─────────────────────────────────────────────────────────────────────────────
+const shopWithFiltersPuckState: Data = {
+  root: { props: {} },
+  content: [
+    {
+      type: 'SiteHeader',
+      props: {
+        id: 'SiteHeader-shop-hdr',
+        logoUrl: '',
+        logoAlt: 'Your Store',
+        backgroundColor: '#ffffff',
+        textColor: '#1a202c',
+        sticky: true,
+        navLinks: [
+          { label: 'Home',  url: '/' },
+          { label: 'Shop',  url: '/shop' },
+        ],
+      },
+    },
+    {
+      type: 'Columns',
+      props: {
+        id: 'Columns-shop-layout',
+        distribution: 'sidebar13',
+        gap: 32,
+        backgroundColor: 'transparent',
+      },
+    },
+    {
+      type: 'SiteFooter',
+      props: {
+        id: 'SiteFooter-shop-ftr',
+        copyrightText: '© 2026 Your Store. All rights reserved.',
+        backgroundColor: '#1a202c',
+        textColor: '#94a3b8',
+      },
+    },
+  ],
+  zones: {
+    'Columns-shop-layout:col-0': [
+      {
+        type: 'ProductFilter',
+        props: {
+          id: 'ProductFilter-shop-sidebar',
+          layout: 'sidebar',
+          showSearch: true,
+          showCategories: true,
+          showCategoryCounts: false,
+          showPriceRange: true,
+          showSortBy: true,
+          showActiveFilters: true,
+          accentColor: '#2563eb',
+          backgroundColor: '#ffffff',
+          textColor: '#1e293b',
+          borderColor: '#e2e8f0',
+          currency: 'R ',
+          minPrice: 0,
+          maxPrice: 2000,
+          categories: [
+            { label: 'All Products', count: 124 },
+            { label: 'New Arrivals', count: 32 },
+            { label: 'Best Sellers', count: 48 },
+            { label: 'Sale', count: 21 },
+          ],
+        },
+      },
+    ],
+    'Columns-shop-layout:col-1': [
+      {
+        type: 'ProductGrid',
+        props: {
+          id: 'ProductGrid-shop-main',
+          headline: 'Shop All Products',
+          columns: 3,
+          rows: 3,
+          categorySlug: '',
+          showPlaceholder: true,
+          backgroundColor: '#ffffff',
+          gap: 24,
+        },
+      },
+    ],
+  },
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Master template catalogue — ordered by tier priority
 // ─────────────────────────────────────────────────────────────────────────────
 export const MASTER_TEMPLATES: StoreTemplate[] = [
+  // ── General ─────────────────────────────────────────────────────────────
+  {
+    id: 'tmpl_shop_filters_v1',
+    name: 'Shop Page — Filters Sidebar',
+    category: 'general',
+    thumbnail: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=600&q=80',
+    description: 'Category/shop page with a filter sidebar (search, category, price, sort) beside a product grid — the layout to use when you want Filters sitting next to Products.',
+    tags: ['shop', 'category page', 'filters', 'sidebar', 'product grid', 'all products'],
+    puckState: shopWithFiltersPuckState,
+  },
   // ── Tier 1 ──────────────────────────────────────────────────────────────
   {
     id: 'tmpl_fashion_v1',
