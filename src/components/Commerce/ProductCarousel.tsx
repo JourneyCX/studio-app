@@ -274,7 +274,7 @@ export const ProductCarousel: ComponentConfig<ProductCarouselProps> = {
     textColor:       '#1e293b',
     cardRadius:      12,
     categorySlug:    '',
-    showPlaceholder: true,
+    showPlaceholder: false,
   },
   render(props) {
     return <CarouselInner {...props} />

@@ -227,7 +227,7 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
     cardRadius: 12,
     gap: 20,
     categorySlug: '',
-    showPlaceholder: true,
+    showPlaceholder: false,
   },
   render(props) {
     const { headline, subheadline, columns, count, productCount, ctaText, ctaUrl, layout: _layout, backgroundColor, textColor, accentColor, gap, categorySlug, showPlaceholder, ...rest } = props

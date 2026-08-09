@@ -82,7 +82,7 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
     columns:         3,
     rows:            2,
     categorySlug:    '',
-    showPlaceholder: true,
+    showPlaceholder: false,
     backgroundColor: '#f7f8fa',
     gap:             24,
   },
