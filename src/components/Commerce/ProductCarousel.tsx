@@ -1,6 +1,8 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
+import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
+import type { StoreProduct } from '../../lib/api'
 
 export type ProductCarouselProps = {
   headline: string
@@ -35,6 +37,7 @@ export type ProductCarouselProps = {
   textColor: string
   cardRadius: number
   categorySlug: string
+  showPlaceholder: boolean
 }
 
 const PALETTE = ['#dbeafe', '#fce7f3', '#dcfce7', '#fef3c7', '#ede9fe', '#ffedd5', '#e0f2fe', '#f0fdf4']
@@ -61,9 +64,62 @@ function Stars({ color }: { color: string }) {
   )
 }
 
+// Real synced product (when `product` is set) alongside the original fake card
+// (index-cycled NAMES/PRICES/PALETTE) — omitted keeps the exact prior visuals.
+function CarouselCard({ index, product, cardWidth, cardRadius, showBadge, badge, badgeColor, showRating, accentColor, textColor, showPrice, showCart }: {
+  index: number
+  product?: StoreProduct
+  cardWidth: number
+  cardRadius: number
+  showBadge: boolean
+  badge: string
+  badgeColor: string
+  showRating: boolean
+  accentColor: string
+  textColor: string
+  showPrice: boolean
+  showCart: boolean
+}) {
+  const [imgFailed, setImgFailed] = useState(false)
+  const showImage = !!(product?.image_url && !imgFailed)
+  return (
+    <div
+      className="pcr-card"
+      style={{ width: cardWidth, backgroundColor: '#fff', borderRadius: cardRadius, overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #f1f5f9' }}
+    >
+      <div style={{ position: 'relative', width: cardWidth, aspectRatio: '1/1', backgroundColor: PALETTE[index % PALETTE.length], display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        {showImage ? (
+          <img src={product!.image_url!} alt={product!.name} onError={() => setImgFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          <span style={{ fontSize: 36, opacity: 0.45 }}>{product ? '📷' : '🛍'}</span>
+        )}
+        {showBadge && (
+          <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: badgeColor, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+            {badge}
+          </span>
+        )}
+      </div>
+      <div style={{ padding: '12px 14px 16px' }}>
+        {showRating && <Stars color={accentColor} />}
+        <p style={{ margin: '0 0 4px', fontWeight: 600, fontSize: 14, color: textColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          {product ? product.name : NAMES[index % NAMES.length]}
+        </p>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
+          {showPrice && <span style={{ fontWeight: 800, fontSize: 16, color: textColor }}>{product ? `R ${product.price}` : PRICES[index % PRICES.length]}</span>}
+          {showCart && (
+            <button className="pcr-atc" style={{ backgroundColor: accentColor, color: '#fff', border: 'none', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
+              + Cart
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 interface InnerProps extends ProductCarouselProps {}
 
-function CarouselInner({ headline, subheadline, viewAllText, viewAllUrl, count, productCount, cardWidth, showArrows, showDots, showAddToCart, showPrices, showBadge, badgeText, badgeLabel, badgeColor, showRating, accentColor, backgroundColor, textColor, cardRadius }: InnerProps) {
+function CarouselInner({ headline, subheadline, viewAllText, viewAllUrl, count, productCount, cardWidth, showArrows, showDots, showAddToCart, showPrices, categorySlug, showPlaceholder, showBadge, badgeText, badgeLabel, badgeColor, showRating, accentColor, backgroundColor, textColor, cardRadius }: InnerProps) {
   const badge = badgeLabel ?? badgeText
   const trackRef = useRef<HTMLDivElement>(null)
 
@@ -75,6 +131,10 @@ function CarouselInner({ headline, subheadline, viewAllText, viewAllUrl, count, 
   const clamp = Math.max(2, Math.min(productCount ?? count, 20))
   const showCart   = showAddToCart ?? true
   const showPrice  = showPrices ?? true
+  // ?? not || : a page saved before this field existed has no showPlaceholder key
+  // at all and must keep rendering exactly as it did before (fake cards).
+  const useFake = showPlaceholder ?? true
+  const { status, products } = useTenantProducts(categorySlug, clamp, !useFake)
 
   return (
     <section style={{ backgroundColor, padding: '56px 0' }}>
@@ -117,42 +177,41 @@ function CarouselInner({ headline, subheadline, viewAllText, viewAllUrl, count, 
       </div>
 
       <div style={{ paddingLeft: 24 }}>
-        <div
-          ref={trackRef}
-          className="pcr-track"
-          style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingRight: 24, paddingBottom: 4 }}
-        >
-          {Array.from({ length: clamp }).map((_, i) => (
-            <div
-              key={i}
-              className="pcr-card"
-              style={{ width: cardWidth, backgroundColor: '#fff', borderRadius: cardRadius, overflow: 'hidden', boxShadow: '0 1px 6px rgba(0,0,0,0.07)', border: '1px solid #f1f5f9' }}
-            >
-              <div style={{ position: 'relative', width: cardWidth, aspectRatio: '1/1', backgroundColor: PALETTE[i % PALETTE.length], display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <span style={{ fontSize: 36, opacity: 0.45 }}>🛍</span>
-                {showBadge && (
-                  <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: badgeColor, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                    {badge}
-                  </span>
-                )}
-              </div>
-              <div style={{ padding: '12px 14px 16px' }}>
-                {showRating && <Stars color={accentColor} />}
-                <p style={{ margin: '0 0 4px', fontWeight: 600, fontSize: 14, color: textColor, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {NAMES[i % NAMES.length]}
-                </p>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
-                  {showPrice && <span style={{ fontWeight: 800, fontSize: 16, color: textColor }}>{PRICES[i % PRICES.length]}</span>}
-                  {showCart && (
-                    <button className="pcr-atc" style={{ backgroundColor: accentColor, color: '#fff', border: 'none', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
-                      + Cart
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        {!useFake && status === 'error' && (
+          <p style={{ margin: '0 0 12px', fontSize: 12, color: '#dd6b20' }}>⚠ Couldn't load live products — showing placeholder layout instead.</p>
+        )}
+        {!useFake && status === 'empty' ? (
+          <div style={{ color: '#a0aec0', fontSize: 14, padding: 32, textAlign: 'center' }}>
+            No products found — add products in Warehouse, or switch "Show Placeholder" on to preview the layout.
+          </div>
+        ) : (
+          <div
+            ref={trackRef}
+            className="pcr-track"
+            style={{ display: 'flex', gap: 16, overflowX: 'auto', paddingRight: 24, paddingBottom: 4 }}
+          >
+            {(useFake || status === 'loading' || status === 'error'
+              ? Array.from({ length: clamp })
+              : products.slice(0, clamp)
+            ).map((item, i) => (
+              <CarouselCard
+                key={useFake || status === 'loading' || status === 'error' ? i : (item as StoreProduct).id}
+                index={i}
+                product={useFake || status === 'loading' || status === 'error' ? undefined : (item as StoreProduct)}
+                cardWidth={cardWidth}
+                cardRadius={cardRadius}
+                showBadge={showBadge}
+                badge={badge}
+                badgeColor={badgeColor}
+                showRating={showRating}
+                accentColor={accentColor}
+                textColor={textColor}
+                showPrice={showPrice}
+                showCart={showCart}
+              />
+            ))}
+          </div>
+        )}
         {showDots && (
           <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 20 }}>
             {Array.from({ length: clamp }).map((_, i) => (
@@ -188,11 +247,12 @@ export const ProductCarousel: ComponentConfig<ProductCarouselProps> = {
     cardRadius:    { type: 'number', label: 'Card Border Radius (px)' },
     categorySlug: {
       type: 'custom',
-      label: 'Product Category (live storefront)',
+      label: 'Product Category (leave blank for all)',
       render: ({ value, onChange }) => (
         <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="All Categories" />
       ),
     },
+    showPlaceholder: { type: 'radio', label: 'Show Placeholder', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
   },
   defaultProps: {
     headline:        'Trending Now',
@@ -214,6 +274,7 @@ export const ProductCarousel: ComponentConfig<ProductCarouselProps> = {
     textColor:       '#1e293b',
     cardRadius:      12,
     categorySlug:    '',
+    showPlaceholder: true,
   },
   render(props) {
     return <CarouselInner {...props} />

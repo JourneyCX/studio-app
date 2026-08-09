@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
+import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
+import type { StoreProduct } from '../../lib/api'
 
 export type ProductGridProps = {
   headline:        string
@@ -20,27 +23,42 @@ export type ProductGridProps = {
   gap:             number
 }
 
-// Phase 1: renders a placeholder grid.
-// Phase 2: replace placeholder cards with live WooCommerce data (via Nuxt server-side proxy).
-const PlaceholderCard = ({ index, showAddToCart, showPrices }: { index: number; showAddToCart: boolean; showPrices: boolean }) => (
-  <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
-    <div style={{ height: 200, background: `hsl(${index * 37}, 30%, 90%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a0aec0', fontSize: 13 }}>
-      Product Image
-    </div>
-    <div style={{ padding: 16 }}>
-      <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: '#2d3748' }}>Product {index + 1}</p>
-      <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13 }}>Short product description</p>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>R 299.00</span>}
-        {showAddToCart && (
-          <button style={{ background: '#3182ce', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
-            Add to Cart
-          </button>
-        )}
+// Real synced products (Phase 2) alongside the original fake grid (Phase 1, kept as
+// a permanent manual "preview layout before I have products" override). `product`
+// set → real name/price/image; omitted → the original synthetic placeholder content,
+// byte-for-byte unchanged from before.
+const Card = ({ index, product, showAddToCart, showPrices }: { index: number; product?: StoreProduct; showAddToCart: boolean; showPrices: boolean }) => {
+  const [imgFailed, setImgFailed] = useState(false)
+  const showImage = product ? (product.image_url && !imgFailed) : false
+  return (
+    <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+      {showImage ? (
+        <img
+          src={product!.image_url!}
+          alt={product!.name}
+          onError={() => setImgFailed(true)}
+          style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <div style={{ height: 200, background: `hsl(${index * 37}, 30%, 90%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a0aec0', fontSize: 13 }}>
+          {product ? '📷' : 'Product Image'}
+        </div>
+      )}
+      <div style={{ padding: 16 }}>
+        <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: '#2d3748' }}>{product ? product.name : `Product ${index + 1}`}</p>
+        {!product && <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13 }}>Short product description</p>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>{product ? `R ${product.price}` : 'R 299.00'}</span>}
+          {showAddToCart && (
+            <button style={{ background: '#3182ce', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
+              Add to Cart
+            </button>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 export const ProductGrid: ComponentConfig<ProductGridProps> = {
   label: 'Product Grid',
@@ -55,7 +73,7 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
         <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="All Categories" />
       ),
     },
-    showPlaceholder: { type: 'radio',  label: 'Show Placeholder (Phase 1)', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
+    showPlaceholder: { type: 'radio',  label: 'Show Placeholder', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
     gap:             { type: 'number', label: 'Gap (px)' },
   },
@@ -68,21 +86,39 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
     backgroundColor: '#f7f8fa',
     gap:             24,
   },
-  render({ headline, columns, rows, productCount, showAddToCart, showPrices, showPlaceholder, backgroundColor, gap }) {
-    const count = productCount ?? (columns * rows)
+  render({ headline, columns, rows, productCount, showAddToCart, showPrices, categorySlug, showPlaceholder, backgroundColor, gap }) {
+    const count     = productCount ?? (columns * rows)
     const showCart  = showAddToCart ?? true
     const showPrice = showPrices ?? true
+    // ?? not || : a page saved before this field existed has no showPlaceholder key
+    // at all and must keep rendering exactly as it did before (fake grid).
+    const useFake = showPlaceholder ?? true
+    const { status, products } = useTenantProducts(categorySlug, count, !useFake)
+
+    let body: React.ReactNode
+    if (useFake || status === 'loading' || status === 'error') {
+      body = Array.from({ length: count }).map((_, i) => <Card key={i} index={i} showAddToCart={showCart} showPrices={showPrice} />)
+    } else if (status === 'empty') {
+      body = (
+        <div style={{ gridColumn: '1 / -1', color: '#a0aec0', fontSize: 14, padding: 32, textAlign: 'center' }}>
+          No products found — add products in Warehouse, or switch "Show Placeholder" on to preview the layout.
+        </div>
+      )
+    } else {
+      body = products.slice(0, count).map(p => <Card key={p.id} index={0} product={p} showAddToCart={showCart} showPrices={showPrice} />)
+    }
+
     return (
       <section style={{ backgroundColor, padding: '48px 24px' }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {headline && (
             <h2 style={{ margin: '0 0 32px', fontSize: 28, fontWeight: 700, color: '#1a202c' }}>{headline}</h2>
           )}
+          {!useFake && status === 'error' && (
+            <p style={{ margin: '0 0 12px', fontSize: 12, color: '#dd6b20' }}>⚠ Couldn't load live products — showing placeholder layout instead.</p>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
-            {showPlaceholder
-              ? Array.from({ length: count }).map((_, i) => <PlaceholderCard key={i} index={i} showAddToCart={showCart} showPrices={showPrice} />)
-              : <div style={{ color: '#a0aec0', fontSize: 14, padding: 32, textAlign: 'center' }}>Products will load from WooCommerce on the live storefront.</div>
-            }
+            {body}
           </div>
         </div>
       </section>

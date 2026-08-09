@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
+import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
+import type { StoreProduct } from '../../lib/api'
 
 type CardStyle = 'classic' | 'minimal' | 'overlay'
 type AspectRatio = '1/1' | '4/3' | '3/4'
@@ -36,6 +39,7 @@ export type ProductShowcaseProps = {
   cardRadius: number
   gap: number
   categorySlug: string
+  showPlaceholder: boolean
 }
 
 const PALETTE = ['#dbeafe', '#fce7f3', '#dcfce7', '#fef3c7', '#ede9fe', '#ffedd5', '#e0f2fe', '#f0fdf4']
@@ -61,6 +65,7 @@ function Stars({ color }: { color: string }) {
 
 interface CardProps {
   index: number
+  product?: StoreProduct
   cardStyle: CardStyle
   imageAspectRatio: AspectRatio
   showBadge: boolean
@@ -74,15 +79,26 @@ interface CardProps {
   cardRadius: number
 }
 
-function PlaceholderCard({ index, cardStyle, imageAspectRatio, showBadge, badgeText, badgeColor, showRating, showWishlist, showSalePrice, accentColor, textColor, cardRadius }: CardProps) {
+// Real synced product (when `product` is set) alongside the original fake card
+// (index-cycled name/price/origPrice arrays) — omitted keeps the exact prior visuals.
+function PlaceholderCard({ index, product, cardStyle, imageAspectRatio, showBadge, badgeText, badgeColor, showRating, showWishlist, showSalePrice, accentColor, textColor, cardRadius }: CardProps) {
+  const [imgFailed, setImgFailed] = useState(false)
   const bg = PALETTE[index % PALETTE.length]
-  const name = ['Artisan Mug', 'Linen Tote', 'Bamboo Set', 'Glass Jar', 'Cotton Wrap', 'Ceramic Bowl', 'Woven Basket', 'Stone Vase'][index % 8]
-  const price = ['R 249', 'R 399', 'R 189', 'R 329', 'R 159', 'R 449', 'R 299', 'R 219'][index % 8]
-  const origPrice = ['R 349', 'R 499', 'R 249', 'R 429', 'R 219', 'R 599', 'R 399', 'R 299'][index % 8]
+  const name = product ? product.name : ['Artisan Mug', 'Linen Tote', 'Bamboo Set', 'Glass Jar', 'Cotton Wrap', 'Ceramic Bowl', 'Woven Basket', 'Stone Vase'][index % 8]
+  const price = product ? `R ${product.on_sale && showSalePrice ? product.sale_price : product.price}` : ['R 249', 'R 399', 'R 189', 'R 329', 'R 159', 'R 449', 'R 299', 'R 219'][index % 8]
+  const origPrice = product ? `R ${product.regular_price}` : ['R 349', 'R 499', 'R 249', 'R 429', 'R 219', 'R 599', 'R 399', 'R 299'][index % 8]
+  const showImage = !!(product?.image_url && !imgFailed)
+  // Real, non-sale products have price === regular_price — no strikethrough to show,
+  // unlike the fake data, which always implies a discount when showSalePrice is on.
+  const showStrike = showSalePrice && (!product || product.on_sale)
 
   const imageNode = (
     <div style={{ position: 'relative', aspectRatio: imageAspectRatio, backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-      <span style={{ fontSize: 40, opacity: 0.5 }}>🛍</span>
+      {showImage ? (
+        <img src={product!.image_url!} alt={product!.name} onError={() => setImgFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        <span style={{ fontSize: 40, opacity: 0.5 }}>{product ? '📷' : '🛍'}</span>
+      )}
       {showBadge && (
         <span style={{ position: 'absolute', top: 10, left: 10, backgroundColor: badgeColor, color: '#fff', fontSize: 10, fontWeight: 700, padding: '3px 8px', borderRadius: 4, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
           {badgeText}
@@ -109,7 +125,7 @@ function PlaceholderCard({ index, cardStyle, imageAspectRatio, showBadge, badgeT
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <span style={{ fontWeight: 700, fontSize: 17, color: '#fff' }}>{price}</span>
-              {showSalePrice && <span style={{ marginLeft: 8, fontSize: 13, color: 'rgba(255,255,255,0.6)', textDecoration: 'line-through' }}>{origPrice}</span>}
+              {showStrike && <span style={{ marginLeft: 8, fontSize: 13, color: 'rgba(255,255,255,0.6)', textDecoration: 'line-through' }}>{origPrice}</span>}
             </div>
             <button className="psc-btn" style={{ backgroundColor: accentColor, color: '#fff', border: 'none', padding: '7px 14px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
               Add to Cart
@@ -130,7 +146,7 @@ function PlaceholderCard({ index, cardStyle, imageAspectRatio, showBadge, badgeT
         <p style={{ margin: '0 0 4px', fontWeight: 600, fontSize: 15, color: textColor }}>{name}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ fontWeight: 700, fontSize: 16, color: accentColor }}>{price}</span>
-          {showSalePrice && <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>{origPrice}</span>}
+          {showStrike && <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>{origPrice}</span>}
         </div>
         <button className="psc-btn" style={{ marginTop: 10, background: 'none', border: `1.5px solid ${accentColor}`, color: accentColor, padding: '7px 0', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 700, width: '100%' }}>
           Add to Cart
@@ -148,8 +164,8 @@ function PlaceholderCard({ index, cardStyle, imageAspectRatio, showBadge, badgeT
         <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: textColor, lineHeight: 1.35 }}>{name}</p>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
           <span style={{ fontWeight: 800, fontSize: 17, color: textColor }}>{price}</span>
-          {showSalePrice && <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>{origPrice}</span>}
-          {showSalePrice && <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', backgroundColor: '#fef2f2', padding: '2px 6px', borderRadius: 4 }}>SAVE</span>}
+          {showStrike && <span style={{ fontSize: 13, color: '#9ca3af', textDecoration: 'line-through' }}>{origPrice}</span>}
+          {showStrike && <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', backgroundColor: '#fef2f2', padding: '2px 6px', borderRadius: 4 }}>SAVE</span>}
         </div>
         <button className="psc-btn" style={{ width: '100%', backgroundColor: accentColor, color: '#fff', border: 'none', padding: '10px 0', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 700 }}>
           Add to Cart
@@ -183,11 +199,12 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
     gap:              { type: 'number',  label: 'Gap Between Cards (px)' },
     categorySlug: {
       type: 'custom',
-      label: 'Product Category (live storefront)',
+      label: 'Product Category (leave blank for all)',
       render: ({ value, onChange }) => (
         <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="All Categories" />
       ),
     },
+    showPlaceholder: { type: 'radio', label: 'Show Placeholder', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
   },
   defaultProps: {
     headline: 'Featured Products',
@@ -210,10 +227,15 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
     cardRadius: 12,
     gap: 20,
     categorySlug: '',
+    showPlaceholder: true,
   },
   render(props) {
-    const { headline, subheadline, columns, count, productCount, ctaText, ctaUrl, layout: _layout, backgroundColor, textColor, accentColor, gap, ...rest } = props
+    const { headline, subheadline, columns, count, productCount, ctaText, ctaUrl, layout: _layout, backgroundColor, textColor, accentColor, gap, categorySlug, showPlaceholder, ...rest } = props
     const clamp = Math.max(1, Math.min(productCount ?? count, 20))
+    // ?? not || : a page saved before this field existed has no showPlaceholder key
+    // at all and must keep rendering exactly as it did before (fake cards).
+    const useFake = showPlaceholder ?? true
+    const { status, products } = useTenantProducts(categorySlug, clamp, !useFake)
     return (
       <section style={{ backgroundColor, padding: '64px 24px' }}>
         <style>{`
@@ -236,11 +258,26 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
               )}
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
-            {Array.from({ length: clamp }).map((_, i) => (
-              <PlaceholderCard key={i} index={i} textColor={textColor} accentColor={accentColor} {...rest} />
-            ))}
-          </div>
+          {!useFake && status === 'error' && (
+            <p style={{ margin: '0 0 12px', fontSize: 12, color: '#dd6b20' }}>⚠ Couldn't load live products — showing placeholder layout instead.</p>
+          )}
+          {!useFake && status === 'empty' ? (
+            <div style={{ color: '#a0aec0', fontSize: 14, padding: 32, textAlign: 'center' }}>
+              No products found — add products in Warehouse, or switch "Show Placeholder" on to preview the layout.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
+              {(useFake || status === 'loading' || status === 'error'
+                ? Array.from({ length: clamp })
+                : products.slice(0, clamp)
+              ).map((item, i) => {
+                const product = useFake || status === 'loading' || status === 'error' ? undefined : (item as StoreProduct)
+                return (
+                  <PlaceholderCard key={product ? product.id : i} index={i} product={product} textColor={textColor} accentColor={accentColor} {...rest} />
+                )
+              })}
+            </div>
+          )}
         </div>
       </section>
     )

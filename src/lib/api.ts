@@ -87,6 +87,23 @@ export interface PageSettingsPatch {
   pageName?: string
 }
 
+// Real synced product, as returned by Store_builder_api::products(). image_url
+// is already rewritten through the wc_image proxy (or null) — never a raw
+// tenant-internal WC host URL, which the browser couldn't reach anyway.
+export interface StoreProduct {
+  id: number
+  name: string
+  slug: string
+  price: string
+  regular_price: string
+  sale_price: string
+  on_sale: boolean
+  image_url: string | null
+  permalink: string
+  stock_status: string
+  sku: string
+}
+
 export const stratumApi = {
   verifyToken(token: string): Promise<StudioSession> {
     return request('GET', '/admin/store_builder_api/verify_token', token)
@@ -184,6 +201,26 @@ export const stratumApi = {
   // Convenience wrapper — uses the module-level active token/tenant (set after login).
   getActiveCategories(): Promise<{ categories: Array<{ name: string; slug: string }> }> {
     return stratumApi.getCategories(_activeTenantId, _activeToken)
+  },
+
+  // Real synced products for ProductGrid/Carousel/Showcase's live-preview render
+  // inside the Puck editor — see Store_builder_api::products() for the WC-backed
+  // implementation and the wc_image proxy image_url is already rewritten through.
+  getProducts(
+    tenantId: number,
+    token: string,
+    opts?: { categorySlug?: string; perPage?: number },
+  ): Promise<{ products: StoreProduct[] }> {
+    const params = new URLSearchParams()
+    if (opts?.categorySlug) params.set('category_slug', opts.categorySlug)
+    if (opts?.perPage) params.set('per_page', String(opts.perPage))
+    const qs = params.toString()
+    return request('GET', `/admin/store_builder_api/products/${tenantId}${qs ? `?${qs}` : ''}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveProducts(opts?: { categorySlug?: string; perPage?: number }): Promise<{ products: StoreProduct[] }> {
+    return stratumApi.getProducts(_activeTenantId, _activeToken, opts)
   },
 
   // ── Template management ────────────────────────────────────────────────
