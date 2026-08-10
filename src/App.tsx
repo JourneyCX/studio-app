@@ -10,6 +10,7 @@ import { SiteFooter } from './components/Navigation/SiteFooter'
 import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
+import { ThemesPanel } from './components/ThemesPanel'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -66,6 +67,7 @@ export default function App() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
   const [pagesOpen, setPagesOpen] = useState(false)
+  const [themesOpen, setThemesOpen] = useState(false)
   // Slug queued for navigation once the unsaved-changes dialog resolves — set
   // only when onNavigateToPage is called while isDirty; null means the dialog
   // (when shown at all) is here because of the parent-window back-button guard
@@ -356,6 +358,17 @@ export default function App() {
                 >
                   <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
                 </button>
+                <button
+                  onClick={() => setThemesOpen(true)}
+                  style={{
+                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
+                    backgroundColor: '#f8fafc', color: '#0f172a', fontSize: 13, fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <span style={{ fontSize: 15 }}>🎨</span> Themes
+                </button>
               </div>
               {children}
             </>
@@ -469,6 +482,17 @@ export default function App() {
           initialSettings={siteSettings}
           onClose={() => setSiteSettingsOpen(false)}
           onSaved={updated => setSiteSettings(updated)}
+        />
+      )}
+
+      {/* Themes panel (🎨 Themes, top of the Blocks panel) — whole-site Theme
+          Manager themes, distinct from the per-page Templates modal above. */}
+      {themesOpen && session && (
+        <ThemesPanel
+          tenantId={session.tenantId}
+          token={token}
+          onClose={() => setThemesOpen(false)}
+          onApplied={() => window.location.reload()}
         />
       )}
 

@@ -71,6 +71,31 @@ export interface PageData {
   name: string
 }
 
+// A whole-site theme from admin Theme Manager (tblstore_themes), as returned by
+// Store_builder_api::themes(). Distinct from StoreTemplate (types/templates.ts),
+// which is a single-page Puck layout — a theme is header/footer chrome plus one
+// template per page-type slot (home/product/collection/...).
+export interface ThemeSlot {
+  theme_id: string
+  page_type: string
+  template_id: string
+  is_required: string
+  template_name: string | null
+}
+
+export interface StoreTheme {
+  id: string
+  name: string
+  slug: string
+  category: string
+  description: string
+  preview_image: string
+  tags: string[]
+  status: string
+  is_active: boolean
+  slots: ThemeSlot[]
+}
+
 export interface ReorderChange {
   id: number
   menuLocation: MenuLocation
@@ -301,5 +326,30 @@ export const stratumApi = {
     token: string,
   ): Promise<{ success: boolean }> {
     return request('DELETE', `/admin/store_builder_api/templates/${tenantId}/${templateId}`, token)
+  },
+
+  // ── Theme management (whole-site, admin Theme Manager) ─────────────────
+  getThemes(tenantId: number, token: string): Promise<{ themes: StoreTheme[] }> {
+    return request<{ success: boolean; message: string; data: { themes: StoreTheme[] } }>(
+      'GET', `/admin/store_builder_api/themes/${tenantId}`, token,
+    ).then((res) => res.data)
+  },
+
+  // Does not throw on a rejected apply (e.g. incomplete theme) — the backend's
+  // message is meant to be shown to the merchant either way, same as the PHP
+  // wizard's own theme picker does with this same message.
+  async applyTheme(tenantId: number, themeId: string, token: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch(`${STRATUM_ORIGIN}/admin/store_builder_api/themes/${tenantId}/apply`, {
+      method: 'POST',
+      headers: {
+        'X-Stratum-Token': token,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ theme_id: themeId }),
+    })
+    const body = await res.json().catch(() => null)
+    if (!body) return { success: false, message: `HTTP ${res.status}` }
+    return { success: !!body.success, message: body.message || (res.ok ? '' : `HTTP ${res.status}`) }
   },
 }
