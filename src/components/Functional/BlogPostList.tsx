@@ -1,6 +1,29 @@
 import type { ComponentConfig } from '@measured/puck'
+import { useTenantBlogPosts } from '../../lib/hooks/useTenantBlogPosts'
+import type { StoreBlogPost } from '../../lib/api'
 
 type BlogPost = { title: string; excerpt: string; thumbnail: string; date: string; author: string; category: string; url: string }
+
+// e.g. "2026-08-10 14:32:42" -> "10 Aug 2026", matching the manual field's own
+// example format ("e.g. 15 Jan 2025") so Auto and Manual cards read the same.
+function formatPostDate(published_at: string | null): string {
+  if (!published_at) return ''
+  const d = new Date(published_at.replace(' ', 'T'))
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function toCardPost(p: StoreBlogPost): BlogPost {
+  return {
+    title: p.title,
+    excerpt: p.excerpt ?? '',
+    thumbnail: p.featured_image ?? '',
+    date: formatPostDate(p.published_at),
+    author: p.author,
+    category: p.categories[0]?.name ?? '',
+    url: p.url,
+  }
+}
 
 export type BlogPostListProps = {
   headline: string
@@ -18,6 +41,9 @@ export type BlogPostListProps = {
   ctaText?: string
   ctaUrl?: string
   postCount?: number
+  // Additive field — absent on any page saved before this existed, which must keep
+  // rendering its hand-typed `posts` array exactly as before (see ?? 'manual' below).
+  postsSource?: 'manual' | 'auto'
   accentColor: string
   backgroundColor: string
   cardColor: string
@@ -90,7 +116,14 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     readMoreText: { type: 'text',    label: '"Read More" Text' },
     ctaText:      { type: 'text',    label: '"View All" Link Text (leave blank to hide)' },
     ctaUrl:       { type: 'text',    label: '"View All" Link URL' },
-    postCount:    { type: 'number',  label: 'Max Posts to Show (leave blank for all)' },
+    postsSource: {
+      type: 'radio', label: 'Posts',
+      options: [
+        { label: 'Auto — latest published posts', value: 'auto' },
+        { label: 'Manual — pick posts below', value: 'manual' },
+      ],
+    },
+    postCount:    { type: 'number',  label: 'Max Posts to Show (leave blank for all in Manual, 3 in Auto)' },
     accentColor:  { type: 'text',    label: 'Accent Colour (hex)' },
     backgroundColor: { type: 'text', label: 'Background Colour (hex)' },
     cardColor:    { type: 'text',    label: 'Card Colour (hex)' },
@@ -123,6 +156,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     readMoreText: 'Read more',
     ctaText:      '',
     ctaUrl:       '',
+    postsSource:  'auto',
     accentColor:  '#2563eb',
     backgroundColor: '#f8fafc',
     cardColor:    '#ffffff',
@@ -134,12 +168,32 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       { title: 'Sustainable Packaging: Why It Matters', excerpt: 'How we\'re rethinking our packaging to reduce waste without compromising on quality or presentation.', thumbnail: '', date: '2 May 2025', author: 'Jordan L.', category: 'Sustainability', url: '/blog/packaging' },
     ],
   },
-  render({ headline, subheadline, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: allPosts }) {
+  render({ headline, subheadline, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, postsSource, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
     const cardProps = { layout, showAuthor, showDate, showCategory, showExcerpt, readMoreText, accentColor, cardColor, textColor, borderRadius }
-    const posts = typeof postCount === 'number' ? allPosts.slice(0, postCount) : allPosts
+    // ?? 'manual' (not 'auto'): a page saved before this field existed has no
+    // postsSource key at all and must keep rendering its hand-typed posts
+    // array exactly as before — only NEW blocks default to 'auto'.
+    const isAuto = (postsSource ?? 'manual') === 'auto'
+    const autoCount = typeof postCount === 'number' ? postCount : 3
+    const { status, posts: livePosts } = useTenantBlogPosts(autoCount, isAuto)
+
+    let posts: BlogPost[]
+    let loadError = false
+    if (isAuto) {
+      if (status === 'success') posts = livePosts.map(toCardPost)
+      else { posts = []; loadError = status === 'error' }
+    } else {
+      posts = typeof postCount === 'number' ? manualPosts.slice(0, postCount) : manualPosts
+    }
 
     let grid: React.ReactNode
-    if (layout === 'featured' && posts.length > 0) {
+    if (isAuto && status === 'loading') {
+      grid = <div style={{ color: textColor, opacity: 0.5, fontSize: 14, padding: 32, textAlign: 'center' }}>Loading posts…</div>
+    } else if (isAuto && loadError) {
+      grid = <div style={{ color: '#dd6b20', fontSize: 13, padding: 32, textAlign: 'center' }}>⚠ Couldn't load live posts.</div>
+    } else if (isAuto && posts.length === 0) {
+      grid = <div style={{ color: textColor, opacity: 0.5, fontSize: 14, padding: 32, textAlign: 'center' }}>No published posts yet — publish one in Store Blog, or switch to Manual to preview the layout.</div>
+    } else if (layout === 'featured' && posts.length > 0) {
       const [first, ...rest] = posts
       grid = (
         <div style={{ display: 'grid', gridTemplateColumns: rest.length ? '1.6fr 1fr' : '1fr', gap: 24 }}>

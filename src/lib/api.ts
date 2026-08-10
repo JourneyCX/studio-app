@@ -104,6 +104,20 @@ export interface StoreProduct {
   sku: string
 }
 
+// Real published post, as returned by Store_builder_api::blog_posts(). url is
+// already the relative /blog/{slug} path the storefront route expects.
+export interface StoreBlogPost {
+  id: number
+  title: string
+  slug: string
+  url: string
+  excerpt: string | null
+  featured_image: string | null
+  published_at: string | null
+  author: string
+  categories: { name: string; slug: string }[]
+}
+
 export const stratumApi = {
   verifyToken(token: string): Promise<StudioSession> {
     return request('GET', '/admin/store_builder_api/verify_token', token)
@@ -223,6 +237,18 @@ export const stratumApi = {
   // Convenience wrapper — uses the module-level active token/tenant (set after login).
   getActiveProducts(opts?: { categorySlug?: string; perPage?: number; maxPrice?: number }): Promise<{ products: StoreProduct[] }> {
     return stratumApi.getProducts(_activeTenantId, _activeToken, opts)
+  },
+
+  // Real published posts for BlogPostList's "Auto" mode live-preview render
+  // inside the Puck editor — see Store_builder_api::blog_posts().
+  getBlogPosts(tenantId: number, token: string, limit?: number): Promise<{ data: StoreBlogPost[] }> {
+    const qs = limit ? `&limit=${limit}` : ''
+    return request('GET', `/admin/store_builder_api/blog_posts?tenantId=${tenantId}${qs}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveBlogPosts(limit?: number): Promise<{ data: StoreBlogPost[] }> {
+    return stratumApi.getBlogPosts(_activeTenantId, _activeToken, limit)
   },
 
   // AITool block's resolveData() — this tenant's Storefront AI Block proxy
