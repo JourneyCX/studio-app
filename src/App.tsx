@@ -324,6 +324,7 @@ export default function App() {
         key={editorKey}
         config={puckConfig}
         data={puckData}
+        headerTitle={pageName}
         onPublish={handlePublish}
         onChange={handleChange}
         overrides={{
