@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { stratumApi } from '../../lib/api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 //
@@ -323,8 +324,8 @@ function ShippingOptionsInner(props: ShippingOptionsProps) {
 export const ShippingOptions: ComponentConfig<ShippingOptionsProps> = {
   label: 'Shipping Options (Any Provider)',
   fields: {
-    apiUrl:           { type: 'text',    label: 'Stratum API URL (e.g. https://your-stratum.com)' },
-    storeId:          { type: 'text',    label: 'Store ID (WooCommerce store numeric ID)' },
+    apiUrl:           { type: 'text',    label: 'Stratum API URL (auto-configured — override only for a custom backend)' },
+    storeId:          { type: 'text',    label: 'Store ID (auto-configured — override only for a custom backend)' },
     showCourierNames: { type: 'radio',   label: 'Show courier names', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showEstDelivery:  { type: 'radio',   label: 'Show estimated delivery', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     loadingStyle:     { type: 'select',  label: 'Loading animation', options: [{ label: 'Skeleton cards', value: 'skeleton' }, { label: 'Spinner', value: 'spinner' }] },
@@ -344,5 +345,23 @@ export const ShippingOptions: ComponentConfig<ShippingOptionsProps> = {
     cardRadius:       10,
     backgroundColor:  'transparent',
   },
+  // Fills apiUrl/storeId the first time this block is dropped onto a page, so
+  // a merchant never has to look up the Stratum URL or WooCommerce store ID
+  // and paste them in by hand. Only fires when both are still blank — an
+  // existing published block (or one whose fields were deliberately
+  // overridden) is never touched. See Store_builder_api::shipping_widget_config()
+  // for what this resolves to. Same pattern as AITool.tsx's resolveData().
+  async resolveData(data) {
+    if (data.props.apiUrl || data.props.storeId) {
+      return { props: {} }
+    }
+    try {
+      const { apiUrl, storeId } = await stratumApi.getActiveShippingWidgetConfig()
+      return { props: { apiUrl, storeId } }
+    } catch {
+      return { props: {} }
+    }
+  },
+
   render(props) { return <ShippingOptionsInner {...props} /> },
 }

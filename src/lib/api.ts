@@ -289,6 +289,20 @@ export const stratumApi = {
     return stratumApi.getAiStorefrontKey(_activeTenantId, _activeToken)
   },
 
+  // ShippingOptions/PickupSelector/ShippingSummary ("Any Provider") blocks'
+  // resolveData() — this tenant's public Stratum API base URL + WooCommerce
+  // store numeric ID (Shipping_checkout.php's woo_store_id, not tenantId).
+  // See Store_builder_api::shipping_widget_config() — same rationale as
+  // getAiStorefrontKey() above, mirrored for the shipping widgets.
+  getShippingWidgetConfig(tenantId: number, token: string): Promise<{ apiUrl: string; storeId: string }> {
+    return request('GET', `/admin/store_builder_api/shipping_widget_config/${tenantId}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveShippingWidgetConfig(): Promise<{ apiUrl: string; storeId: string }> {
+    return stratumApi.getShippingWidgetConfig(_activeTenantId, _activeToken)
+  },
+
   // ── Template management ────────────────────────────────────────────────
   // Backend routes to implement in store_builder_api controller:
   //   GET    /admin/store_builder_api/templates/{tenantId}

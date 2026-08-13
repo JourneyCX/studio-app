@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { stratumApi } from '../../lib/api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 //
@@ -304,8 +305,8 @@ function PickupSelectorInner(props: PickupSelectorProps) {
 export const PickupSelector: ComponentConfig<PickupSelectorProps> = {
   label: 'Pickup Selector (Any Provider)',
   fields: {
-    apiUrl:        { type: 'text',   label: 'Stratum API URL (must match Shipping Options widget)' },
-    storeId:       { type: 'text',   label: 'Store ID (must match Shipping Options widget)' },
+    apiUrl:        { type: 'text',   label: 'Stratum API URL (auto-configured — must match Shipping Options widget)' },
+    storeId:       { type: 'text',   label: 'Store ID (auto-configured — must match Shipping Options widget)' },
     mapProvider:   { type: 'select', label: 'Map provider', options: [{ label: 'OpenStreetMap (free, no key)', value: 'osm' }, { label: 'Google Maps', value: 'googlemaps' }] },
     googleMapsKey: { type: 'text',   label: 'Google Maps API key (required only for Google Maps provider)' },
     maxPoints:     { type: 'number', label: 'Max pickup points to show (3–15)' },
@@ -325,5 +326,21 @@ export const PickupSelector: ComponentConfig<PickupSelectorProps> = {
     accentColor:   '#0e7490',
     mapHeight:     340,
   },
+  // Same auto-fill as ShippingOptions.tsx's resolveData() — see that file's
+  // comment. Kept independent (not reading the sibling ShippingOptions block's
+  // saved props) since Puck blocks don't have visibility into each other's
+  // config; both resolve to the same tenant-scoped values regardless.
+  async resolveData(data) {
+    if (data.props.apiUrl || data.props.storeId) {
+      return { props: {} }
+    }
+    try {
+      const { apiUrl, storeId } = await stratumApi.getActiveShippingWidgetConfig()
+      return { props: { apiUrl, storeId } }
+    } catch {
+      return { props: {} }
+    }
+  },
+
   render(props) { return <PickupSelectorInner {...props} /> },
 }
