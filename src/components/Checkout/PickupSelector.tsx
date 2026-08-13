@@ -20,6 +20,7 @@ import { stratumApi } from '../../lib/api'
 export type PickupSelectorProps = {
   apiUrl:       string
   storeId:      string
+  tenantId:     string
   mapProvider:  'osm' | 'googlemaps'
   googleMapsKey: string
   maxPoints:    number
@@ -43,7 +44,7 @@ interface PickupPoint {
 // ── Inner component ───────────────────────────────────────────────────────────
 
 function PickupSelectorInner(props: PickupSelectorProps) {
-  const { apiUrl, storeId, layout, maxPoints, showHours, accentColor, mapHeight } = props
+  const { apiUrl, storeId, tenantId, layout, maxPoints, showHours, accentColor, mapHeight } = props
 
   const [visible,  setVisible]  = useState(false)
   const [loading,  setLoading]  = useState(false)
@@ -65,6 +66,7 @@ function PickupSelectorInner(props: PickupSelectorProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           store_id:      storeId,
+          tenant_id:     tenantId,
           session_token: token,
           postal_code:   postalCode,
           max_results:   maxPoints,
@@ -77,7 +79,7 @@ function PickupSelectorInner(props: PickupSelectorProps) {
     } finally {
       setLoading(false)
     }
-  }, [apiUrl, storeId, maxPoints])
+  }, [apiUrl, storeId, tenantId, maxPoints])
 
   // ── Listen for rate-selected event ─────────────────────────────────────────
   useEffect(() => {
@@ -307,6 +309,7 @@ export const PickupSelector: ComponentConfig<PickupSelectorProps> = {
   fields: {
     apiUrl:        { type: 'text',   label: 'Stratum API URL (auto-configured — must match Shipping Options widget)' },
     storeId:       { type: 'text',   label: 'Store ID (auto-configured — must match Shipping Options widget)' },
+    tenantId:      { type: 'text',   label: 'Tenant ID (auto-configured — do not edit)' },
     mapProvider:   { type: 'select', label: 'Map provider', options: [{ label: 'OpenStreetMap (free, no key)', value: 'osm' }, { label: 'Google Maps', value: 'googlemaps' }] },
     googleMapsKey: { type: 'text',   label: 'Google Maps API key (required only for Google Maps provider)' },
     maxPoints:     { type: 'number', label: 'Max pickup points to show (3–15)' },
@@ -318,6 +321,7 @@ export const PickupSelector: ComponentConfig<PickupSelectorProps> = {
   defaultProps: {
     apiUrl:        '',
     storeId:       '',
+    tenantId:      '',
     mapProvider:   'osm',
     googleMapsKey: '',
     maxPoints:     5,
@@ -335,8 +339,8 @@ export const PickupSelector: ComponentConfig<PickupSelectorProps> = {
       return { props: {} }
     }
     try {
-      const { apiUrl, storeId } = await stratumApi.getActiveShippingWidgetConfig()
-      return { props: { apiUrl, storeId } }
+      const { apiUrl, storeId, tenantId } = await stratumApi.getActiveShippingWidgetConfig()
+      return { props: { apiUrl, storeId, tenantId } }
     } catch {
       return { props: {} }
     }

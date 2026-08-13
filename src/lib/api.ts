@@ -294,12 +294,12 @@ export const stratumApi = {
   // store numeric ID (Shipping_checkout.php's woo_store_id, not tenantId).
   // See Store_builder_api::shipping_widget_config() — same rationale as
   // getAiStorefrontKey() above, mirrored for the shipping widgets.
-  getShippingWidgetConfig(tenantId: number, token: string): Promise<{ apiUrl: string; storeId: string }> {
+  getShippingWidgetConfig(tenantId: number, token: string): Promise<{ apiUrl: string; storeId: string; tenantId: string }> {
     return request('GET', `/admin/store_builder_api/shipping_widget_config/${tenantId}`, token)
   },
 
   // Convenience wrapper — uses the module-level active token/tenant (set after login).
-  getActiveShippingWidgetConfig(): Promise<{ apiUrl: string; storeId: string }> {
+  getActiveShippingWidgetConfig(): Promise<{ apiUrl: string; storeId: string; tenantId: string }> {
     return stratumApi.getShippingWidgetConfig(_activeTenantId, _activeToken)
   },
 
