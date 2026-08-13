@@ -5,6 +5,7 @@ import { BobgoShippingSummary } from '@/components/Checkout/BobgoShippingSummary
 import { ShippingOptions } from '@/components/Checkout/ShippingOptions'
 import { PickupSelector }  from '@/components/Checkout/PickupSelector'
 import { ShippingSummary } from '@/components/Checkout/ShippingSummary'
+import { DeliveryAddressForm } from '@/components/Checkout/DeliveryAddressForm'
 import { Container }     from '@/components/Layout/Container'
 import { Columns }       from '@/components/Layout/Columns'
 import { TextBlock }     from '@/components/Content/TextBlock'
@@ -94,6 +95,7 @@ export const puckConfig: Config = {
     ShippingOptions,
     PickupSelector,
     ShippingSummary,
+    DeliveryAddressForm,
   },
 
   categories: {
@@ -131,7 +133,7 @@ export const puckConfig: Config = {
     },
     checkout: {
       title: 'Checkout',
-      components: ['BobgoShippingOptions', 'BobgoPickupSelector', 'BobgoShippingSummary', 'ShippingOptions', 'PickupSelector', 'ShippingSummary'],
+      components: ['BobgoShippingOptions', 'BobgoPickupSelector', 'BobgoShippingSummary', 'DeliveryAddressForm', 'ShippingOptions', 'PickupSelector', 'ShippingSummary'],
     },
   },
 }
