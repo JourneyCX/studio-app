@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type CountdownTimerProps = {
   targetDate: string
@@ -182,11 +183,11 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     showMinutes:       { type: 'radio',   label: 'Show Minutes', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showSeconds:       { type: 'radio',   label: 'Show Seconds', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     cardStyle:         { type: 'select',  label: 'Card Style', options: [{ label: 'Card (classic)', value: 'card' }, { label: 'Minimal (borderless)', value: 'minimal' }, { label: 'Neon (dark glow)', value: 'neon' }] },
-    accentColor:       { type: 'text',    label: 'Accent / Glow Colour (hex)' },
-    backgroundColor:   { type: 'text',   label: 'Section Background (hex)' },
-    cardColor:         { type: 'text',    label: 'Card Background (hex)' },
-    textColor:         { type: 'text',    label: 'Number Colour (hex)' },
-    labelColor:        { type: 'text',    label: 'Label Colour (hex)' },
+    accentColor:       { type: 'custom',  label: 'Accent / Glow Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:   { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:         { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:         { type: 'custom',  label: 'Number Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    labelColor:        { type: 'custom',  label: 'Label Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     primaryButtonText: { type: 'text',    label: 'CTA Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',    label: 'CTA Button URL' },
   },

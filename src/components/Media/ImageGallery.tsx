@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type GalleryImage = { src: string; alt: string; caption: string }
 type GalleryLayout = 'grid' | 'masonry'
@@ -150,9 +151,9 @@ export const ImageGallery: ComponentConfig<ImageGalleryProps> = {
     imageAspectRatio: { type: 'select',  label: 'Image Aspect Ratio', options: [{ label: 'Square 1:1', value: '1/1' }, { label: 'Landscape 4:3', value: '4/3' }, { label: 'Widescreen 16:9', value: '16/9' }, { label: 'Portrait 3:4', value: '3/4' }] },
     borderRadius:     { type: 'number',  label: 'Image Border Radius (px)' },
     showCaptions:     { type: 'radio',   label: 'Show Captions', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    overlayColor:     { type: 'text',    label: 'Hover Overlay Colour (rgba)' },
-    backgroundColor:  { type: 'text',   label: 'Section Background (hex)' },
-    textColor:        { type: 'text',    label: 'Text Colour (hex)' },
+    overlayColor:     { type: 'custom',  label: 'Hover Overlay Colour (rgba)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     images: {
       type: 'array',
       label: 'Images',

@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 import { useTenantBlogPosts } from '../../lib/hooks/useTenantBlogPosts'
 import type { StoreBlogPost } from '../../lib/api'
 
@@ -124,10 +125,10 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       ],
     },
     postCount:    { type: 'number',  label: 'Max Posts to Show (leave blank for all in Manual, 3 in Auto)' },
-    accentColor:  { type: 'text',    label: 'Accent Colour (hex)' },
-    backgroundColor: { type: 'text', label: 'Background Colour (hex)' },
-    cardColor:    { type: 'text',    label: 'Card Colour (hex)' },
-    textColor:    { type: 'text',    label: 'Text Colour (hex)' },
+    accentColor:  { type: 'custom',  label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:    { type: 'custom',  label: 'Card Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:    { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius: { type: 'number',  label: 'Card Border Radius (px)' },
     posts: {
       type: 'array', label: 'Blog Posts',

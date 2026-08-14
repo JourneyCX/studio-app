@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
+import { ColorField } from '../shared/ColorField'
 import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
 import type { StoreProduct } from '../../lib/api'
 
@@ -188,13 +189,13 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
     imageAspectRatio: { type: 'select',  label: 'Image Ratio', options: [{ label: 'Square (1:1)', value: '1/1' }, { label: 'Landscape (4:3)', value: '4/3' }, { label: 'Portrait (3:4)', value: '3/4' }] },
     showBadge:        { type: 'radio',   label: 'Show Badge', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     badgeText:        { type: 'text',    label: 'Badge Text (e.g. NEW, SALE, HOT)' },
-    badgeColor:       { type: 'text',    label: 'Badge Colour (hex)' },
+    badgeColor:       { type: 'custom',  label: 'Badge Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     showRating:       { type: 'radio',   label: 'Show Star Rating', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showWishlist:     { type: 'radio',   label: 'Show Wishlist Button', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showSalePrice:    { type: 'radio',   label: 'Show Sale / Original Price', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    accentColor:      { type: 'text',    label: 'Accent / Button Colour (hex)' },
-    backgroundColor:  { type: 'text',   label: 'Section Background (hex)' },
-    textColor:        { type: 'text',    label: 'Text Colour (hex)' },
+    accentColor:      { type: 'custom',  label: 'Accent / Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardRadius:       { type: 'number',  label: 'Card Border Radius (px)' },
     gap:              { type: 'number',  label: 'Gap Between Cards (px)' },
     categorySlug: {

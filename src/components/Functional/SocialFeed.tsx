@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type SocialFeedProps = {
   platform: 'instagram' | 'twitter' | 'tiktok'
@@ -129,9 +130,9 @@ export const SocialFeed: ComponentConfig<SocialFeedProps> = {
     instagramCount:        { type: 'number', label: 'Instagram Preview Cells' },
     headline:              { type: 'text',   label: 'Section Headline' },
     showFollowButton:      { type: 'radio',  label: 'Show Follow Button', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    backgroundColor:       { type: 'text',  label: 'Background Colour (hex)' },
-    textColor:             { type: 'text',   label: 'Text Colour (hex)' },
-    accentColor:           { type: 'text',   label: 'Accent Colour (hex)' },
+    backgroundColor:       { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:             { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    accentColor:           { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:          { type: 'number', label: 'Border Radius (px)' },
   },
   defaultProps: {

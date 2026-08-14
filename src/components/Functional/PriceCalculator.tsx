@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type LineItem = { label: string; description: string; unitPrice: number; unitLabel: string; min: number; max: number; defaultQty: number; step: number }
 
@@ -156,10 +157,10 @@ export const PriceCalculator: ComponentConfig<PriceCalculatorProps> = {
     ctaText:         { type: 'text',    label: 'CTA Button Text' },
     ctaUrl:          { type: 'text',    label: 'CTA Button URL' },
     noteText:        { type: 'text',    label: 'Footer Note (e.g. "Final pricing confirmed at checkout")' },
-    accentColor:     { type: 'text',    label: 'Accent Colour (hex)' },
-    backgroundColor: { type: 'text',   label: 'Section Background (hex)' },
-    cardColor:       { type: 'text',    label: 'Card Background (hex)' },
-    textColor:       { type: 'text',    label: 'Text Colour (hex)' },
+    accentColor:     { type: 'custom',  label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor: { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:       { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:       { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:    { type: 'number',  label: 'Card Border Radius (px)' },
     items: {
       type: 'array', label: 'Line Items',

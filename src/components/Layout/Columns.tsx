@@ -1,4 +1,5 @@
 import { DropZone, type ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type ColumnsProps = {
   // `columns` predates `distribution` (named layout templates below) and is no longer
@@ -29,7 +30,7 @@ export const Columns: ComponentConfig<ColumnsProps> = {
       options: Object.entries(DISTRIBUTIONS).map(([value, { label }]) => ({ label, value })),
     },
     gap:             { type: 'number', label: 'Gap (px)' },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: { distribution: 'equal2', gap: 24, backgroundColor: 'transparent' },
   render({ distribution, gap, backgroundColor }) {

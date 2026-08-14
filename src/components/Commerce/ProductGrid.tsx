@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
+import { ColorField } from '../shared/ColorField'
 import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
 import type { StoreProduct } from '../../lib/api'
 import { PRODUCT_FILTER_EVENT, type ProductFilterEventDetail } from './ProductFilter'
@@ -91,7 +92,7 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
       ),
     },
     showPlaceholder: { type: 'radio',  label: 'Show Placeholder', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     gap:             { type: 'number', label: 'Gap (px)' },
   },
   defaultProps: {

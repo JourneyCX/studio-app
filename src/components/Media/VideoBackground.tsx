@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 export type VideoBackgroundProps = {
   videoType: 'mp4' | 'youtube'
@@ -30,14 +31,14 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
     videoType:           { type: 'select',   label: 'Video Source', options: [{ label: 'Direct MP4 URL', value: 'mp4' }, { label: 'YouTube', value: 'youtube' }] },
     videoUrl:            { type: 'text',     label: 'Video URL (MP4 link or YouTube URL)' },
     fallbackImage:       { type: 'custom',   label: 'Fallback Image (shown when no video)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
-    overlayColor:        { type: 'text',     label: 'Overlay Colour (hex)' },
+    overlayColor:        { type: 'custom',   label: 'Overlay Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:      { type: 'number',   label: 'Overlay Opacity (0–100)' },
     minHeight:           { type: 'number',   label: 'Min Height (px)' },
     headline:            { type: 'text',     label: 'Headline' },
     subheadline:         { type: 'textarea', label: 'Subheadline' },
     primaryButtonText:   { type: 'text',     label: 'Primary Button Text' },
     primaryButtonUrl:    { type: 'text',     label: 'Primary Button URL' },
-    primaryButtonColor:  { type: 'text',     label: 'Primary Button Colour (hex)' },
+    primaryButtonColor:  { type: 'custom',   label: 'Primary Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     secondaryButtonText: { type: 'text',     label: 'Secondary Button Text' },
     secondaryButtonUrl:  { type: 'text',     label: 'Secondary Button URL' },
     textAlign:           { type: 'select',   label: 'Content Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }] },

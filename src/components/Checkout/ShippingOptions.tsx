@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { stratumApi } from '../../lib/api'
+import { ColorField } from '../shared/ColorField'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 //
@@ -338,9 +339,9 @@ export const ShippingOptions: ComponentConfig<ShippingOptionsProps> = {
     showEstDelivery:  { type: 'radio',   label: 'Show estimated delivery', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     loadingStyle:     { type: 'select',  label: 'Loading animation', options: [{ label: 'Skeleton cards', value: 'skeleton' }, { label: 'Spinner', value: 'spinner' }] },
     fallbackMessage:  { type: 'text',    label: 'Error / fallback message' },
-    accentColor:      { type: 'text',    label: 'Accent colour (hex)' },
+    accentColor:      { type: 'custom',  label: 'Accent colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardRadius:       { type: 'number',  label: 'Card border radius (px)' },
-    backgroundColor:  { type: 'text',   label: 'Section background (hex)' },
+    backgroundColor:  { type: 'custom', label: 'Section background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     apiUrl:           '',

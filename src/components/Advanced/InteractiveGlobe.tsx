@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type GLocation = { name: string; lat: number; lng: number; description: string; color: string }
 
@@ -252,8 +253,8 @@ export const InteractiveGlobe: ComponentConfig<InteractiveGlobeProps> = {
     autoRotate:      { type: 'radio',    label: 'Auto-Rotate', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     rotateSpeed:     { type: 'number',   label: 'Rotation Speed (0.1–5)' },
     globeSize:       { type: 'number',   label: 'Globe Diameter (px)' },
-    backgroundColor: { type: 'text',    label: 'Section Background (hex)' },
-    textColor:       { type: 'text',     label: 'Text Colour (hex)' },
+    backgroundColor: { type: 'custom',  label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:       { type: 'custom',   label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     locations: {
       type: 'array', label: 'Locations',
       arrayFields: {
@@ -261,7 +262,7 @@ export const InteractiveGlobe: ComponentConfig<InteractiveGlobeProps> = {
         lat:         { type: 'number',   label: 'Latitude (-90 to 90)' },
         lng:         { type: 'number',   label: 'Longitude (-180 to 180)' },
         description: { type: 'textarea', label: 'Popup Description' },
-        color:       { type: 'text',     label: 'Marker Colour (hex)' },
+        color:       { type: 'custom',   label: 'Marker Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
       },
       defaultItemProps: { name: 'New Location', lat: 0, lng: 0, description: '', color: '#60a5fa' },
       getItemSummary: (loc: GLocation) => loc.name || 'Location',

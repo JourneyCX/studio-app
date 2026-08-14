@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type TItem = { date: string; title: string; description: string; image: string; icon: string; color: string }
 type Layout = 'alternating' | 'left' | 'cards'
@@ -142,10 +143,10 @@ export const AnimatedTimeline: ComponentConfig<AnimatedTimelineProps> = {
     headline:     { type: 'text',     label: 'Section Headline' },
     subheadline:  { type: 'textarea', label: 'Section Subheadline' },
     layout:       { type: 'select',   label: 'Layout', options: [{ label: 'Alternating (two-sided)', value: 'alternating' }, { label: 'Left-aligned (single column)', value: 'left' }, { label: 'Cards (icon + card)', value: 'cards' }] },
-    lineColor:    { type: 'text',     label: 'Timeline Line / Accent Colour (hex)' },
-    backgroundColor: { type: 'text', label: 'Section Background (hex)' },
-    cardColor:    { type: 'text',     label: 'Card Background (hex)' },
-    textColor:    { type: 'text',     label: 'Text Colour (hex)' },
+    lineColor:    { type: 'custom',   label: 'Timeline Line / Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor: { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:    { type: 'custom',   label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:    { type: 'custom',   label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius: { type: 'number',   label: 'Card Border Radius (px)' },
     items: {
       type: 'array', label: 'Timeline Items',
@@ -155,7 +156,7 @@ export const AnimatedTimeline: ComponentConfig<AnimatedTimelineProps> = {
         description: { type: 'textarea', label: 'Description' },
         image:       { type: 'custom',   label: 'Image (optional)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
         icon:        { type: 'text',     label: 'Icon (emoji, optional)' },
-        color:       { type: 'text',     label: 'Dot / Accent Colour (hex, optional)' },
+        color:       { type: 'custom',   label: 'Dot / Accent Colour (hex, optional)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
       },
       defaultItemProps: { date: '2025', title: 'Milestone Title', description: 'Describe what happened at this point in the journey.', image: '', icon: '🚀', color: '' },
       getItemSummary: (item: TItem) => `${item.date ? item.date + ' — ' : ''}${item.title || 'Item'}`,

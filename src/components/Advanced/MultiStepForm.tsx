@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type StepMeta  = { title: string; description: string; icon: string }
 type FieldType = 'text' | 'email' | 'tel' | 'number' | 'textarea' | 'select' | 'radio' | 'checkbox'
@@ -260,11 +261,11 @@ export const MultiStepForm: ComponentConfig<MultiStepFormProps> = {
     submitButtonText: { type: 'text',     label: 'Final Submit Button Text' },
     successMessage:   { type: 'text',     label: 'Success Message' },
     showProgress:     { type: 'select',   label: 'Progress Indicator', options: [{ label: 'Progress bar + step dots', value: 'both' }, { label: 'Step dots only', value: 'steps' }, { label: 'Progress bar only', value: 'bar' }, { label: 'None', value: 'none' }] },
-    accentColor:      { type: 'text',     label: 'Accent Colour (hex)' },
-    backgroundColor:  { type: 'text',    label: 'Section Background (hex)' },
-    cardColor:        { type: 'text',     label: 'Card Background (hex)' },
-    textColor:        { type: 'text',     label: 'Text Colour (hex)' },
-    borderColor:      { type: 'text',     label: 'Border Colour (hex)' },
+    accentColor:      { type: 'custom',   label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom',  label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:        { type: 'custom',   label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom',   label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    borderColor:      { type: 'custom',   label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:     { type: 'number',   label: 'Card Border Radius (px)' },
     steps: {
       type: 'array', label: 'Steps',

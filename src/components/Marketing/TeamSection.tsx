@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type TeamMember = {
   photo: string
@@ -27,10 +28,10 @@ export const TeamSection: ComponentConfig<TeamSectionProps> = {
     headline:        { type: 'text',    label: 'Section Headline' },
     subheadline:     { type: 'textarea', label: 'Section Subheadline' },
     columns:         { type: 'select',  label: 'Columns', options: [{ label: '2', value: 2 }, { label: '3', value: 3 }, { label: '4', value: 4 }] },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
-    cardColor:       { type: 'text',   label: 'Card Colour (hex)' },
-    textColor:       { type: 'text',   label: 'Text Colour (hex)' },
-    accentColor:     { type: 'text',   label: 'Accent / Link Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:       { type: 'custom', label: 'Card Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:       { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    accentColor:     { type: 'custom', label: 'Accent / Link Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     members: {
       type: 'array',
       label: 'Team Members',

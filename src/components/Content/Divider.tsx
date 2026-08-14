@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type DividerProps = {
   color: string
@@ -9,7 +10,7 @@ export type DividerProps = {
 export const Divider: ComponentConfig<DividerProps> = {
   label: 'Divider',
   fields: {
-    color:     { type: 'text',   label: 'Colour (hex)' },
+    color:     { type: 'custom', label: 'Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     thickness: { type: 'number', label: 'Thickness (px)' },
     marginY:   { type: 'number', label: 'Vertical Spacing (px)' },
   },

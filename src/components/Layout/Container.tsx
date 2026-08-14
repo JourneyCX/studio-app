@@ -1,4 +1,5 @@
 import { DropZone, type ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type ContainerProps = {
   paddingY: number
@@ -13,7 +14,7 @@ export const Container: ComponentConfig<ContainerProps> = {
     paddingY:        { type: 'number', label: 'Vertical Padding (px)' },
     paddingX:        { type: 'number', label: 'Horizontal Padding (px)' },
     maxWidth:        { type: 'number', label: 'Max Width (px)' },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     paddingY: 40,

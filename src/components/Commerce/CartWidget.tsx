@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type CartWidgetProps = {
   style: 'icon-only' | 'icon-label' | 'pill'
@@ -28,10 +29,10 @@ export const CartWidget: ComponentConfig<CartWidgetProps> = {
   fields: {
     style:            { type: 'select', label: 'Display Style', options: [{ label: 'Icon only', value: 'icon-only' }, { label: 'Icon + Label', value: 'icon-label' }, { label: 'Pill button', value: 'pill' }] },
     placeholderCount: { type: 'number', label: 'Preview Item Count (editor only)' },
-    iconColor:        { type: 'text',   label: 'Icon Colour (hex)' },
-    backgroundColor:  { type: 'text',  label: 'Background Colour (hex)' },
-    badgeColor:       { type: 'text',   label: 'Badge Colour (hex)' },
-    badgeTextColor:   { type: 'text',   label: 'Badge Text Colour (hex)' },
+    iconColor:        { type: 'custom', label: 'Icon Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    badgeColor:       { type: 'custom', label: 'Badge Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    badgeTextColor:   { type: 'custom', label: 'Badge Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     size:             { type: 'number', label: 'Icon Size (px)' },
     labelText:        { type: 'text',   label: 'Label Text (icon-label / pill styles)' },
     checkoutUrl:      { type: 'text',   label: 'Cart / Checkout URL' },

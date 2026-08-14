@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type ParticleBackgroundProps = {
   particleCount: number
@@ -113,20 +114,20 @@ export const ParticleBackground: ComponentConfig<ParticleBackgroundProps> = {
   label: '3D / Particle Background',
   fields: {
     particleCount:    { type: 'number', label: 'Particle Count (10–250)' },
-    particleColor:    { type: 'text',   label: 'Particle Colour (hex or rgba)' },
+    particleColor:    { type: 'custom', label: 'Particle Colour (hex or rgba)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     particleSize:     { type: 'number', label: 'Max Particle Size (px)' },
     speed:            { type: 'number', label: 'Speed (0.2–3)' },
     connectLines:     { type: 'radio',  label: 'Connect Nearby Particles', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    lineColor:        { type: 'text',   label: 'Connection Line Colour (hex or rgba)' },
+    lineColor:        { type: 'custom', label: 'Connection Line Colour (hex or rgba)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     connectDistance:  { type: 'number', label: 'Connection Distance (px)' },
-    backgroundColor:  { type: 'text',  label: 'Background Colour (hex)' },
+    backgroundColor:  { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     minHeight:        { type: 'number', label: 'Section Height (px)' },
     headline:         { type: 'text',   label: 'Headline (optional)' },
     subheadline:      { type: 'textarea', label: 'Subheadline (optional)' },
     primaryButtonText: { type: 'text',  label: 'Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',  label: 'Button URL' },
-    primaryButtonColor: { type: 'text', label: 'Button Colour (hex)' },
-    textColor:        { type: 'text',   label: 'Text Colour (hex)' },
+    primaryButtonColor: { type: 'custom', label: 'Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     particleCount:    80,

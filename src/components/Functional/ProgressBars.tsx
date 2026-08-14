@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type BarItem = { label: string; value: number; color: string; suffix: string; icon: string }
 type BarStyle = 'rounded' | 'flat' | 'segmented' | 'stepped'
@@ -147,16 +148,16 @@ export const ProgressBars: ComponentConfig<ProgressBarsProps> = {
     showValues:     { type: 'radio',   label: 'Show Values', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showIcons:      { type: 'radio',   label: 'Show Icons',  options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     animateOnView:  { type: 'radio',   label: 'Animate on Scroll', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    backgroundColor: { type: 'text',  label: 'Background Colour (hex)' },
-    trackColor:     { type: 'text',    label: 'Track Colour (hex)' },
-    textColor:      { type: 'text',    label: 'Text Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    trackColor:     { type: 'custom',  label: 'Track Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:      { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:   { type: 'number',  label: 'Border Radius (px)' },
     items: {
       type: 'array', label: 'Bars',
       arrayFields: {
         label:  { type: 'text',   label: 'Label' },
         value:  { type: 'number', label: 'Value (0–100)' },
-        color:  { type: 'text',   label: 'Fill Colour (hex)' },
+        color:  { type: 'custom', label: 'Fill Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
         suffix: { type: 'text',   label: 'Suffix (e.g. % or /10)' },
         icon:   { type: 'text',   label: 'Icon (emoji, optional)' },
       },

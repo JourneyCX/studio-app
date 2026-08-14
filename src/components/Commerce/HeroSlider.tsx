@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type ButtonPosition = 'inline' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'top-left' | 'top-center' | 'top-right'
 type ButtonStyle = 'solid' | 'outline'
@@ -174,7 +175,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         buttonText:      { type: 'text',     label: 'Button Text' },
         buttonUrl:       { type: 'text',     label: 'Button / Slide URL' },
         buttonStyle:     { type: 'select',   label: 'Button Style', options: [{ label: 'Outline', value: 'outline' }, { label: 'Solid', value: 'solid' }] },
-        buttonColor:     { type: 'text',     label: 'Button Colour (hex)' },
+        buttonColor:     { type: 'custom',   label: 'Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
         backgroundSize: { type: 'select', label: 'Image Fit', options: [
           { label: 'Cover (fill & crop)',    value: 'cover' },
           { label: 'Contain (show full)',    value: 'contain' },

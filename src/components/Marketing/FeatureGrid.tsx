@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type FeatureItem = {
   icon: string
@@ -24,9 +25,9 @@ export const FeatureGrid: ComponentConfig<FeatureGridProps> = {
     subheadline:    { type: 'textarea', label: 'Section Subheadline' },
     columns:        { type: 'select',  label: 'Columns', options: [{ label: '2', value: 2 }, { label: '3', value: 3 }, { label: '4', value: 4 }] },
     cardStyle:      { type: 'select',  label: 'Card Style', options: [{ label: 'Boxed (card with border)', value: 'boxed' }, { label: 'Minimal (no border)', value: 'minimal' }, { label: 'Icon Top (centred icon)', value: 'icon-top' }] },
-    accentColor:    { type: 'text',    label: 'Accent Colour (hex)' },
-    backgroundColor: { type: 'text',  label: 'Background Colour (hex)' },
-    textColor:      { type: 'text',    label: 'Text Colour (hex)' },
+    accentColor:    { type: 'custom',  label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:      { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     items: {
       type: 'array',
       label: 'Features',

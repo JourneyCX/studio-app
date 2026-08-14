@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -264,7 +265,7 @@ export const BobgoPickupSelector: ComponentConfig<BobgoPickupSelectorProps> = {
     maxPoints:     { type: 'number', label: 'Max pickup points to show (3–15)' },
     layout:        { type: 'select', label: 'Layout', options: [{ label: 'List + Map (split)', value: 'split' }, { label: 'List only', value: 'list' }, { label: 'Map only', value: 'map' }] },
     showHours:     { type: 'radio',  label: 'Show operating hours', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    accentColor:   { type: 'text',   label: 'Accent colour (hex)' },
+    accentColor:   { type: 'custom', label: 'Accent colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     mapHeight:     { type: 'number', label: 'Map height (px)' },
   },
   defaultProps: {

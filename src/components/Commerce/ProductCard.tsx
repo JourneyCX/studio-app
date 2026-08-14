@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 export type ProductCardProps = {
   productName:  string
@@ -19,7 +20,7 @@ export const ProductCard: ComponentConfig<ProductCardProps> = {
     productImage: { type: 'custom', label: 'Image (manual fallback)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     productSlug:  { type: 'text',  label: 'WooCommerce Product Slug (overrides manual fields when set)' },
     buttonText:   { type: 'text',  label: 'Button Text' },
-    buttonColor:  { type: 'text',  label: 'Button Colour (hex)' },
+    buttonColor:  { type: 'custom', label: 'Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     showPrice:    { type: 'radio', label: 'Show Price', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
   },
   defaultProps: {

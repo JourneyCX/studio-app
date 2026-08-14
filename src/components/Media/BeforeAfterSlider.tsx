@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 export type BeforeAfterSliderProps = {
   beforeImage: string
@@ -135,13 +136,13 @@ export const BeforeAfterSlider: ComponentConfig<BeforeAfterSliderProps> = {
     beforeLabel:      { type: 'text',    label: 'Before Label' },
     afterLabel:       { type: 'text',    label: 'After Label' },
     initialPosition:  { type: 'number',  label: 'Initial Slider Position (0–100)' },
-    sliderColor:      { type: 'text',    label: 'Slider Handle Colour (hex)' },
-    labelColor:       { type: 'text',    label: 'Label Text Colour (hex)' },
-    labelBg:          { type: 'text',    label: 'Label Background (rgba or hex)' },
+    sliderColor:      { type: 'custom',  label: 'Slider Handle Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    labelColor:       { type: 'custom',  label: 'Label Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    labelBg:          { type: 'custom',  label: 'Label Background (rgba or hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:     { type: 'number',  label: 'Border Radius (px)' },
     minHeight:        { type: 'number',  label: 'Min Height (px)' },
-    backgroundColor:  { type: 'text',   label: 'Section Background (hex)' },
-    textColor:        { type: 'text',    label: 'Text Colour (hex)' },
+    backgroundColor:  { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     headline:         'See the Transformation',

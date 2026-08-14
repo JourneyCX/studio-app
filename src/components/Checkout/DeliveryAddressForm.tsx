@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 //
@@ -113,8 +114,8 @@ export const DeliveryAddressForm: ComponentConfig<DeliveryAddressFormProps> = {
   label: 'Delivery Address Form',
   fields: {
     headline:        { type: 'text', label: 'Headline (optional)' },
-    accentColor:     { type: 'text', label: 'Accent colour (hex)' },
-    backgroundColor: { type: 'text', label: 'Section background (hex)' },
+    accentColor:     { type: 'custom', label: 'Accent colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor: { type: 'custom', label: 'Section background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     headline:        'Delivery Address',

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -121,9 +122,9 @@ export const BobgoShippingSummary: ComponentConfig<BobgoShippingSummaryProps> = 
   fields: {
     showCourier:     { type: 'radio',   label: 'Show courier name',   options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showEta:         { type: 'radio',   label: 'Show estimated delivery', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    accentColor:     { type: 'text',    label: 'Accent colour (hex)' },
+    accentColor:     { type: 'custom',  label: 'Accent colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:    { type: 'number',  label: 'Border radius (px)' },
-    backgroundColor: { type: 'text',   label: 'Section background (hex)' },
+    backgroundColor: { type: 'custom', label: 'Section background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     showCourier:     true,

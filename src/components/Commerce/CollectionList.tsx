@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type Collection = { name: string; imageUrl: string; url: string }
 
@@ -20,7 +21,7 @@ export const CollectionList: ComponentConfig<CollectionListProps> = {
   fields: {
     headline:        { type: 'text',   label: 'Section Headline' },
     columns:         { type: 'number', label: 'Columns' },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     layout:          { type: 'select', label: 'Layout', options: [{ label: 'Grid', value: 'grid' }, { label: 'Scrolling Strip', value: 'strip' }] },
     collections: {
       type: 'array',

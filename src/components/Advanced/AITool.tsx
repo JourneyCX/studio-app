@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { stratumApi } from '../../lib/api'
+import { ColorField } from '../shared/ColorField'
 
 type Mode   = 'recommender' | 'planner' | 'assistant'
 type Msg    = { role: 'user' | 'assistant'; content: string }
@@ -224,10 +225,10 @@ export const AITool: ComponentConfig<AIToolProps> = {
     inputPlaceholder: { type: 'text',     label: 'Input Placeholder Text' },
     assistantName:    { type: 'text',     label: 'Assistant Name' },
     assistantAvatar:  { type: 'text',     label: 'Assistant Avatar URL (optional)' },
-    accentColor:      { type: 'text',     label: 'Accent Colour (hex)' },
-    backgroundColor:  { type: 'text',    label: 'Section Background (hex)' },
-    cardColor:        { type: 'text',     label: 'Card Background (hex)' },
-    textColor:        { type: 'text',     label: 'Text Colour (hex)' },
+    accentColor:      { type: 'custom',   label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom',  label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:        { type: 'custom',   label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom',   label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:     { type: 'number',   label: 'Border Radius (px)' },
     maxHeight:        { type: 'number',   label: 'Chat Window Height (px)' },
   },

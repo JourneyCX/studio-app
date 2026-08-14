@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategoryFilterListField } from '../shared/CategoryFilterListField'
+import { ColorField } from '../shared/ColorField'
 
 type Category = { label: string; slug: string; count: number }
 
@@ -234,10 +235,10 @@ export const ProductFilter: ComponentConfig<ProductFilterProps> = {
     showPriceRange:    { type: 'radio',  label: 'Price Range Slider', options: [{ label: 'Show', value: true }, { label: 'Hide', value: false }] },
     showSortBy:        { type: 'radio',  label: 'Sort By Dropdown', options: [{ label: 'Show', value: true }, { label: 'Hide', value: false }] },
     showActiveFilters: { type: 'radio',  label: 'Active Filter Tags', options: [{ label: 'Show', value: true }, { label: 'Hide', value: false }] },
-    accentColor:       { type: 'text',   label: 'Accent Colour (hex)' },
-    backgroundColor:   { type: 'text',  label: 'Background Colour (hex)' },
-    textColor:         { type: 'text',   label: 'Text Colour (hex)' },
-    borderColor:       { type: 'text',   label: 'Border Colour (hex)' },
+    accentColor:       { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:   { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:         { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    borderColor:       { type: 'custom', label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     currency:          { type: 'text',   label: 'Currency Symbol' },
     minPrice:          { type: 'number', label: 'Min Price' },
     maxPrice:          { type: 'number', label: 'Max Price' },

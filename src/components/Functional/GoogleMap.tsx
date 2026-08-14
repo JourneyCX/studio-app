@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type GoogleMapProps = {
   location: string
@@ -58,9 +59,9 @@ export const GoogleMap: ComponentConfig<GoogleMapProps> = {
     overlayButtonText: { type: 'text',  label: 'Card: Button Text' },
     overlayButtonUrl:  { type: 'text',  label: 'Card: Button URL' },
     overlayPosition:  { type: 'select', label: 'Card Position', options: [{ label: 'Left', value: 'left' }, { label: 'Right', value: 'right' }] },
-    accentColor:      { type: 'text',   label: 'Accent Colour (hex)' },
-    backgroundColor:  { type: 'text',  label: 'Background Colour (hex)' },
-    textColor:        { type: 'text',   label: 'Text Colour (hex)' },
+    accentColor:      { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:     { type: 'number', label: 'Border Radius (px)' },
   },
   defaultProps: {

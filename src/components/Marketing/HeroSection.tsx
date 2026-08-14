@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 export type HeroSectionProps = {
   eyebrow: string
@@ -25,11 +26,11 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
     subheadline:         { type: 'textarea', label: 'Subheadline' },
     primaryButtonText:   { type: 'text',   label: 'Primary Button Text' },
     primaryButtonUrl:    { type: 'text',   label: 'Primary Button URL' },
-    primaryButtonColor:  { type: 'text',   label: 'Primary Button Colour (hex)' },
+    primaryButtonColor:  { type: 'custom', label: 'Primary Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     secondaryButtonText: { type: 'text',   label: 'Secondary Button Text' },
     secondaryButtonUrl:  { type: 'text',   label: 'Secondary Button URL' },
     backgroundImage:     { type: 'custom', label: 'Background Image', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
-    backgroundColor:     { type: 'text',   label: 'Background Colour (hex)' },
+    backgroundColor:     { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:      { type: 'number', label: 'Dark Overlay (0–100)' },
     textAlign:           { type: 'select', label: 'Text Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }] },
     minHeight:           { type: 'number', label: 'Min Height (px)' },

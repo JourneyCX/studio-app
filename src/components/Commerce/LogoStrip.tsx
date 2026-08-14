@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type LogoItem = {
   imageUrl: string
@@ -25,11 +26,11 @@ export const LogoStrip: ComponentConfig<LogoStripProps> = {
   fields: {
     headline:        { type: 'text',   label: 'Heading (optional)' },
     logoHeight:      { type: 'number', label: 'Logo Height (px)' },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     paddingVertical: { type: 'number', label: 'Vertical Padding (px)' },
     borderTop:       { type: 'radio',  label: 'Top Border', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     borderBottom:    { type: 'radio',  label: 'Bottom Border', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    borderColor:     { type: 'text',   label: 'Border Colour (hex)' },
+    borderColor:     { type: 'custom', label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     grayscale:       { type: 'radio',  label: 'Greyscale logos', options: [{ label: 'Yes (colour on hover)', value: true }, { label: 'No (full colour)', value: false }] },
     justify: {
       type: 'select', label: 'Logo Alignment',

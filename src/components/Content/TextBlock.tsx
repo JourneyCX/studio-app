@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type TextBlockProps = {
   text: string
@@ -15,7 +16,7 @@ export const TextBlock: ComponentConfig<TextBlockProps> = {
     fontSize:   { type: 'number',  label: 'Font Size (px)' },
     fontWeight: { type: 'select',  label: 'Weight', options: [{ label: 'Normal', value: 'normal' }, { label: 'Bold', value: 'bold' }] },
     textAlign:  { type: 'select',  label: 'Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
-    color:      { type: 'text',    label: 'Text Colour (hex)' },
+    color:      { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     text: 'Add your text here.',

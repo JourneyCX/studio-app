@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 type PromoBanner = {
   image: string
@@ -52,7 +53,7 @@ export const PromoBannerGrid: ComponentConfig<PromoBannerGridProps> = {
     },
     bannerHeight:      { type: 'number', label: 'Height when "Fixed height" (px)' },
     gap:               { type: 'number', label: 'Gap between banners (px)' },
-    backgroundColor:   { type: 'text',   label: 'Section Background Colour (hex)' },
+    backgroundColor:   { type: 'custom', label: 'Section Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     paddingVertical:   { type: 'number', label: 'Section Vertical Padding (px)' },
     banners: {
       type: 'array',

@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type PricingPlan = {
   name: string
@@ -34,8 +35,8 @@ export const PricingTable: ComponentConfig<PricingTableProps> = {
   fields: {
     headline:       { type: 'text',    label: 'Section Headline' },
     subheadline:    { type: 'textarea', label: 'Section Subheadline' },
-    backgroundColor: { type: 'text',  label: 'Background Colour (hex)' },
-    textColor:      { type: 'text',    label: 'Text Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:      { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     plans: {
       type: 'array',
       label: 'Pricing Plans',
@@ -46,7 +47,7 @@ export const PricingTable: ComponentConfig<PricingTableProps> = {
         description:    { type: 'textarea', label: 'Short Description' },
         features:       { type: 'textarea', label: 'Features (one per line)' },
         highlighted:    { type: 'radio',   label: 'Highlight This Plan?', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-        highlightColor: { type: 'text',    label: 'Highlight / Button Colour (hex)' },
+        highlightColor: { type: 'custom',  label: 'Highlight / Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
         buttonText:     { type: 'text',    label: 'Button Text' },
         buttonUrl:      { type: 'text',    label: 'Button URL' },
       },

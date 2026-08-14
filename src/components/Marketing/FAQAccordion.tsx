@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 type FAQItem = {
   question: string
@@ -61,10 +62,10 @@ export const FAQAccordion: ComponentConfig<FAQAccordionProps> = {
   fields: {
     headline:        { type: 'text',    label: 'Section Headline' },
     subheadline:     { type: 'textarea', label: 'Section Subheadline' },
-    backgroundColor: { type: 'text',   label: 'Background Colour (hex)' },
-    cardColor:       { type: 'text',   label: 'Card Colour (hex)' },
-    textColor:       { type: 'text',   label: 'Text Colour (hex)' },
-    accentColor:     { type: 'text',   label: 'Accent Colour (hex)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:       { type: 'custom', label: 'Card Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:       { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    accentColor:     { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     maxWidth:        { type: 'number', label: 'Content Max Width (px)' },
     items: {
       type: 'array',

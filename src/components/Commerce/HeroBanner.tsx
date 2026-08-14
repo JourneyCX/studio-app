@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { ColorField } from '../shared/ColorField'
 
 export type HeroBannerProps = {
   headline: string
@@ -20,7 +21,7 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
     subheadline:     { type: 'textarea',label: 'Subheadline' },
     buttonText:      { type: 'text',    label: 'Button Text' },
     buttonUrl:       { type: 'text',    label: 'Button URL' },
-    buttonColor:     { type: 'text',    label: 'Button Colour (hex)' },
+    buttonColor:     { type: 'custom',  label: 'Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundImage: { type: 'custom',  label: 'Background Image', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:  { type: 'number',  label: 'Dark Overlay (0–100)' },
     textAlign:       { type: 'select',  label: 'Text Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
+import { ColorField } from '../shared/ColorField'
 
 export type ContactFormProps = {
   headline: string
@@ -150,11 +151,11 @@ export const ContactForm: ComponentConfig<ContactFormProps> = {
     successMessage:   { type: 'text',    label: 'Success Message' },
     errorMessage:     { type: 'text',    label: 'Error Message' },
     layout:           { type: 'select',  label: 'Layout', options: [{ label: 'Standard (single column)', value: 'standard' }, { label: 'Two Column (pairs fields)', value: 'two-column' }, { label: 'Card (centred box)', value: 'card' }] },
-    accentColor:      { type: 'text',    label: 'Accent Colour (hex)' },
-    backgroundColor:  { type: 'text',   label: 'Section Background (hex)' },
-    cardColor:        { type: 'text',    label: 'Card Background (hex)' },
-    textColor:        { type: 'text',    label: 'Text Colour (hex)' },
-    borderColor:      { type: 'text',    label: 'Border Colour (hex)' },
+    accentColor:      { type: 'custom',  label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundColor:  { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    cardColor:        { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textColor:        { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    borderColor:      { type: 'custom',  label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:     { type: 'number',  label: 'Border Radius (px)' },
   },
   defaultProps: {
