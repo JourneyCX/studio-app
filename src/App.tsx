@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { Puck, type Data } from '@measured/puck'
+import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, type StudioSession } from './lib/api'
 import { useTemplateManager, uid } from './lib/useTemplateManager'
@@ -29,30 +29,55 @@ function stripChromeEntries(data: Data): Data {
 // with the filter in col-0 and a grid in col-1. Do the same automatically the
 // moment a sidebar filter is freshly dropped at the root, so an empty col-1 is
 // immediately there to drop a Product Grid into — matching the template without
-// the merchant needing to find and apply it. `previousContentIds` scopes this to
-// genuinely new drops (not edits to a filter already placed at some point), so
-// it never re-wraps a filter the merchant deliberately left standalone or the
-// one it just wrapped.
-function autoWrapSidebarFilter(data: Data, previousContentIds: Set<string>): Data {
-  const index = data.content.findIndex(item => {
-    const id = item.props.id
-    return item.type === 'ProductFilter' && item.props.layout === 'sidebar' && !previousContentIds.has(id)
-  })
-  if (index === -1) return data
+// the merchant needing to find and apply it.
+//
+// This has to be a component rendered *inside* <Puck> (via the `components`
+// override below) and driven by usePuck()'s own `dispatch`, not a `data`/
+// `editorKey` remount reacting to onChange from the parent — remounting the
+// whole <Puck> tree synchronously while Puck's own dnd-kit drag handling is
+// still settling the drop tears the canvas DOM out from under it and crashes
+// to a blank white screen (confirmed live). Routing the mutation through
+// Puck's own `setData` action instead goes through the same reducer dnd-kit's
+// drop already uses, so there's nothing to tear down.
+function ProductFilterAutoWrap() {
+  const { appState, dispatch } = usePuck()
+  // Ids already accounted for (present at last check) — starts from whatever
+  // was already on the page at mount so pages loaded with a pre-existing
+  // root-level filter aren't retroactively rewrapped.
+  const knownIds = useRef<Set<string>>(new Set(appState.data.content.map(item => item.props.id)))
 
-  const filterItem = data.content[index]
-  const columnsId = `Columns-${uid()}`
-  const newContent = [...data.content]
-  newContent[index] = {
-    type: 'Columns',
-    props: { id: columnsId, distribution: 'sidebar13', gap: 32, backgroundColor: 'transparent' },
-  }
+  useEffect(() => {
+    const content = appState.data.content
+    const previousIds = knownIds.current
+    knownIds.current = new Set(content.map(item => item.props.id))
 
-  return {
-    ...data,
-    content: newContent,
-    zones: { ...data.zones, [`${columnsId}:col-0`]: [filterItem] },
-  }
+    const index = content.findIndex(item =>
+      item.type === 'ProductFilter' && item.props.layout === 'sidebar' && !previousIds.has(item.props.id)
+    )
+    if (index === -1) return
+    const droppedId = content[index].props.id
+
+    dispatch({
+      type: 'setData',
+      data: (previous) => {
+        const i = previous.content.findIndex(item => item.props.id === droppedId)
+        if (i === -1) return {}
+        const filterItem = previous.content[i]
+        const columnsId = `Columns-${uid()}`
+        const newContent = [...previous.content]
+        newContent[i] = {
+          type: 'Columns',
+          props: { id: columnsId, distribution: 'sidebar13', gap: 32, backgroundColor: 'transparent' },
+        }
+        return {
+          content: newContent,
+          zones: { ...previous.zones, [`${columnsId}:col-0`]: [filterItem] },
+        }
+      },
+    })
+  }, [appState.data, dispatch])
+
+  return null
 }
 
 // Debounce auto-save — fires 2s after the last change
@@ -139,7 +164,6 @@ export default function App() {
   // without requiring them to be torn down and re-created on every render.
   const isDirtyRef   = useRef(false)
   const guardPushed  = useRef(false)   // true once we've pushed the guard history entry
-  const wrapPending  = useRef(false)   // true while a deferred Product Filter auto-wrap remount is queued
 
   const syncDirty = (value: boolean) => {
     isDirtyRef.current = value
@@ -315,28 +339,6 @@ export default function App() {
   const handleChange = (data: Data) => {
     setLastChange(data)
     syncDirty(true)
-
-    // `puckData` only ever reflects the last remount baseline (initial load, a
-    // template apply, or our own wrap below) — see the editorKey comment further
-    // down — so its content ids are a stable "what already existed" snapshot to
-    // diff fresh drops against, not the noisy per-onChange `data` from Puck.
-    const previousIds = new Set(puckData.content.map(item => item.props.id))
-    const wrapped = autoWrapSidebarFilter(data, previousIds)
-    if (wrapped === data || wrapPending.current) return
-
-    // Puck treats `data` as initial-only, so reflecting the wrap on the canvas
-    // needs the same remount-via-editorKey escape hatch used for template
-    // application below — but doing that *synchronously* inside this onChange
-    // (itself called from Puck's own drop-handling) tears the canvas DOM out
-    // from under dnd-kit mid-drop and crashes to a blank white screen. Deferring
-    // to a macrotask lets Puck/dnd-kit finish settling the drop first.
-    wrapPending.current = true
-    setTimeout(() => {
-      wrapPending.current = false
-      setPuckData(wrapped)
-      setLastChange(wrapped)
-      setEditorKey(k => k + 1)
-    }, 150)
   }
 
   const handlePublish = async (data: Data) => {
@@ -406,6 +408,7 @@ export default function App() {
           // same panel frame — no collision with anything Puck already renders there.
           components: ({ children }) => (
             <>
+              <ProductFilterAutoWrap />
               <div style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <button
                   onClick={() => setPagesOpen(true)}
