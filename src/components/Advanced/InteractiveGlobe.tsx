@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { WORLD_LAND } from './worldLand'
 
 type GLocation = { name: string; lat: number; lng: number; description: string; color: string }
 
@@ -26,9 +27,33 @@ function project(lat: number, lng: number, rotation: number, cx: number, cy: num
 }
 
 const THEMES = {
-  ocean: { base0: '#1e3a5f', base1: '#0a1628', grid: '99,179,237', glow: '59,130,246' },
-  dark:  { base0: '#1a1a2e', base1: '#0d0d1a', grid: '148,163,184', glow: '148,163,184' },
-  green: { base0: '#0d3320', base1: '#051a10', grid: '52,211,153', glow: '16,185,129' },
+  ocean: { base0: '#1e3a5f', base1: '#0a1628', grid: '99,179,237', glow: '59,130,246', land: '52,178,112', landAlpha: 0.6 },
+  dark:  { base0: '#1a1a2e', base1: '#0d0d1a', grid: '148,163,184', glow: '148,163,184', land: '203,213,225', landAlpha: 0.16 },
+  green: { base0: '#0d3320', base1: '#051a10', grid: '52,211,153', glow: '16,185,129', land: '134,239,172', landAlpha: 0.4 },
+}
+
+function drawLand(
+  ctx: CanvasRenderingContext2D,
+  cx: number, cy: number, r: number,
+  rotation: number,
+  theme: keyof typeof THEMES
+) {
+  const T = THEMES[theme]
+  ctx.fillStyle = `rgba(${T.land},${T.landAlpha})`
+  for (const ring of WORLD_LAND) {
+    ctx.beginPath()
+    let started = false
+    for (const [lng, lat] of ring) {
+      const p = project(lat, lng, rotation, cx, cy, r)
+      if (p.visible) {
+        if (!started) { ctx.moveTo(p.x, p.y); started = true }
+        else ctx.lineTo(p.x, p.y)
+      } else {
+        started = false
+      }
+    }
+    ctx.fill()
+  }
 }
 
 function drawGlobe(
@@ -60,6 +85,8 @@ function drawGlobe(
   // Clip to sphere
   ctx.save()
   ctx.beginPath(); ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2); ctx.clip()
+
+  drawLand(ctx, cx, cy, r, rotation, theme)
 
   const drawParallel = (lat: number, opacity: number, width: number) => {
     ctx.strokeStyle = `rgba(${T.grid},${opacity})`
@@ -122,6 +149,15 @@ function drawGlobe(
     ctx.fillStyle = dotCol; ctx.fill()
     ctx.beginPath(); ctx.arc(p.x, p.y - (isSel ? 1.5 : 1), isSel ? 2 : 1.5, 0, Math.PI * 2)
     ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill()
+
+    ctx.font = `${isSel ? 'bold ' : ''}11px system-ui, -apple-system, sans-serif`
+    ctx.textBaseline = 'middle'
+    ctx.lineWidth = 3
+    ctx.lineJoin = 'round'
+    ctx.strokeStyle = 'rgba(15,23,42,0.85)'
+    ctx.strokeText(loc.name, p.x + (isSel ? 12 : 9), p.y)
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText(loc.name, p.x + (isSel ? 12 : 9), p.y)
   })
 }
 
