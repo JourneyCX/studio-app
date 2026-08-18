@@ -10,7 +10,7 @@ import { stratumApi } from '@/lib/api'
 // that each subscriber's copy is fully independent from the master template.
 // Zone keys (format: "componentId:zoneName") are remapped to match the new IDs.
 // ---------------------------------------------------------------------------
-function uid(): string {
+export function uid(): string {
   return Math.random().toString(36).slice(2, 9)
 }
 

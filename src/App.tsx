@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Puck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, type StudioSession } from './lib/api'
-import { useTemplateManager } from './lib/useTemplateManager'
+import { useTemplateManager, uid } from './lib/useTemplateManager'
 import { TemplateSelector } from './components/TemplateSelector'
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
@@ -21,6 +21,40 @@ function stripChromeEntries(data: Data): Data {
   return { ...data, content: data.content.filter(item => !CHROME_TYPES.has(item.type)) }
 }
 
+// A "Product Filter" (sidebar layout) dropped straight onto the page canvas has
+// no column to put a Product Grid beside it — Puck's root canvas is a single
+// vertical DropZone, so it can only stack above/below other root-level blocks.
+// The "Shop Page — Filters Sidebar" template (masterTemplates.ts) works around
+// this by pre-wrapping the same filter in a "Sidebar Left (1:3)" Columns layout
+// with the filter in col-0 and a grid in col-1. Do the same automatically the
+// moment a sidebar filter is freshly dropped at the root, so an empty col-1 is
+// immediately there to drop a Product Grid into — matching the template without
+// the merchant needing to find and apply it. `previousContentIds` scopes this to
+// genuinely new drops (not edits to a filter already placed at some point), so
+// it never re-wraps a filter the merchant deliberately left standalone or the
+// one it just wrapped.
+function autoWrapSidebarFilter(data: Data, previousContentIds: Set<string>): Data {
+  const index = data.content.findIndex(item => {
+    const id = item.props.id
+    return item.type === 'ProductFilter' && item.props.layout === 'sidebar' && !previousContentIds.has(id)
+  })
+  if (index === -1) return data
+
+  const filterItem = data.content[index]
+  const columnsId = `Columns-${uid()}`
+  const newContent = [...data.content]
+  newContent[index] = {
+    type: 'Columns',
+    props: { id: columnsId, distribution: 'sidebar13', gap: 32, backgroundColor: 'transparent' },
+  }
+
+  return {
+    ...data,
+    content: newContent,
+    zones: { ...data.zones, [`${columnsId}:col-0`]: [filterItem] },
+  }
+}
+
 // Debounce auto-save — fires 2s after the last change
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value)
@@ -32,6 +66,18 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 const EMPTY_DATA: Data = { root: { props: {} }, content: [], zones: {} }
+
+// Puck's Blocks panel groups components by category (Layout, Content,
+// E-commerce, …) as collapsible sections — collapsed is the built-in
+// behavior, it just defaults `expanded` to true when unset. Start every
+// category collapsed so the panel reads as a dropdown list rather than one
+// long scroll; derived from config.ts's categories so a new category
+// collapses by default too, without needing a matching edit here.
+const INITIAL_PUCK_UI = {
+  componentList: Object.fromEntries(
+    Object.keys(puckConfig.categories ?? {}).map(id => [id, { expanded: false }])
+  ),
+}
 
 // Matches the same body{zoom:1.25} rule added to the live storefront's
 // layouts/default.vue — every storefront component hardcodes its own px
@@ -266,8 +312,21 @@ export default function App() {
   // ── Puck callbacks ─────────────────────────────────────────────────────────
 
   const handleChange = (data: Data) => {
-    setLastChange(data)
+    // `puckData` only ever reflects the last remount baseline (initial load, a
+    // template apply, or our own wrap below) — see the editorKey comment further
+    // down — so its content ids are a stable "what already existed" snapshot to
+    // diff fresh drops against, not the noisy per-keystroke `data` from Puck.
+    const previousIds = new Set(puckData.content.map(item => item.props.id))
+    const wrapped = autoWrapSidebarFilter(data, previousIds)
+    setLastChange(wrapped)
     syncDirty(true)
+    if (wrapped !== data) {
+      // Puck treats `data` as initial-only, so reflecting the wrap on the
+      // canvas needs the same remount-via-editorKey escape hatch used for
+      // template application below.
+      setPuckData(wrapped)
+      setEditorKey(k => k + 1)
+    }
   }
 
   const handlePublish = async (data: Data) => {
@@ -324,6 +383,7 @@ export default function App() {
         key={editorKey}
         config={puckConfig}
         data={puckData}
+        ui={INITIAL_PUCK_UI}
         headerTitle={pageName}
         onPublish={handlePublish}
         onChange={handleChange}
