@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
+import { VideoUploadField } from '../shared/VideoUploadField'
 import { ColorField } from '../shared/ColorField'
 
 export type VideoBackgroundProps = {
@@ -29,7 +30,7 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
   label: 'Video Background',
   fields: {
     videoType:           { type: 'select',   label: 'Video Source', options: [{ label: 'Direct MP4 URL', value: 'mp4' }, { label: 'YouTube', value: 'youtube' }] },
-    videoUrl:            { type: 'text',     label: 'Video URL (MP4 link or YouTube URL)' },
+    videoUrl:            { type: 'custom',   label: 'Video URL (paste an MP4/YouTube link, or upload an MP4 below)', render: ({ value, onChange }) => <VideoUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     fallbackImage:       { type: 'custom',   label: 'Fallback Image (shown when no video)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayColor:        { type: 'custom',   label: 'Overlay Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:      { type: 'number',   label: 'Overlay Opacity (0–100)' },

@@ -229,6 +229,24 @@ export const stratumApi = {
     return stratumApi.uploadImage(file, _activeToken)
   },
 
+  uploadVideo(file: File, token: string): Promise<{ url: string; error?: string }> {
+    const form = new FormData()
+    form.append('file', file)
+    return fetch(`${STRATUM_ORIGIN}/admin/store_builder_api/upload_video`, {
+      method: 'POST',
+      headers: {
+        'X-Stratum-Token': token,
+        'Accept': 'application/json',
+      },
+      body: form,
+    }).then(r => r.json())
+  },
+
+  // Convenience wrapper — uses the module-level active token (set after login).
+  uploadActiveVideo(file: File): Promise<{ url: string; error?: string }> {
+    return stratumApi.uploadVideo(file, _activeToken)
+  },
+
   // Product Category dropdown fields (ProductGrid/Carousel/Showcase). Reads the
   // tenant's real, live WooCommerce categories so a merchant picks a category by
   // name instead of typing a slug — see Store_builder_api::categories() for why
