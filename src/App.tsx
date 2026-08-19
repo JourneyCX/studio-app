@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
-import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, type StudioSession } from './lib/api'
+import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
 import { useTemplateManager, uid } from './lib/useTemplateManager'
 import { TemplateSelector } from './components/TemplateSelector'
 import { UnsavedChangesDialog } from './components/UnsavedChangesDialog'
+import { SessionExpiredDialog } from './components/SessionExpiredDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
 import { SiteFooter } from './components/Navigation/SiteFooter'
 import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
@@ -160,6 +161,14 @@ export default function App() {
   const [showExitDialog, setShowExitDialog] = useState(false)
   const [dialogSaving,   setDialogSaving]   = useState(false)
 
+  // ── Session-expiry guard ───────────────────────────────────────────────────
+  // The JWT (session.exp) is only good for 1 hour (store_builder_helper.php).
+  // Without this, a stale token fails every save/publish with a silent 401
+  // that's easy to miss (a plain alert()) and leaves "Unsaved changes" stuck
+  // with no indication why — see project_social_feed_renderer_drift_fix memory.
+  const [sessionExpiringSoon, setSessionExpiringSoon] = useState(false)
+  const [sessionExpired,      setSessionExpired]      = useState(false)
+
   // Ref keeps the latest isDirty value accessible inside event handlers
   // without requiring them to be torn down and re-created on every render.
   const isDirtyRef   = useRef(false)
@@ -237,6 +246,24 @@ export default function App() {
   // /admin, /admin/... re-appended.
   const goToPage = (slug: string) => {
     window.top!.location.href = `${STRATUM_ORIGIN}/admin/store_builder/editor/${slug}`
+  }
+
+  // Same cross-origin-safe navigation as goToPage, used to recover from an
+  // expired session: navigating the *parent* window back to Store_builder::editor()
+  // mints a fresh JWT server-side and rebuilds this iframe with it. If the
+  // session expired before we ever loaded a page (verifyToken itself 401s),
+  // there's no known slug yet — document.referrer is the parent admin page
+  // that embedded this iframe (studio.php), which falls back to the tenant's
+  // Store Builder pages list if even that isn't available.
+  const reloadForFreshSession = () => {
+    const target = session
+      ? `${STRATUM_ORIGIN}/admin/store_builder/editor/${session.pageSlug}`
+      : (document.referrer || `${STRATUM_ORIGIN}/admin/store_builder/pages`)
+    try {
+      window.top!.location.href = target
+    } catch {
+      window.location.href = target
+    }
   }
 
   const handleDialogSaveAndExit = async () => {
@@ -319,10 +346,34 @@ export default function App() {
         setStatus('ready')
       })
       .catch(err => {
-        setErrorMsg(err.message || 'Failed to load. Please close and reopen the editor.')
+        if (err instanceof SessionExpiredError) {
+          setSessionExpired(true)
+        } else {
+          setErrorMsg(err.message || 'Failed to load. Please close and reopen the editor.')
+        }
         setStatus('error')
       })
   }, [token])
+
+  // ── Proactive session-expiry warning ───────────────────────────────────────
+  // Warns 5 minutes before the JWT actually expires (instead of only finding
+  // out via a failed save/publish), and flips the same blocking dialog on at
+  // the real expiry moment even if the user hasn't tried to save since.
+  useEffect(() => {
+    if (!session) return
+    const msUntilExpiry = session.exp * 1000 - Date.now()
+    if (msUntilExpiry <= 0) {
+      setSessionExpired(true)
+      return
+    }
+    const warnMs = Math.max(msUntilExpiry - 5 * 60 * 1000, 0)
+    const warnTimer   = setTimeout(() => setSessionExpiringSoon(true), warnMs)
+    const expireTimer = setTimeout(() => setSessionExpired(true), msUntilExpiry)
+    return () => {
+      clearTimeout(warnTimer)
+      clearTimeout(expireTimer)
+    }
+  }, [session])
 
   // ── Auto-save draft on debounced change ───────────────────────────────────
 
@@ -331,7 +382,13 @@ export default function App() {
     stratumApi
       .saveDraft(session.tenantId, session.pageSlug, debouncedChange, pageName, token)
       .then(() => syncDirty(false))
-      .catch(err => console.warn('Auto-save failed:', err.message))
+      .catch(err => {
+        if (err instanceof SessionExpiredError) {
+          setSessionExpired(true)
+          return
+        }
+        console.warn('Auto-save failed:', err.message)
+      })
   }, [debouncedChange])
 
   // ── Puck callbacks ─────────────────────────────────────────────────────────
@@ -351,6 +408,10 @@ export default function App() {
         : 'Published successfully.'
       alert(msg)
     } catch (err: unknown) {
+      if (err instanceof SessionExpiredError) {
+        setSessionExpired(true)
+        return
+      }
       alert('Publish failed: ' + (err instanceof Error ? err.message : 'Unknown error'))
     }
   }
@@ -381,6 +442,9 @@ export default function App() {
     return <div className="loading-screen"><span>Loading editor…</span></div>
   }
   if (status === 'error') {
+    if (sessionExpired) {
+      return <SessionExpiredDialog onReload={reloadForFreshSession} />
+    }
     return <div className="error-screen"><span>⚠ {errorMsg}</span></div>
   }
 
@@ -451,6 +515,30 @@ export default function App() {
           // Puck header alongside the default actions.
           headerActions: ({ children }) => (
             <>
+              {/* Session-expiring-soon warning — fires 5 min before the JWT
+                  actually expires, so the blocking dialog (below) is a fallback,
+                  not the first the user hears of it. */}
+              {sessionExpiringSoon && !sessionExpired && (
+                <span
+                  title="Reload the editor soon to avoid losing changes"
+                  style={{
+                    padding: '4px 10px',
+                    backgroundColor: '#fee2e2',
+                    color: '#991b1b',
+                    border: '1px solid #fca5a5',
+                    borderRadius: 6,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    lineHeight: 1,
+                  }}
+                >
+                  ⏳ Session expiring soon — save your work
+                </span>
+              )}
+
               {/* Unsaved-changes indicator */}
               {isDirty && (
                 <span style={{
@@ -579,6 +667,10 @@ export default function App() {
           onKeepEditing={handleDialogKeepEditing}
         />
       )}
+
+      {/* Session-expired dialog — takes over from the exit dialog above once
+          the JWT is dead, since neither Save nor Publish can succeed any more. */}
+      {sessionExpired && <SessionExpiredDialog onReload={reloadForFreshSession} />}
 
       {/* Toast notification */}
       {tm.notification && (

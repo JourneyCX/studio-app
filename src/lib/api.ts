@@ -35,6 +35,17 @@ let _activeTenantId = 0
 export function setActiveTenantId(tenantId: number) { _activeTenantId = tenantId }
 export function getActiveTenantId() { return _activeTenantId }
 
+// Thrown specifically for a 401 from the JWT-gated Store Builder API — the
+// token's 1-hour expiry (see store_builder_helper.php) is the only thing that
+// produces this status. Callers use it to show a "reload to continue" prompt
+// instead of a generic failure message, since a plain retry can never succeed.
+export class SessionExpiredError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'SessionExpiredError'
+  }
+}
+
 async function request<T>(
   method: string,
   path: string,
@@ -54,6 +65,9 @@ async function request<T>(
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
+    if (res.status === 401) {
+      throw new SessionExpiredError(err.error || 'Session expired.')
+    }
     throw new Error(err.error || `HTTP ${res.status}`)
   }
   return res.json() as Promise<T>
