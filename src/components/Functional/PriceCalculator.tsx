@@ -2,7 +2,14 @@ import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
 
-type LineItem = { label: string; description: string; unitPrice: number; unitLabel: string; min: number; max: number; defaultQty: number; step: number }
+type DiscountTier = { minQty: number; discountPercent: number }
+type LineItem = { label: string; description: string; unitPrice: number; unitLabel: string; min: number; max: number; defaultQty: number; step: number; tiers?: DiscountTier[] }
+
+function tierDiscountFor(tiers: DiscountTier[] | undefined, qty: number): number {
+  if (!tiers || tiers.length === 0) return 0
+  const applicable = tiers.filter((t) => qty >= t.minQty).sort((a, b) => b.minQty - a.minQty)
+  return applicable[0]?.discountPercent ?? 0
+}
 
 export type PriceCalculatorProps = {
   headline: string
@@ -36,9 +43,14 @@ function CalcInner(props: PriceCalculatorProps) {
     setQuantities((prev) => ({ ...prev, [i]: Math.min(item.max, Math.max(item.min, val)) }))
   }
 
-  const subtotal      = items.reduce((sum, item, i) => sum + item.unitPrice * (quantities[i] ?? item.defaultQty), 0)
-  const discountAmt   = subtotal * (discountPercent / 100)
-  const taxableAmount = subtotal - discountAmt
+  const subtotal         = items.reduce((sum, item, i) => sum + item.unitPrice * (quantities[i] ?? item.defaultQty), 0)
+  const volumeDiscountAmt = items.reduce((sum, item, i) => {
+    const qty = quantities[i] ?? item.defaultQty
+    return sum + item.unitPrice * qty * (tierDiscountFor(item.tiers, qty) / 100)
+  }, 0)
+  const afterVolume   = subtotal - volumeDiscountAmt
+  const discountAmt   = afterVolume * (discountPercent / 100)
+  const taxableAmount = afterVolume - discountAmt
   const taxAmt        = taxableAmount * (taxRate / 100)
   const total         = taxableAmount + taxAmt
 
@@ -61,14 +73,24 @@ function CalcInner(props: PriceCalculatorProps) {
           {/* Line items */}
           <div style={{ padding: '0 0 0' }}>
             {items.map((item, i) => {
-              const qty      = quantities[i] ?? item.defaultQty
-              const lineTotal = item.unitPrice * qty
+              const qty       = quantities[i] ?? item.defaultQty
+              const tierPct   = tierDiscountFor(item.tiers, qty)
+              const lineBase  = item.unitPrice * qty
+              const lineTotal = lineBase - lineBase * (tierPct / 100)
+              const tiers     = item.tiers ?? []
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, padding: '20px 28px', borderBottom: '1px solid #f1f5f9', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1 }}>
                     <p style={{ color: textColor, fontWeight: 600, fontSize: 15, margin: '0 0 3px' }}>{item.label}</p>
                     {item.description && <p style={{ color: textColor, opacity: 0.55, fontSize: 13, margin: 0 }}>{item.description}</p>}
                     <p style={{ color: accentColor, fontSize: 13, margin: '4px 0 0', fontWeight: 600 }}>{fmt(item.unitPrice)} / {item.unitLabel}</p>
+                    {tiers.length > 0 && (
+                      <p style={{ fontSize: 12, margin: '4px 0 0', color: tierPct > 0 ? '#10b981' : textColor, opacity: tierPct > 0 ? 1 : 0.5, fontWeight: tierPct > 0 ? 700 : 400 }}>
+                        {tierPct > 0
+                          ? `✓ ${tierPct}% volume discount applied`
+                          : `Volume pricing: ${tiers.map((t) => `${t.minQty}+ → ${t.discountPercent}% off`).join(', ')}`}
+                      </p>
+                    )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <button
@@ -109,6 +131,12 @@ function CalcInner(props: PriceCalculatorProps) {
                 <span style={{ color: textColor, opacity: 0.65, fontSize: 14 }}>Subtotal</span>
                 <span style={{ color: textColor, fontSize: 14 }}>{fmt(subtotal)}</span>
               </div>
+              {volumeDiscountAmt > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#10b981', fontSize: 14, fontWeight: 600 }}>Volume Discount</span>
+                  <span style={{ color: '#10b981', fontSize: 14, fontWeight: 600 }}>−{fmt(volumeDiscountAmt)}</span>
+                </div>
+              )}
               {showDiscount && discountPercent > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: '#10b981', fontSize: 14, fontWeight: 600 }}>Discount ({discountPercent}%)</span>
@@ -173,8 +201,17 @@ export const PriceCalculator: ComponentConfig<PriceCalculatorProps> = {
         max:        { type: 'number',  label: 'Maximum Qty' },
         defaultQty: { type: 'number',  label: 'Default Qty' },
         step:       { type: 'number',  label: 'Step Size' },
+        tiers: {
+          type: 'array', label: 'Volume Discount Tiers',
+          arrayFields: {
+            minQty:          { type: 'number', label: 'Min Qty (applies at this qty and above)' },
+            discountPercent: { type: 'number', label: 'Discount (%)' },
+          },
+          defaultItemProps: { minQty: 10, discountPercent: 5 },
+          getItemSummary: (tier: DiscountTier) => `${tier.minQty}+ units → ${tier.discountPercent}% off`,
+        },
       },
-      defaultItemProps: { label: 'Product / Service', description: '', unitPrice: 199, unitLabel: 'item', min: 0, max: 100, defaultQty: 1, step: 1 },
+      defaultItemProps: { label: 'Product / Service', description: '', unitPrice: 199, unitLabel: 'item', min: 0, max: 100, defaultQty: 1, step: 1, tiers: [] },
       getItemSummary: (item: LineItem) => `${item.label} × ${item.defaultQty}`,
     },
   },
@@ -195,9 +232,9 @@ export const PriceCalculator: ComponentConfig<PriceCalculatorProps> = {
     textColor:       '#1e293b',
     borderRadius:    16,
     items: [
-      { label: 'Custom Branded Tote Bag',  description: 'Full-colour print, 38×42cm cotton canvas', unitPrice: 89,  unitLabel: 'unit', min: 0, max: 500, defaultQty: 25,  step: 5  },
-      { label: 'Printed T-Shirt',          description: 'Unisex fit, 100% cotton, front & back print', unitPrice: 149, unitLabel: 'unit', min: 0, max: 500, defaultQty: 10,  step: 5  },
-      { label: 'Branded Packaging Box',    description: 'Custom print, 200×150×80mm, kraft board',  unitPrice: 35,  unitLabel: 'unit', min: 0, max: 1000, defaultQty: 50, step: 10 },
+      { label: 'Custom Branded Tote Bag',  description: 'Full-colour print, 38×42cm cotton canvas', unitPrice: 89,  unitLabel: 'unit', min: 0, max: 500, defaultQty: 25,  step: 5,  tiers: [{ minQty: 10, discountPercent: 5 }, { minQty: 20, discountPercent: 6 }] },
+      { label: 'Printed T-Shirt',          description: 'Unisex fit, 100% cotton, front & back print', unitPrice: 149, unitLabel: 'unit', min: 0, max: 500, defaultQty: 10,  step: 5,  tiers: [] },
+      { label: 'Branded Packaging Box',    description: 'Custom print, 200×150×80mm, kraft board',  unitPrice: 35,  unitLabel: 'unit', min: 0, max: 1000, defaultQty: 50, step: 10, tiers: [] },
     ],
   },
   render(props) { return <CalcInner {...props} /> },
