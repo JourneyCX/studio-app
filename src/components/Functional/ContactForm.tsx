@@ -146,7 +146,7 @@ export const ContactForm: ComponentConfig<ContactFormProps> = {
     showPhone:        { type: 'radio',   label: 'Phone Field',   options: [{ label: 'Show', value: true }, { label: 'Hide', value: false }] },
     showSubject:      { type: 'radio',   label: 'Subject Field', options: [{ label: 'Show', value: true }, { label: 'Hide', value: false }] },
     showCompany:      { type: 'radio',   label: 'Company Field', options: [{ label: 'Show', value: true }, { label: 'Hide', value: false }] },
-    submitEndpoint:   { type: 'text',    label: 'Submit Endpoint URL (POST, leave blank to preview)' },
+    submitEndpoint:   { type: 'text',    label: 'Submit Endpoint URL (optional — leave blank to email your Store Info contact address; enter your own URL to use a third-party form handler instead)' },
     submitButtonText: { type: 'text',    label: 'Submit Button Text' },
     successMessage:   { type: 'text',    label: 'Success Message' },
     errorMessage:     { type: 'text',    label: 'Error Message' },
