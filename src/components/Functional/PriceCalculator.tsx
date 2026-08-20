@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { ProductPickerListField, type PriceCalcLineItem } from '../shared/ProductPickerListField'
 
 type DiscountTier = { minQty: number; discountPercent: number }
 type LineItem = { label: string; description: string; unitPrice: number; unitLabel: string; min: number; max: number; defaultQty: number; step: number; tiers?: DiscountTier[] }
@@ -191,28 +192,11 @@ export const PriceCalculator: ComponentConfig<PriceCalculatorProps> = {
     textColor:       { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:    { type: 'number',  label: 'Card Border Radius (px)' },
     items: {
-      type: 'array', label: 'Line Items',
-      arrayFields: {
-        label:      { type: 'text',    label: 'Item Name' },
-        description: { type: 'text',   label: 'Description (optional)' },
-        unitPrice:  { type: 'number',  label: 'Unit Price' },
-        unitLabel:  { type: 'text',    label: 'Unit Label (e.g. month, item, seat)' },
-        min:        { type: 'number',  label: 'Minimum Qty' },
-        max:        { type: 'number',  label: 'Maximum Qty' },
-        defaultQty: { type: 'number',  label: 'Default Qty' },
-        step:       { type: 'number',  label: 'Step Size' },
-        tiers: {
-          type: 'array', label: 'Volume Discount Tiers',
-          arrayFields: {
-            minQty:          { type: 'number', label: 'Min Qty (applies at this qty and above)' },
-            discountPercent: { type: 'number', label: 'Discount (%)' },
-          },
-          defaultItemProps: { minQty: 10, discountPercent: 5 },
-          getItemSummary: (tier: DiscountTier) => `${tier.minQty}+ units → ${tier.discountPercent}% off`,
-        },
-      },
-      defaultItemProps: { label: 'Product / Service', description: '', unitPrice: 199, unitLabel: 'item', min: 0, max: 100, defaultQty: 1, step: 1, tiers: [] },
-      getItemSummary: (item: LineItem) => `${item.label} × ${item.defaultQty}`,
+      type: 'custom',
+      label: 'Line Items',
+      render: ({ value, onChange }) => (
+        <ProductPickerListField value={value as PriceCalcLineItem[]} onChange={onChange as (v: PriceCalcLineItem[]) => void} />
+      ),
     },
   },
   defaultProps: {
