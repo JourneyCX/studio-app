@@ -135,7 +135,7 @@ export const NewsletterSignup: ComponentConfig<NewsletterSignupProps> = {
     buttonText:    { type: 'text',   label: 'Button Text' },
     privacyText:   { type: 'text',   label: 'Privacy / GDPR Notice (optional)' },
     successMessage: { type: 'text',  label: 'Success Message' },
-    webhookUrl:    { type: 'text',   label: 'Webhook / API URL (optional — leave blank to add signups to your Acelle mailing list; enter your own URL to use a third-party service instead)' },
+    webhookUrl:    { type: 'text',   label: 'Webhook / API URL (optional — leave blank to add signups to your Email Marketing list; enter your own URL to use a third-party service instead)' },
     accentColor:   { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     textColor:     { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
