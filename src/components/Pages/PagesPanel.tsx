@@ -8,12 +8,20 @@ import { PageSettingsModal } from './PageSettingsModal'
 interface PagesPanelProps {
   tenantId: number
   token: string
+  // Whether the footer's brand block (logo/business name/tagline) is also showing
+  // as a column — see StoreSettingsSection's checkbox. Narrows the footer's
+  // top-level-page cap from 4 to 3 so the two combined never exceed 4 columns —
+  // mirrors Store_builder_model::reorder_pages()'s server-side check.
+  footerShowBrandColumn: boolean
   onClose: () => void
   // Routes through App.tsx's existing unsaved-changes guard before doing a
   // full-page navigation into the Puck editor for a different page — see
   // App.tsx's onNavigateToPage.
   onNavigateToPage: (slug: string) => void
 }
+
+const FOOTER_COLUMN_CAP_WITH_BRAND    = 3
+const FOOTER_COLUMN_CAP_WITHOUT_BRAND = 4
 
 type TopLevelRow = { page: StorePage; children: StorePage[] }
 
@@ -54,7 +62,7 @@ const smallBtn: React.CSSProperties = {
 }
 const iconBtn: React.CSSProperties = { ...smallBtn, padding: '5px 8px' }
 
-export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: PagesPanelProps) {
+export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, onNavigateToPage }: PagesPanelProps) {
   const [pages, setPages]     = useState<StorePage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
@@ -62,6 +70,9 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
   const [dragId, setDragId]   = useState<number | null>(null)
+
+  const footerColumnCap = footerShowBrandColumn ? FOOTER_COLUMN_CAP_WITH_BRAND : FOOTER_COLUMN_CAP_WITHOUT_BRAND
+  const footerColumnCount = groupSection(pages, 'footer').length
 
   useEffect(() => {
     stratumApi.getPages(tenantId, token)
@@ -98,8 +109,15 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
   }
 
   // Moves a top-level page (and, if it has children, its whole subtree) to a
-  // different menu location, appended at the end.
+  // different menu location, appended at the end. Every page moved into the
+  // footer becomes a new top-level entry — i.e. a new column (see renderRow,
+  // where the location <select> only renders for non-child rows) — so this is
+  // the one place a move can push the footer over its column cap.
   const moveLocation = (page: StorePage, location: MenuLocation) => {
+    if (location === 'footer' && page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap) {
+      setError(`Footer already has ${footerColumnCap} columns${footerShowBrandColumn ? ' (the logo/description column uses the 4th)' : ''}. Nest this page under an existing footer column instead of adding a new one.`)
+      return
+    }
     const children = pages.filter(p => p.menu_parent_id === page.id)
     const targetTop = groupSection(pages, location)
     const baseOrder = targetTop.length
@@ -136,6 +154,10 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
   // stays contiguous (0..n-1) rather than gapped.
   const outdent = (location: MenuLocation, page: StorePage) => {
     if (!page.menu_parent_id) return
+    if (location === 'footer' && footerColumnCount >= footerColumnCap) {
+      setError(`Footer already has ${footerColumnCap} columns${footerShowBrandColumn ? ' (the logo/description column uses the 4th)' : ''}. Un-nesting this would add another one — remove or merge a column first.`)
+      return
+    }
     const rows = groupSection(pages, location).map(r => r.page.id)
     const parentIdx = rows.indexOf(page.menu_parent_id)
     rows.splice(parentIdx + 1, 0, page.id)
@@ -174,7 +196,11 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     }
   }
 
-  const renderRow = (location: MenuLocation, page: StorePage, isChild: boolean, canIndent: boolean) => {
+  // columnMeta is set only for a footer section's top-level rows — labels the row
+  // as a column heading and shows how many links (nested pages) it groups, so the
+  // heading/links structure that build_footer_columns() derives is visible here
+  // instead of looking like a plain flat menu list.
+  const renderRow = (location: MenuLocation, page: StorePage, isChild: boolean, canIndent: boolean, columnMeta?: { index: number; linkCount: number }) => {
     const isLinkOnly = LINK_ONLY_PAGE_TYPES.includes(page.page_type)
     const draggable  = !isChild
 
@@ -200,8 +226,15 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
         }}
       >
         {draggable && <span style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 13 }} title="Drag to reorder">⠿⠿</span>}
-        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {page.page_name}
+        <span style={{ flex: 1, overflow: 'hidden' }}>
+          {columnMeta && (
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: 0.4 }}>
+              Column {columnMeta.index} · {columnMeta.linkCount} link{columnMeta.linkCount === 1 ? '' : 's'}
+            </div>
+          )}
+          <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {page.page_name}
+          </span>
         </span>
 
         {location !== 'none' && !isChild && (
@@ -221,7 +254,12 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           >
             <option value="none">Not in menu</option>
             <option value="main">Main Menu</option>
-            <option value="footer">Footer Menu</option>
+            <option
+              value="footer"
+              disabled={page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap}
+            >
+              Footer Menu{page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap ? ' (full)' : ''}
+            </option>
           </select>
         )}
 
@@ -236,18 +274,34 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
 
   const renderSection = (title: string, location: MenuLocation) => {
     const rows = groupSection(pages, location)
+    const isFooter = location === 'footer'
     return (
       <div>
-        <div style={sectionTitle}>{title}</div>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+          <div style={sectionTitle}>{title}</div>
+          {isFooter && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: footerColumnCount >= footerColumnCap ? '#dc2626' : '#94a3b8' }}>
+              {footerColumnCount} / {footerColumnCap} columns
+            </span>
+          )}
+        </div>
+        {isFooter && (
+          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 8px' }}>
+            Each top-level page here becomes a footer column heading — drag another
+            page and hit ⇥ to nest it underneath as that column's link.
+            {footerShowBrandColumn && ' The logo/description column (Site Settings → Footer) uses one of the 4.'}
+          </p>
+        )}
         {rows.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8', margin: '0 0 8px' }}>No pages here yet.</p>}
         {rows.map((row, i) => {
           // A page that already has children of its own can't also become a
           // child (see reorder_pages()'s server-side check of the same rule) —
           // the ⇥ button is hidden rather than allowed-then-rejected.
           const canIndent = location !== 'none' && i > 0 && row.children.length === 0
+          const columnMeta = isFooter ? { index: i + 1, linkCount: row.children.length || 1 } : undefined
           return (
             <div key={row.page.id}>
-              {renderRow(location, row.page, false, canIndent)}
+              {renderRow(location, row.page, false, canIndent, columnMeta)}
               {row.children.map(child => renderRow(location, child, true, false))}
             </div>
           )

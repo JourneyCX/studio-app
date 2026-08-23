@@ -148,6 +148,21 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
 
       <div style={sectionTitle}>Footer</div>
       <TextInput text="Copyright Text" value={settings.footerCopyrightText} onChange={v => onChange({ footerCopyrightText: v })} />
+      <Field>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#334155', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={settings.footerShowBrandColumn}
+            onChange={e => onChange({ footerShowBrandColumn: e.target.checked })}
+          />
+          Show logo &amp; description as a footer column
+        </label>
+        <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0 26px' }}>
+          Uses the Logo, Business Name, Tagline and Description above. Counts as one
+          of the footer's 4 columns — the Pages panel's Footer Menu section can hold
+          3 more when this is on, or 4 when it's off.
+        </p>
+      </Field>
       <PairRepeater<SocialPair>
         title="Social Links"
         items={settings.socialLinks}
@@ -157,8 +172,9 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
         onChange={socialLinks => onChange({ socialLinks })}
       />
       <p style={{ fontSize: 12.5, color: '#64748b', margin: '4px 0 0' }}>
-        Footer Link Columns are now managed from the 📄 Pages panel — assign a page
-        to the Footer Menu, and any pages nested under it become that column's links.
+        Footer Link Columns are managed from the 📄 Pages panel — each top-level page
+        assigned to the Footer Menu becomes a column heading, and any pages nested
+        under it become that column's links.
       </p>
     </div>
   )

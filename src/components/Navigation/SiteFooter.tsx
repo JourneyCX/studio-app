@@ -54,7 +54,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
   const accent = settings.footerAccentColor || '#ffffff'
   const hasColumns     = (settings.footerColumns ?? []).length > 0
   const hasSocialLinks = (settings.socialLinks ?? []).length > 0
-  const hasBrandBlock  = Boolean(settings.businessName || settings.tagline)
+  const hasBrandBlock  = settings.footerShowBrandColumn !== false && Boolean(settings.businessName || settings.tagline || settings.logoUrl)
   const hasContact     = Boolean(settings.contactPhone || settings.contactEmail || settings.contactAddress)
   const showRichRow    = hasBrandBlock || hasColumns || hasSocialLinks
 
@@ -76,8 +76,18 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
           >
             {hasBrandBlock && (
               <div>
+                {settings.logoUrl && (
+                  <img
+                    src={settings.logoUrl}
+                    alt={settings.logoAlt || settings.businessName || ''}
+                    style={{ maxHeight: 32, maxWidth: 160, display: 'block', marginBottom: 10, objectFit: 'contain' }}
+                  />
+                )}
                 {settings.businessName && <div style={{ fontSize: 18, fontWeight: 700, color: fg }}>{settings.businessName}</div>}
                 {settings.tagline && <div style={{ fontSize: 13, opacity: 0.85, marginTop: 6 }}>{settings.tagline}</div>}
+                {settings.description && (
+                  <div style={{ fontSize: 13, opacity: 0.85, marginTop: 10, lineHeight: 1.6, maxWidth: 280 }}>{settings.description}</div>
+                )}
                 {hasContact && (
                   <div style={{ fontSize: 13, opacity: 0.85, marginTop: 10, lineHeight: 1.6 }}>
                     {settings.contactAddress && <div>{settings.contactAddress}</div>}

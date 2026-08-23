@@ -30,6 +30,10 @@ export interface SiteSettings {
   footerAccentColor: string | null
   footerCopyrightText: string | null
   footerColumns: { heading: string; links: { label: string; url: string }[] }[]
+  // On/off for the brand block (logo + business name + tagline) rendered as the
+  // footer's first column. Counts against the Pages panel's 4-column footer cap
+  // when on — see Store_builder_model::reorder_pages()'s column-cap check.
+  footerShowBrandColumn: boolean
   whatsappEnabled: boolean
   whatsappPopupEnabled: boolean
   whatsappPhone: string | null
@@ -55,7 +59,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   headerBackgroundColor: '#ffffff', headerTextColor: '#1a202c', headerAccentColor: '#1a202c',
   headerSticky: true, headerCtaText: null, headerCtaUrl: null,
   footerBackgroundColor: '#1a202c', footerTextColor: '#a0aec0', footerAccentColor: '#ffffff',
-  footerCopyrightText: null, footerColumns: [],
+  footerCopyrightText: null, footerColumns: [], footerShowBrandColumn: true,
   whatsappEnabled: false, whatsappPopupEnabled: true, whatsappPhone: null,
   whatsappMessageTitle: 'Chat with us on WhatsApp!', whatsappMessageBody: 'Hello, how can we help you?',
   whatsappButtonColor: '#25D366',
