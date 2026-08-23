@@ -9,6 +9,7 @@ import { SessionExpiredDialog } from './components/SessionExpiredDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
 import { SiteFooter } from './components/Navigation/SiteFooter'
 import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
+import { AnnouncementBar } from './components/Navigation/AnnouncementBar'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
 import { ThemesPanel } from './components/ThemesPanel'
@@ -454,6 +455,7 @@ export default function App() {
           not injected inside Puck's own preview iframe. Gives the merchant an
           accurate, live preview of the real page's Header/Footer while editing,
           without Header/Footer being draggable/editable Puck components anymore. */}
+      <AnnouncementBar settings={siteSettings} />
       <SiteHeader settings={siteSettings} />
       <Puck
         key={editorKey}

@@ -36,6 +36,13 @@ export interface SiteSettings {
   whatsappMessageTitle: string | null
   whatsappMessageBody: string | null
   whatsappButtonColor: string | null
+  announcementEnabled: boolean
+  announcementMessage: string | null
+  announcementMode: 'static' | 'scroll'
+  announcementBgColor: string | null
+  announcementTextColor: string | null
+  announcementLinkUrl: string | null
+  announcementSpeed: number
 }
 
 // Graceful defaults — a brand-new tenant mid-provisioning (no sb_site_settings row
@@ -52,4 +59,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   whatsappEnabled: false, whatsappPopupEnabled: true, whatsappPhone: null,
   whatsappMessageTitle: 'Chat with us on WhatsApp!', whatsappMessageBody: 'Hello, how can we help you?',
   whatsappButtonColor: '#25D366',
+  announcementEnabled: false, announcementMessage: null, announcementMode: 'static',
+  announcementBgColor: '#dc2626', announcementTextColor: '#ffffff', announcementLinkUrl: null,
+  announcementSpeed: 20,
 }
