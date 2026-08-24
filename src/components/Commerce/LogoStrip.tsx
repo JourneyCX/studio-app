@@ -55,7 +55,7 @@ export const LogoStrip: ComponentConfig<LogoStripProps> = {
   },
   defaultProps: {
     headline: '',
-    logoHeight: 48,
+    logoHeight: 72,
     backgroundColor: '#ffffff',
     paddingVertical: 32,
     borderTop: true,
