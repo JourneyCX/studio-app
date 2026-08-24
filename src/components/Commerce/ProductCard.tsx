@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@measured/puck'
+import { FieldLabel } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { ColorField } from '../shared/ColorField'
 import { CategorySelectField } from '../shared/CategorySelectField'
@@ -21,12 +22,14 @@ export const ProductCard: ComponentConfig<ProductCardProps> = {
     productName:  { type: 'text',  label: 'Product Name (manual fallback)' },
     productPrice: { type: 'text',  label: 'Price (manual fallback)' },
     productImage: { type: 'custom', label: 'Image (manual fallback)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
-    productSlug:  { type: 'text',  label: 'WooCommerce Product Slug (overrides everything below when set)' },
+    productSlug:  { type: 'text',  label: 'Product Slug (overrides everything below when set)' },
     categorySlug: {
       type: 'custom',
       label: "Product Category (shows that category's first product; ignored when a Slug above is set)",
       render: ({ value, onChange }) => (
-        <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="None (use manual fields)" />
+        <FieldLabel label="Category">
+          <CategorySelectField value={value as string} onChange={onChange as (v: string) => void} blankLabel="None (use manual fields)" />
+        </FieldLabel>
       ),
     },
     buttonText:   { type: 'text',  label: 'Button Text' },
