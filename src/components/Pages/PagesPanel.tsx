@@ -196,11 +196,14 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
     }
   }
 
-  // columnMeta is set only for a footer section's top-level rows — labels the row
-  // as a column heading and shows how many links (nested pages) it groups, so the
-  // heading/links structure that build_footer_columns() derives is visible here
-  // instead of looking like a plain flat menu list.
-  const renderRow = (location: MenuLocation, page: StorePage, isChild: boolean, canIndent: boolean, columnMeta?: { index: number; linkCount: number }) => {
+  // groupLabel is set for a top-level row that renders as more than a plain link —
+  // a footer column heading (always, since build_footer_columns() treats every
+  // top-level footer page as a heading) or a main-menu dropdown group (only when
+  // it actually has nested pages — most top-level main-menu pages are plain links,
+  // unlike the footer). Makes the heading/children structure that
+  // build_footer_columns()/build_nav_links() derive visible here instead of
+  // looking like a flat list.
+  const renderRow = (location: MenuLocation, page: StorePage, isChild: boolean, canIndent: boolean, groupLabel?: string) => {
     const isLinkOnly = LINK_ONLY_PAGE_TYPES.includes(page.page_type)
     const draggable  = !isChild
 
@@ -227,9 +230,9 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
       >
         {draggable && <span style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 13 }} title="Drag to reorder">⠿⠿</span>}
         <span style={{ flex: 1, overflow: 'hidden' }}>
-          {columnMeta && (
+          {groupLabel && (
             <div style={{ fontSize: 10.5, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: 0.4 }}>
-              Column {columnMeta.index} · {columnMeta.linkCount} link{columnMeta.linkCount === 1 ? '' : 's'}
+              {groupLabel}
             </div>
           )}
           <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -275,6 +278,7 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   const renderSection = (title: string, location: MenuLocation) => {
     const rows = groupSection(pages, location)
     const isFooter = location === 'footer'
+    const isMain   = location === 'main'
     return (
       <div>
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
@@ -292,16 +296,28 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
             {footerShowBrandColumn && ' The logo/description column (Site Settings → Footer) uses one of the 4.'}
           </p>
         )}
+        {isMain && (
+          <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 8px' }}>
+            Nest a page under another (⇥) to turn the page above it into a Menu
+            Group — it becomes a hover dropdown on the live site instead of a
+            plain link, and the nested page appears inside it.
+          </p>
+        )}
         {rows.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8', margin: '0 0 8px' }}>No pages here yet.</p>}
         {rows.map((row, i) => {
           // A page that already has children of its own can't also become a
           // child (see reorder_pages()'s server-side check of the same rule) —
           // the ⇥ button is hidden rather than allowed-then-rejected.
           const canIndent = location !== 'none' && i > 0 && row.children.length === 0
-          const columnMeta = isFooter ? { index: i + 1, linkCount: row.children.length || 1 } : undefined
+          const hasChildren = row.children.length > 0
+          const groupLabel = isFooter
+            ? `Column ${i + 1} · ${row.children.length || 1} link${(row.children.length || 1) === 1 ? '' : 's'}`
+            : isMain && hasChildren
+              ? `Menu Group · ${row.children.length} page${row.children.length === 1 ? '' : 's'}`
+              : undefined
           return (
             <div key={row.page.id}>
-              {renderRow(location, row.page, false, canIndent, columnMeta)}
+              {renderRow(location, row.page, false, canIndent, groupLabel)}
               {row.children.map(child => renderRow(location, child, true, false))}
             </div>
           )
