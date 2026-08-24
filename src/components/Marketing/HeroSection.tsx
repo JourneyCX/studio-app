@@ -5,7 +5,10 @@ import { ColorField } from '../shared/ColorField'
 export type HeroSectionProps = {
   eyebrow: string
   headline: string
+  headlineColor: string
   subheadline: string
+  subheadlineColor: string
+  textAlign: 'left' | 'center'
   primaryButtonText: string
   primaryButtonUrl: string
   primaryButtonColor: string
@@ -14,9 +17,7 @@ export type HeroSectionProps = {
   backgroundImage: string
   backgroundColor: string
   overlayOpacity: number
-  textAlign: 'left' | 'center'
   minHeight: number
-  textColor: string
 }
 
 export const HeroSection: ComponentConfig<HeroSectionProps> = {
@@ -24,7 +25,10 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
   fields: {
     eyebrow:             { type: 'text',   label: 'Eyebrow Label (small text above headline)' },
     headline:            { type: 'text',   label: 'Headline' },
+    headlineColor:       { type: 'custom', label: 'Headline Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     subheadline:         { type: 'textarea', label: 'Subheadline' },
+    subheadlineColor:    { type: 'custom', label: 'Subheadline Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textAlign:           { type: 'select', label: 'Text Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }] },
     primaryButtonText:   { type: 'text',   label: 'Primary Button Text' },
     primaryButtonUrl:    { type: 'text',   label: 'Primary Button URL' },
     primaryButtonColor:  { type: 'custom', label: 'Primary Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
@@ -33,14 +37,15 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
     backgroundImage:     { type: 'custom', label: 'Background Image', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor:     { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:      { type: 'number', label: 'Dark Overlay (0–100)' },
-    textAlign:           { type: 'select', label: 'Text Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }] },
     minHeight:           { type: 'number', label: 'Min Height (px)' },
-    textColor:           { type: 'custom', label: 'Headline & Subheadline Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     eyebrow:             'New Collection',
     headline:            'Build Something Beautiful',
+    headlineColor:       '#ffffff',
     subheadline:         'Craft stunning store pages that convert visitors into loyal customers.',
+    subheadlineColor:    '#ffffff',
+    textAlign:           'center',
     primaryButtonText:   'Get Started',
     primaryButtonUrl:    '/shop',
     primaryButtonColor:  '#2563eb',
@@ -49,12 +54,11 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
     backgroundImage:     '',
     backgroundColor:     '#0f172a',
     overlayOpacity:      50,
-    textAlign:           'center',
     minHeight:           560,
-    textColor:           '#ffffff',
   },
-  render({ eyebrow, headline, subheadline, primaryButtonText, primaryButtonUrl, primaryButtonColor, secondaryButtonText, secondaryButtonUrl, backgroundImage, backgroundColor, overlayOpacity, textAlign, minHeight, textColor }) {
-    const resolvedTextColor = textColor || '#ffffff'
+  render({ eyebrow, headline, headlineColor, subheadline, subheadlineColor, primaryButtonText, primaryButtonUrl, primaryButtonColor, secondaryButtonText, secondaryButtonUrl, backgroundImage, backgroundColor, overlayOpacity, textAlign, minHeight }) {
+    const resolvedHeadlineColor = headlineColor || '#ffffff'
+    const resolvedSubheadlineColor = subheadlineColor || '#ffffff'
     const hasImage = !!backgroundImage
     return (
       <div
@@ -81,9 +85,9 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
               {eyebrow}
             </span>
           )}
-          <h1 style={{ color: resolvedTextColor, fontSize: 52, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.12 }}>{headline}</h1>
+          <h1 style={{ color: resolvedHeadlineColor, fontSize: 52, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.12 }}>{headline}</h1>
           {subheadline && (
-            <p style={{ color: resolvedTextColor, opacity: 0.8, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
+            <p style={{ color: resolvedSubheadlineColor, opacity: 0.8, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
           )}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: textAlign === 'center' ? 'center' : 'flex-start' }}>
             {primaryButtonText && (
@@ -92,7 +96,7 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
               </a>
             )}
             {secondaryButtonText && (
-              <a href={secondaryButtonUrl} style={{ display: 'inline-block', backgroundColor: 'transparent', color: resolvedTextColor, padding: '14px 32px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16, border: `2px solid ${resolvedTextColor}` }}>
+              <a href={secondaryButtonUrl} style={{ display: 'inline-block', backgroundColor: 'transparent', color: resolvedHeadlineColor, padding: '14px 32px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16, border: `2px solid ${resolvedHeadlineColor}` }}>
                 {secondaryButtonText}
               </a>
             )}
