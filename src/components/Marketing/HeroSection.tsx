@@ -16,6 +16,7 @@ export type HeroSectionProps = {
   overlayOpacity: number
   textAlign: 'left' | 'center'
   minHeight: number
+  textColor: string
 }
 
 export const HeroSection: ComponentConfig<HeroSectionProps> = {
@@ -34,6 +35,7 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
     overlayOpacity:      { type: 'number', label: 'Dark Overlay (0–100)' },
     textAlign:           { type: 'select', label: 'Text Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }] },
     minHeight:           { type: 'number', label: 'Min Height (px)' },
+    textColor:           { type: 'custom', label: 'Headline & Subheadline Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
   defaultProps: {
     eyebrow:             'New Collection',
@@ -49,8 +51,10 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
     overlayOpacity:      50,
     textAlign:           'center',
     minHeight:           560,
+    textColor:           '#ffffff',
   },
-  render({ eyebrow, headline, subheadline, primaryButtonText, primaryButtonUrl, primaryButtonColor, secondaryButtonText, secondaryButtonUrl, backgroundImage, backgroundColor, overlayOpacity, textAlign, minHeight }) {
+  render({ eyebrow, headline, subheadline, primaryButtonText, primaryButtonUrl, primaryButtonColor, secondaryButtonText, secondaryButtonUrl, backgroundImage, backgroundColor, overlayOpacity, textAlign, minHeight, textColor }) {
+    const resolvedTextColor = textColor || '#ffffff'
     const hasImage = !!backgroundImage
     return (
       <div
@@ -77,9 +81,9 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
               {eyebrow}
             </span>
           )}
-          <h1 style={{ color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.12 }}>{headline}</h1>
+          <h1 style={{ color: resolvedTextColor, fontSize: 52, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.12 }}>{headline}</h1>
           {subheadline && (
-            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
+            <p style={{ color: resolvedTextColor, opacity: 0.8, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
           )}
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: textAlign === 'center' ? 'center' : 'flex-start' }}>
             {primaryButtonText && (
@@ -88,7 +92,7 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
               </a>
             )}
             {secondaryButtonText && (
-              <a href={secondaryButtonUrl} style={{ display: 'inline-block', backgroundColor: 'transparent', color: '#fff', padding: '14px 32px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16, border: '2px solid rgba(255,255,255,0.5)' }}>
+              <a href={secondaryButtonUrl} style={{ display: 'inline-block', backgroundColor: 'transparent', color: resolvedTextColor, padding: '14px 32px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16, border: `2px solid ${resolvedTextColor}` }}>
                 {secondaryButtonText}
               </a>
             )}
