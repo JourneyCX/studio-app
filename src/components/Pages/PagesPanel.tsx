@@ -70,6 +70,13 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
   const [dragId, setDragId]   = useState<number | null>(null)
+  // Insertion-point indicator while dragging — id of the row currently being
+  // hovered over, and whether the dragged row would land above or below it.
+  // Computed from cursor Y vs. the hovered row's own vertical midpoint, so a
+  // drop always lands exactly where the line is shown instead of the old
+  // swap-with-target behavior (which had no visual feedback on which side
+  // the dragged row would end up).
+  const [dropTarget, setDropTarget] = useState<{ id: number; position: 'before' | 'after' } | null>(null)
 
   const footerColumnCap = footerShowBrandColumn ? FOOTER_COLUMN_CAP_WITH_BRAND : FOOTER_COLUMN_CAP_WITHOUT_BRAND
   const footerColumnCount = groupSection(pages, 'footer').length
@@ -90,20 +97,34 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
     }
   }
 
-  // Reorders top-level rows within one section by dropping `draggedId` next to
-  // `targetId`. Only top-level rows are draggable (see module doc comment) —
-  // a nested child must be un-nested first before it can move independently.
-  const reorderWithin = (location: MenuLocation, draggedId: number, targetId: number) => {
-    const rows = groupSection(pages, location).map(r => r.page.id)
-    const from = rows.indexOf(draggedId)
-    const to   = rows.indexOf(targetId)
-    if (from === -1 || to === -1 || from === to) return
-    rows.splice(to, 0, rows.splice(from, 1)[0])
+  // Reorders `draggedId` to land immediately before/after `targetId` within
+  // their shared sibling group — either the top-level rows of one section
+  // (parentId null) or the children of one top-level row (parentId set).
+  // Both top-level rows and children are draggable (see renderRow); dragging
+  // a row onto a target outside its own sibling group is a silent no-op
+  // (indexOf returns -1 for an id not present in that group's list) — this
+  // only ever reorders within a group, never re-parents. Changing parents is
+  // still only done via the explicit ⇥/⇤ buttons.
+  const reorderSiblings = (
+    location: MenuLocation,
+    parentId: number | null,
+    draggedId: number,
+    targetId: number,
+    position: 'before' | 'after',
+  ) => {
+    const siblings = parentId
+      ? pages.filter(p => p.menu_parent_id === parentId).sort((a, b) => a.menu_order - b.menu_order).map(p => p.id)
+      : groupSection(pages, location).map(r => r.page.id)
+    const from = siblings.indexOf(draggedId)
+    if (from === -1 || siblings.indexOf(targetId) === -1 || draggedId === targetId) return
+    siblings.splice(from, 1)
+    const to = siblings.indexOf(targetId)
+    siblings.splice(position === 'before' ? to : to + 1, 0, draggedId)
 
-    const changes: ReorderChange[] = rows.map((id, i) => ({ id, menuLocation: location, menuOrder: i, menuParentId: null }))
+    const changes: ReorderChange[] = siblings.map((id, i) => ({ id, menuLocation: location, menuOrder: i, menuParentId: parentId }))
     const next = pages.map(p => {
-      const idx = rows.indexOf(p.id)
-      return idx === -1 || p.menu_parent_id ? p : { ...p, menu_order: idx }
+      const idx = siblings.indexOf(p.id)
+      return idx === -1 ? p : { ...p, menu_order: idx, menu_parent_id: parentId }
     })
     applyChanges(changes, next)
   }
@@ -205,30 +226,51 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   // looking like a flat list.
   const renderRow = (location: MenuLocation, page: StorePage, isChild: boolean, canIndent: boolean, groupLabel?: string) => {
     const isLinkOnly = LINK_ONLY_PAGE_TYPES.includes(page.page_type)
-    const draggable  = !isChild
+    // Both top-level rows and children are draggable — reordering is scoped to
+    // siblings sharing the same menu_parent_id (null for top-level), see
+    // reorderSiblings(). Re-parenting (moving into/out of a group) is still
+    // only done via the explicit ⇥/⇤ buttons, not drag.
+    const draggable = true
+    const indicator = dropTarget?.id === page.id ? dropTarget.position : null
 
     return (
       <div
         key={page.id}
         draggable={draggable}
-        onDragStart={() => draggable && setDragId(page.id)}
-        onDragOver={e => draggable && e.preventDefault()}
-        onDrop={e => {
-          if (!draggable || dragId === null) return
-          e.preventDefault()
-          reorderWithin(location, dragId, page.id)
-          setDragId(null)
+        onDragStart={e => {
+          setDragId(page.id)
+          // Firefox drops a drag with no data transfer set — harmless payload,
+          // the actual move is tracked via dragId state, not this.
+          e.dataTransfer.setData('text/plain', String(page.id))
         }}
-        onDragEnd={() => setDragId(null)}
+        onDragOver={e => {
+          e.preventDefault()
+          if (dragId === null || dragId === page.id) return
+          const dragged = pages.find(p => p.id === dragId)
+          if (!dragged || dragged.menu_parent_id !== page.menu_parent_id) return
+          const rect = e.currentTarget.getBoundingClientRect()
+          const position: 'before' | 'after' = e.clientY - rect.top < rect.height / 2 ? 'before' : 'after'
+          setDropTarget(prev => (prev?.id === page.id && prev.position === position ? prev : { id: page.id, position }))
+        }}
+        onDrop={e => {
+          e.preventDefault()
+          if (dragId === null || !dropTarget || dropTarget.id !== page.id) { setDragId(null); setDropTarget(null); return }
+          reorderSiblings(location, page.menu_parent_id, dragId, page.id, dropTarget.position)
+          setDragId(null)
+          setDropTarget(null)
+        }}
+        onDragEnd={() => { setDragId(null); setDropTarget(null) }}
         style={{
           display: 'flex', alignItems: 'center', gap: 8,
           padding: '9px 10px', marginLeft: isChild ? 26 : 0, marginBottom: 4,
           borderRadius: 8, border: '1px solid #e2e8f0',
+          borderTop: indicator === 'before' ? '2px solid #2563eb' : undefined,
+          borderBottom: indicator === 'after' ? '2px solid #2563eb' : undefined,
           backgroundColor: dragId === page.id ? '#eff6ff' : '#fff',
           opacity: dragId === page.id ? 0.6 : 1,
         }}
       >
-        {draggable && <span style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 13 }} title="Drag to reorder">⠿⠿</span>}
+        <span style={{ cursor: 'grab', color: '#cbd5e1', fontSize: 13 }} title="Drag to reorder">⠿⠿</span>
         <span style={{ flex: 1, overflow: 'hidden' }}>
           {groupLabel && (
             <div style={{ fontSize: 10.5, fontWeight: 700, color: '#2563eb', textTransform: 'uppercase', letterSpacing: 0.4 }}>
