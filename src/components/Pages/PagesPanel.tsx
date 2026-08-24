@@ -136,7 +136,7 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   // the one place a move can push the footer over its column cap.
   const moveLocation = (page: StorePage, location: MenuLocation) => {
     if (location === 'footer' && page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap) {
-      setError(`Footer already has ${footerColumnCap} columns${footerShowBrandColumn ? ' (the logo/description column uses the 4th)' : ''}. Nest this page under an existing footer column instead of adding a new one.`)
+      setError(`Footer already has ${footerColumnCap} columns${footerShowBrandColumn ? ' (the logo/description column uses the 4th)' : ''}. Use the "↳ Add link to..." option in the dropdown to add this page inside an existing column instead.`)
       return
     }
     const children = pages.filter(p => p.menu_parent_id === page.id)
@@ -153,6 +153,23 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
         ? { ...p, menu_location: change.menuLocation, menu_order: change.menuOrder, menu_parent_id: change.menuParentId }
         : p
     })
+    applyChanges(changes, next)
+  }
+
+  // Moves `page` (from any section) directly into the footer as a link inside
+  // an *existing* column, bypassing the column cap entirely — the cap only
+  // limits how many top-level (column) entries the footer can have, not how
+  // many links live inside one. Without this, a page couldn't be added to the
+  // footer at all once at the cap: moveLocation() always creates a new
+  // top-level column, and the ⇥ indent button only nests pages already inside
+  // the footer section, so there was no way to add a brand-new page as a link
+  // in an existing column once full — a real dead end, not intentional.
+  // Only offered (see renderRow) for pages with no children of their own,
+  // matching the same one-level-of-nesting rule indent() already enforces.
+  const addToFooterColumn = (page: StorePage, columnPageId: number) => {
+    const siblingCount = pages.filter(p => p.menu_parent_id === columnPageId).length
+    const changes: ReorderChange[] = [{ id: page.id, menuLocation: 'footer', menuOrder: siblingCount, menuParentId: columnPageId }]
+    const next = pages.map(p => p.id === page.id ? { ...p, menu_location: 'footer' as MenuLocation, menu_parent_id: columnPageId, menu_order: siblingCount } : p)
     applyChanges(changes, next)
   }
 
@@ -291,22 +308,42 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
           <button style={iconBtn} title="Un-nest" onClick={() => outdent(location, page)}>⇤</button>
         )}
 
-        {!isChild && (
-          <select
-            value={page.menu_location}
-            onChange={e => moveLocation(page, e.target.value as MenuLocation)}
-            style={{ fontSize: 11.5, padding: '4px 6px', borderRadius: 5, border: '1px solid #e2e8f0', color: '#475569' }}
-          >
-            <option value="none">Not in menu</option>
-            <option value="main">Main Menu</option>
-            <option
-              value="footer"
-              disabled={page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap}
+        {!isChild && (() => {
+          const footerAtCap = page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap
+          // Direct "add as a link inside an existing column" shortcut — lets a
+          // page reach the footer even once the column cap is hit (see
+          // addToFooterColumn()), and skips the move-then-⇥-indent dance either
+          // way. Only offered for a page not already a footer column itself,
+          // and only when it has no children of its own (nesting it would
+          // orphan them / create a disallowed 2-level tree).
+          const canAddToColumn = page.menu_location !== 'footer' && !pages.some(p => p.menu_parent_id === page.id)
+          const footerColumns = canAddToColumn ? groupSection(pages, 'footer') : []
+          return (
+            <select
+              value={page.menu_location}
+              onChange={e => {
+                const v = e.target.value
+                if (v.startsWith('footer:')) {
+                  addToFooterColumn(page, Number(v.slice(7)))
+                } else {
+                  moveLocation(page, v as MenuLocation)
+                }
+              }}
+              style={{ fontSize: 11.5, padding: '4px 6px', borderRadius: 5, border: '1px solid #e2e8f0', color: '#475569' }}
             >
-              Footer Menu{page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap ? ' (full)' : ''}
-            </option>
-          </select>
-        )}
+              <option value="none">Not in menu</option>
+              <option value="main">Main Menu</option>
+              <option value="footer" disabled={footerAtCap}>
+                Footer Menu{footerAtCap ? ' — new column (full)' : ''}
+              </option>
+              {footerColumns.map(col => (
+                <option key={col.page.id} value={`footer:${col.page.id}`}>
+                  ↳ Add link to "{col.page.page_name}"
+                </option>
+              ))}
+            </select>
+          )
+        })()}
 
         <button style={iconBtn} title="Page settings" onClick={() => setSettingsPage(page)}>⚙️</button>
         {!isLinkOnly && (
@@ -334,7 +371,9 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
         {isFooter && (
           <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 8px' }}>
             Each top-level page here becomes a footer column heading — drag another
-            page and hit ⇥ to nest it underneath as that column's link.
+            page and hit ⇥ to nest it underneath as that column's link. Once at the
+            cap, use a page's "↳ Add link to..." option (in Main Menu / Not in Menu)
+            to add it straight into an existing column instead.
             {footerShowBrandColumn && ' The logo/description column (Site Settings → Footer) uses one of the 4.'}
           </p>
         )}
