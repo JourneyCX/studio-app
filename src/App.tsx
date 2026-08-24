@@ -633,7 +633,6 @@ export default function App() {
         <PagesPanel
           tenantId={session.tenantId}
           token={token}
-          footerShowBrandColumn={siteSettings.footerShowBrandColumn}
           onClose={() => setPagesOpen(false)}
           onNavigateToPage={handleNavigateToPage}
         />

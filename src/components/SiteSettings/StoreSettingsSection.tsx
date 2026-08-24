@@ -158,9 +158,9 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
           Show logo &amp; description as a footer column
         </label>
         <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0 26px' }}>
-          Uses the Logo, Business Name, Tagline and Description above. Counts as one
-          of the footer's 4 columns — the Pages panel's Footer Menu section can hold
-          3 more when this is on, or 4 when it's off.
+          Uses the Logo, Business Name, Tagline and Description above. Renders as its
+          own block alongside the Pages panel's Footer Menu columns — it doesn't use
+          up any of the 4 link columns there.
         </p>
       </Field>
       <PairRepeater<SocialPair>

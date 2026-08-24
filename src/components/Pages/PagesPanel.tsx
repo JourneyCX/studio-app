@@ -8,11 +8,6 @@ import { PageSettingsModal } from './PageSettingsModal'
 interface PagesPanelProps {
   tenantId: number
   token: string
-  // Whether the footer's brand block (logo/business name/tagline) is also showing
-  // as a column — see StoreSettingsSection's checkbox. Narrows the footer's
-  // top-level-page cap from 4 to 3 so the two combined never exceed 4 columns —
-  // mirrors Store_builder_model::reorder_pages()'s server-side check.
-  footerShowBrandColumn: boolean
   onClose: () => void
   // Routes through App.tsx's existing unsaved-changes guard before doing a
   // full-page navigation into the Puck editor for a different page — see
@@ -20,8 +15,13 @@ interface PagesPanelProps {
   onNavigateToPage: (slug: string) => void
 }
 
-const FOOTER_COLUMN_CAP_WITH_BRAND    = 3
-const FOOTER_COLUMN_CAP_WITHOUT_BRAND = 4
+// The footer's brand block (logo/business name/tagline/description, toggled in
+// Site Settings → Footer) renders as its own separate block alongside these —
+// it does NOT count against this cap (confirmed with Dana 2026-08-24: she wants
+// the brand block *and* 4 full link columns together, not one traded off
+// against the other). Mirrors Store_builder_model::reorder_pages()'s
+// server-side check.
+const FOOTER_COLUMN_CAP = 4
 
 type TopLevelRow = { page: StorePage; children: StorePage[] }
 
@@ -62,7 +62,7 @@ const smallBtn: React.CSSProperties = {
 }
 const iconBtn: React.CSSProperties = { ...smallBtn, padding: '5px 8px' }
 
-export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, onNavigateToPage }: PagesPanelProps) {
+export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: PagesPanelProps) {
   const [pages, setPages]     = useState<StorePage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
@@ -78,7 +78,7 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   // the dragged row would end up).
   const [dropTarget, setDropTarget] = useState<{ id: number; position: 'before' | 'after' } | null>(null)
 
-  const footerColumnCap = footerShowBrandColumn ? FOOTER_COLUMN_CAP_WITH_BRAND : FOOTER_COLUMN_CAP_WITHOUT_BRAND
+  const footerColumnCap = FOOTER_COLUMN_CAP
   const footerColumnCount = groupSection(pages, 'footer').length
 
   useEffect(() => {
@@ -136,7 +136,7 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   // the one place a move can push the footer over its column cap.
   const moveLocation = (page: StorePage, location: MenuLocation) => {
     if (location === 'footer' && page.menu_location !== 'footer' && footerColumnCount >= footerColumnCap) {
-      setError(`Footer already has ${footerColumnCap} columns${footerShowBrandColumn ? ' (the logo/description column uses the 4th)' : ''}. Use the "↳ Add link to..." option in the dropdown to add this page inside an existing column instead.`)
+      setError(`Footer already has ${footerColumnCap} link columns. Use the "↳ Add link to..." option in the dropdown to add this page inside an existing column instead.`)
       return
     }
     const children = pages.filter(p => p.menu_parent_id === page.id)
@@ -193,7 +193,7 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
   const outdent = (location: MenuLocation, page: StorePage) => {
     if (!page.menu_parent_id) return
     if (location === 'footer' && footerColumnCount >= footerColumnCap) {
-      setError(`Footer already has ${footerColumnCap} columns${footerShowBrandColumn ? ' (the logo/description column uses the 4th)' : ''}. Un-nesting this would add another one — remove or merge a column first.`)
+      setError(`Footer already has ${footerColumnCap} link columns. Un-nesting this would add another one — remove or merge a column first.`)
       return
     }
     const rows = groupSection(pages, location).map(r => r.page.id)
@@ -364,7 +364,7 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
           <div style={sectionTitle}>{title}</div>
           {isFooter && (
             <span style={{ fontSize: 11, fontWeight: 700, color: footerColumnCount >= footerColumnCap ? '#dc2626' : '#94a3b8' }}>
-              {footerColumnCount} / {footerColumnCap} columns
+              {footerColumnCount} / {footerColumnCap} link columns
             </span>
           )}
         </div>
@@ -373,8 +373,9 @@ export function PagesPanel({ tenantId, token, footerShowBrandColumn, onClose, on
             Each top-level page here becomes a footer column heading — drag another
             page and hit ⇥ to nest it underneath as that column's link. Once at the
             cap, use a page's "↳ Add link to..." option (in Main Menu / Not in Menu)
-            to add it straight into an existing column instead.
-            {footerShowBrandColumn && ' The logo/description column (Site Settings → Footer) uses one of the 4.'}
+            to add it straight into an existing column instead. The optional
+            logo/description block (Site Settings → Footer) renders separately and
+            doesn't use up any of these 4.
           </p>
         )}
         {isMain && (
