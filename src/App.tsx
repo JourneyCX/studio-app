@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
@@ -97,16 +97,24 @@ function ProductFilterAutoWrap() {
 // under it. If a future @measured/puck upgrade renumbers its CSS-module
 // hash, that rule just stops matching and the editor falls back to Puck's
 // stock side-by-side layout — safe, not broken.
-function PanelModeSync({ onModeChange }: { onModeChange: (mode: 'blocks' | 'fields') => void }) {
+//
+// `onSelectionChange` must be a stable callback that does its own "did the
+// id actually change" comparison using state that lives in App, not in a
+// ref local to this component: `overrides` is a fresh object literal every
+// App render (needed — headerActions closes over isDirty/liveUrl/etc that
+// really do need to reflect each render), and Puck uses the `components`
+// override as a real component type, so Puck remounts this component
+// whenever that object's identity changes. A local ref would get wiped on
+// every one of those remounts, making onModeChange re-fire as if the
+// still-selected item had just been selected — confirmed live: it's why
+// "Add Elements" was reverting straight back to the Fields panel.
+function PanelModeSync({ onSelectionChange }: { onSelectionChange: (id: string | undefined) => void }) {
   const { selectedItem } = usePuck()
-  const lastSelectedId = useRef<string | undefined>(undefined)
+  const currentId = (selectedItem?.props as { id?: string } | undefined)?.id
 
   useEffect(() => {
-    const currentId = (selectedItem?.props as { id?: string } | undefined)?.id
-    if (currentId === lastSelectedId.current) return
-    lastSelectedId.current = currentId
-    onModeChange(currentId ? 'fields' : 'blocks')
-  }, [selectedItem, onModeChange])
+    onSelectionChange(currentId)
+  }, [currentId, onSelectionChange])
 
   return null
 }
@@ -194,6 +202,14 @@ export default function App() {
   // 'blocks' = the add-elements list is the visible left-hand panel;
   // 'fields' = the selected item's properties are. See PanelModeSync.
   const [panelMode, setPanelMode] = useState<'blocks' | 'fields'>('blocks')
+  // Lives here (not inside PanelModeSync) so it survives that component
+  // being remounted — see the comment on PanelModeSync for why that matters.
+  const lastSelectedId = useRef<string | undefined>(undefined)
+  const handleSelectionChange = useCallback((currentId: string | undefined) => {
+    if (currentId === lastSelectedId.current) return
+    lastSelectedId.current = currentId
+    setPanelMode(currentId ? 'fields' : 'blocks')
+  }, [])
   // Slug queued for navigation once the unsaved-changes dialog resolves — set
   // only when onNavigateToPage is called while isDirty; null means the dialog
   // (when shown at all) is here because of the parent-window back-button guard
@@ -530,7 +546,7 @@ export default function App() {
           components: ({ children }) => (
             <>
               <ProductFilterAutoWrap />
-              <PanelModeSync onModeChange={setPanelMode} />
+              <PanelModeSync onSelectionChange={handleSelectionChange} />
               {children}
             </>
           ),
