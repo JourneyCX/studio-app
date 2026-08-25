@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
@@ -506,6 +506,184 @@ export default function App() {
     setEditorKey(k => k + 1)
   }
 
+  // Puck uses several of these override slots (components, preview) as real
+  // component types, not just plain render functions — a fresh object/inline-
+  // function literal on every render gives each of those slots a new identity
+  // every time, which makes Puck remount them (confirmed live: this is why
+  // "Add Elements" originally bounced straight back to Fields, by wiping
+  // PanelModeSync's tracking state on every remount). Memoizing the whole
+  // overrides object here fixes the class of bug, not just one instance —
+  // `preview` below renders WhatsAppWidget's sibling components, which hold
+  // no state of their own, but it sits right next to `components`, which does
+  // need to stay identity-stable.
+  //
+  // MUST be declared here, before the early `status` returns below — not
+  // after them. A hook that only runs once `status === 'ready'` is called on
+  // some renders and not others, which is a Rules-of-Hooks violation React
+  // treats as fatal (confirmed live: this exact ordering mistake, in an
+  // earlier version of this change, was what actually blanked the editor —
+  // not the canvas/zoom risk that prompted asking first).
+  const puckOverrides = useMemo(() => ({
+    iframe: PuckIframeZoom,
+    // AnnouncementBar/SiteHeader/SiteFooter used to render as page-level
+    // siblings around <Puck>, entirely outside its scrollable canvas — which
+    // gave the editor two independent scrollbars (the outer page, and Puck's
+    // own fixed-height canvas), and no way to reach SiteFooter by scrolling
+    // the canvas at all. Rendering them here instead — inside Puck's own
+    // `preview` slot, which sits alongside the actual page iframe within its
+    // existing (unmodified) scrollable canvas container — makes Puck's single
+    // existing canvas scrollbar the only one, and it now naturally reaches
+    // the footer, without touching any of Puck's own canvas sizing/overflow
+    // CSS (which its auto-zoom feature measures) — confirmed via source that
+    // the zoom measurement targets a *different, unaffected* element.
+    // WhatsAppWidget stays a page-level sibling below (not moved in here):
+    // it's `position:fixed`, and Puck's canvas applies a CSS `transform` to
+    // scale the preview for zoom — a `transform` on an ancestor hijacks
+    // `position:fixed` to be relative to *it* instead of the viewport, which
+    // would visibly mis-place the button.
+    preview: ({ children }: { children: ReactNode }) => (
+      <>
+        <AnnouncementBar settings={siteSettings} />
+        <SiteHeader settings={siteSettings} />
+        {children}
+        <SiteFooter settings={siteSettings} />
+      </>
+    ),
+    // The left panel's content when panelMode is 'blocks' — Puck's own
+    // categorized component list, untouched. Pages/Site Settings/Themes
+    // used to live here too, but this panel is hidden whenever fields
+    // are showing (see the module-level comment on PanelModeSync above),
+    // so those three moved to headerActions below, where they're always
+    // reachable regardless of panel mode.
+    components: ({ children }: { children: ReactNode }) => (
+      <>
+        <ProductFilterAutoWrap />
+        <PanelModeSync onSelectionChange={handleSelectionChange} />
+        {children}
+      </>
+    ),
+    // Inject Pages/Site Settings/Themes, an "Add Elements" button back
+    // to the block list, a "Templates" button, and an unsaved-changes
+    // badge into the Puck header alongside the default actions. This
+    // whole cluster lives in the header (not either side panel) because
+    // it must stay reachable no matter which side panel is showing.
+    headerActions: ({ children }: { children: ReactNode }) => (
+      <>
+        <button
+          onClick={() => setPanelMode('blocks')}
+          title="Show the elements list to add a new block"
+          style={headerIconButtonStyle}
+        >
+          <span style={{ fontSize: 15 }}>➕</span> Add Elements
+        </button>
+        <button onClick={() => setPagesOpen(true)} title="Pages" style={headerIconButtonStyle}>
+          <span style={{ fontSize: 15 }}>📄</span> Pages
+        </button>
+        <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
+          <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
+        </button>
+        <button onClick={() => setThemesOpen(true)} title="Themes" style={headerIconButtonStyle}>
+          <span style={{ fontSize: 15 }}>🎨</span> Themes
+        </button>
+
+        {/* Session-expiring-soon warning — fires 5 min before the JWT
+            actually expires, so the blocking dialog (below) is a fallback,
+                  not the first the user hears of it. */}
+              {sessionExpiringSoon && !sessionExpired && (
+                <span
+                  title="Reload the editor soon to avoid losing changes"
+            style={{
+              padding: '4px 10px',
+              backgroundColor: '#fee2e2',
+              color: '#991b1b',
+              border: '1px solid #fca5a5',
+              borderRadius: 6,
+              fontSize: 12,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 5,
+              lineHeight: 1,
+            }}
+          >
+            ⏳ Session expiring soon — save your work
+          </span>
+        )}
+
+        {/* Unsaved-changes indicator */}
+        {isDirty && (
+          <span style={{
+            padding: '4px 10px',
+            backgroundColor: '#fef3c7',
+            color: '#92400e',
+            border: '1px solid #fde68a',
+            borderRadius: 6,
+            fontSize: 12,
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            lineHeight: 1,
+          }}>
+            ● Unsaved changes
+          </span>
+        )}
+
+        <button
+          onClick={tm.openSelector}
+          title="Browse and apply store templates"
+          style={{
+            padding: '7px 14px',
+            backgroundColor: '#f8fafc',
+            color: '#0f172a',
+            border: '1px solid #e2e8f0',
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            lineHeight: 1,
+          }}
+        >
+          🎨 Templates
+        </button>
+
+        {liveUrl && (
+          <a
+            href={liveUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Open the live storefront in a new tab"
+            style={{
+              padding: '7px 14px',
+              backgroundColor: '#f8fafc',
+              color: '#0f172a',
+              border: '1px solid #e2e8f0',
+              borderRadius: 8,
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              lineHeight: 1,
+              textDecoration: 'none',
+            }}
+          >
+            🔗 View Live Site
+          </a>
+        )}
+        {children}
+      </>
+    ),
+  }), [
+    siteSettings, handleSelectionChange,
+    sessionExpiringSoon, sessionExpired, isDirty, liveUrl, tm.openSelector,
+    setPanelMode, setPagesOpen, setSiteSettingsOpen, setThemesOpen,
+  ])
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (status === 'loading') {
@@ -520,156 +698,19 @@ export default function App() {
 
   return (
     <>
-      {/* Fixed chrome around the whole Puck editor (toolbar + sidebar + canvas) —
-          not injected inside Puck's own preview iframe. Gives the merchant an
-          accurate, live preview of the real page's Header/Footer while editing,
-          without Header/Footer being draggable/editable Puck components anymore. */}
-      <AnnouncementBar settings={siteSettings} />
-      <SiteHeader settings={siteSettings} />
       <div data-puck-panel={panelMode}>
-      <Puck
-        key={editorKey}
-        config={puckConfig}
-        data={puckData}
-        ui={INITIAL_PUCK_UI}
-        headerTitle={pageName}
-        onPublish={handlePublish}
-        onChange={handleChange}
-        overrides={{
-          iframe: PuckIframeZoom,
-          // The left panel's content when panelMode is 'blocks' — Puck's own
-          // categorized component list, untouched. Pages/Site Settings/Themes
-          // used to live here too, but this panel is hidden whenever fields
-          // are showing (see the module-level comment on PanelModeSync above),
-          // so those three moved to headerActions below, where they're always
-          // reachable regardless of panel mode.
-          components: ({ children }) => (
-            <>
-              <ProductFilterAutoWrap />
-              <PanelModeSync onSelectionChange={handleSelectionChange} />
-              {children}
-            </>
-          ),
-          // Inject Pages/Site Settings/Themes, an "Add Elements" button back
-          // to the block list, a "Templates" button, and an unsaved-changes
-          // badge into the Puck header alongside the default actions. This
-          // whole cluster lives in the header (not either side panel) because
-          // it must stay reachable no matter which side panel is showing.
-          headerActions: ({ children }) => (
-            <>
-              <button
-                onClick={() => setPanelMode('blocks')}
-                title="Show the elements list to add a new block"
-                style={headerIconButtonStyle}
-              >
-                <span style={{ fontSize: 15 }}>➕</span> Add Elements
-              </button>
-              <button onClick={() => setPagesOpen(true)} title="Pages" style={headerIconButtonStyle}>
-                <span style={{ fontSize: 15 }}>📄</span> Pages
-              </button>
-              <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
-                <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
-              </button>
-              <button onClick={() => setThemesOpen(true)} title="Themes" style={headerIconButtonStyle}>
-                <span style={{ fontSize: 15 }}>🎨</span> Themes
-              </button>
-
-              {/* Session-expiring-soon warning — fires 5 min before the JWT
-                  actually expires, so the blocking dialog (below) is a fallback,
-                  not the first the user hears of it. */}
-              {sessionExpiringSoon && !sessionExpired && (
-                <span
-                  title="Reload the editor soon to avoid losing changes"
-                  style={{
-                    padding: '4px 10px',
-                    backgroundColor: '#fee2e2',
-                    color: '#991b1b',
-                    border: '1px solid #fca5a5',
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 600,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    lineHeight: 1,
-                  }}
-                >
-                  ⏳ Session expiring soon — save your work
-                </span>
-              )}
-
-              {/* Unsaved-changes indicator */}
-              {isDirty && (
-                <span style={{
-                  padding: '4px 10px',
-                  backgroundColor: '#fef3c7',
-                  color: '#92400e',
-                  border: '1px solid #fde68a',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 5,
-                  lineHeight: 1,
-                }}>
-                  ● Unsaved changes
-                </span>
-              )}
-
-              <button
-                onClick={tm.openSelector}
-                title="Browse and apply store templates"
-                style={{
-                  padding: '7px 14px',
-                  backgroundColor: '#f8fafc',
-                  color: '#0f172a',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: 8,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  lineHeight: 1,
-                }}
-              >
-                🎨 Templates
-              </button>
-
-              {liveUrl && (
-                <a
-                  href={liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title="Open the live storefront in a new tab"
-                  style={{
-                    padding: '7px 14px',
-                    backgroundColor: '#f8fafc',
-                    color: '#0f172a',
-                    border: '1px solid #e2e8f0',
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    lineHeight: 1,
-                    textDecoration: 'none',
-                  }}
-                >
-                  🔗 View Live Site
-                </a>
-              )}
-              {children}
-            </>
-          ),
-        }}
-      />
+        <Puck
+          key={editorKey}
+          config={puckConfig}
+          data={puckData}
+          ui={INITIAL_PUCK_UI}
+          headerTitle={pageName}
+          onPublish={handlePublish}
+          onChange={handleChange}
+          overrides={puckOverrides}
+        />
       </div>
-      <SiteFooter settings={siteSettings} />
+      {/* position:fixed — must stay outside Puck's canvas, see puckOverrides above */}
       <WhatsAppWidget settings={siteSettings} />
 
       {/* Template selector modal */}
