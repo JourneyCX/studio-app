@@ -27,3 +27,32 @@ body {
 [class*="Puck-"] {
   font-family: 'Inter', system-ui, sans-serif !important;
 }
+
+/* Single-column Elementor/WordPress-style editor sidebar (App.tsx,
+   PanelModeSync). Puck (@measured/puck 0.18) hard-codes Components+Outline
+   into its "left" grid-area and Fields into "right"; App.tsx keeps
+   ui.leftSideBarVisible permanently true and rightSideBarVisible
+   permanently false (only the "left" column is ever given width), so
+   whichever of these two divs is reassigned to grid-area:left below is the
+   one the merchant actually sees, full width, with the other collapsed to
+   nothing — never both side by side.
+   These are internal CSS-module class names (with a build-specific hash),
+   not a public API — if a future @measured/puck upgrade changes them, these
+   rules simply stop matching and the editor falls back to Puck's normal
+   side-by-side layout rather than breaking. */
+[data-puck-panel="fields"] [class*="PuckLayout-leftSideBar_"] {
+  grid-area: right;
+}
+[data-puck-panel="fields"] [class*="PuckLayout-rightSideBar_"] {
+  grid-area: left;
+}
+
+/* Puck's own sidebar-toggle icons (top-left of its header) would let a
+   click re-enable both side panels at once, undoing the single-column
+   layout above — App.tsx's "Add Elements" header button replaces that
+   interaction, so these are hidden rather than left as a conflicting
+   second control. */
+[class*="PuckLayout-leftSideBarToggle_"],
+[class*="PuckLayout-rightSideBarToggle_"] {
+  display: none !important;
+}

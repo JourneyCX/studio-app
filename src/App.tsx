@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
@@ -82,6 +82,35 @@ function ProductFilterAutoWrap() {
   return null
 }
 
+// Elementor/WordPress-style single-column editor sidebar: shows either the
+// block list (+ Outline) or the selected item's Fields, never both, so the
+// canvas gets the width back that used to be split three ways. Puck always
+// renders Components/Outline in its "left" grid area and Fields in "right"
+// (fixed by the library, not swappable per-instance) — rather than fight
+// that, ui.leftSideBarVisible stays permanently true and rightSideBarVisible
+// permanently false (see INITIAL_PUCK_UI), and the [data-puck-panel="fields"]
+// CSS rule in styles.css re-points the *rightSideBar* div at grid-area:left
+// (and leftSideBar at grid-area:right) whenever a field is being edited —
+// this reassigns whichever whole panel (title bar included) is active into
+// the visible column, rather than moving individual pieces of content
+// between panels, so each panel's own heading always still matches what's
+// under it. If a future @measured/puck upgrade renumbers its CSS-module
+// hash, that rule just stops matching and the editor falls back to Puck's
+// stock side-by-side layout — safe, not broken.
+function PanelModeSync({ onModeChange }: { onModeChange: (mode: 'blocks' | 'fields') => void }) {
+  const { selectedItem } = usePuck()
+  const lastSelectedId = useRef<string | undefined>(undefined)
+
+  useEffect(() => {
+    const currentId = (selectedItem?.props as { id?: string } | undefined)?.id
+    if (currentId === lastSelectedId.current) return
+    lastSelectedId.current = currentId
+    onModeChange(currentId ? 'fields' : 'blocks')
+  }, [selectedItem, onModeChange])
+
+  return null
+}
+
 // Debounce auto-save — fires 2s after the last change
 function useDebounce<T>(value: T, delay: number): T {
   const [debounced, setDebounced] = useState(value)
@@ -94,6 +123,21 @@ function useDebounce<T>(value: T, delay: number): T {
 
 const EMPTY_DATA: Data = { root: { props: {} }, content: [], zones: {} }
 
+const headerIconButtonStyle: CSSProperties = {
+  padding: '7px 12px',
+  backgroundColor: '#f8fafc',
+  color: '#0f172a',
+  border: '1px solid #e2e8f0',
+  borderRadius: 8,
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer',
+  display: 'flex',
+  alignItems: 'center',
+  gap: 6,
+  lineHeight: 1,
+}
+
 // Puck's Blocks panel groups components by category (Layout, Content,
 // E-commerce, …) as collapsible sections — collapsed is the built-in
 // behavior, it just defaults `expanded` to true when unset. Start every
@@ -101,6 +145,12 @@ const EMPTY_DATA: Data = { root: { props: {} }, content: [], zones: {} }
 // long scroll; derived from config.ts's categories so a new category
 // collapses by default too, without needing a matching edit here.
 const INITIAL_PUCK_UI = {
+  // Right sidebar (Fields) starts collapsed — nothing is selected on load,
+  // so there's nothing to show there yet. See PanelModeSync above: these two
+  // flags are never toggled again after this — only *which* panel occupies
+  // the visible "left" column changes, via CSS.
+  leftSideBarVisible: true,
+  rightSideBarVisible: false,
   componentList: Object.fromEntries(
     Object.keys(puckConfig.categories ?? {}).map(id => [id, { expanded: false }])
   ),
@@ -141,6 +191,9 @@ export default function App() {
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
   const [pagesOpen, setPagesOpen] = useState(false)
   const [themesOpen, setThemesOpen] = useState(false)
+  // 'blocks' = the add-elements list is the visible left-hand panel;
+  // 'fields' = the selected item's properties are. See PanelModeSync.
+  const [panelMode, setPanelMode] = useState<'blocks' | 'fields'>('blocks')
   // Slug queued for navigation once the unsaved-changes dialog resolves — set
   // only when onNavigateToPage is called while isDirty; null means the dialog
   // (when shown at all) is here because of the parent-window back-button guard
@@ -457,6 +510,7 @@ export default function App() {
           without Header/Footer being draggable/editable Puck components anymore. */}
       <AnnouncementBar settings={siteSettings} />
       <SiteHeader settings={siteSettings} />
+      <div data-puck-panel={panelMode}>
       <Puck
         key={editorKey}
         config={puckConfig}
@@ -467,56 +521,43 @@ export default function App() {
         onChange={handleChange}
         overrides={{
           iframe: PuckIframeZoom,
-          // Gear icon at the top of the Blocks panel (not the page header, where
-          // Templates/unsaved-changes already live via headerActions below) — opens
-          // the Site Settings overlay. `components` wraps Puck's own categorized
-          // component list, so this renders as a header row above it, inside the
-          // same panel frame — no collision with anything Puck already renders there.
+          // The left panel's content when panelMode is 'blocks' — Puck's own
+          // categorized component list, untouched. Pages/Site Settings/Themes
+          // used to live here too, but this panel is hidden whenever fields
+          // are showing (see the module-level comment on PanelModeSync above),
+          // so those three moved to headerActions below, where they're always
+          // reachable regardless of panel mode.
           components: ({ children }) => (
             <>
               <ProductFilterAutoWrap />
-              <div style={{ padding: '10px 12px', borderBottom: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <button
-                  onClick={() => setPagesOpen(true)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
-                    backgroundColor: '#f8fafc', color: '#0f172a', fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: 15 }}>📄</span> Pages
-                </button>
-                <button
-                  onClick={() => setSiteSettingsOpen(true)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
-                    backgroundColor: '#f8fafc', color: '#0f172a', fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
-                </button>
-                <button
-                  onClick={() => setThemesOpen(true)}
-                  style={{
-                    width: '100%', display: 'flex', alignItems: 'center', gap: 8,
-                    padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0',
-                    backgroundColor: '#f8fafc', color: '#0f172a', fontSize: 13, fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  <span style={{ fontSize: 15 }}>🎨</span> Themes
-                </button>
-              </div>
+              <PanelModeSync onModeChange={setPanelMode} />
               {children}
             </>
           ),
-          // Inject a "Templates" button and an unsaved-changes badge into the
-          // Puck header alongside the default actions.
+          // Inject Pages/Site Settings/Themes, an "Add Elements" button back
+          // to the block list, a "Templates" button, and an unsaved-changes
+          // badge into the Puck header alongside the default actions. This
+          // whole cluster lives in the header (not either side panel) because
+          // it must stay reachable no matter which side panel is showing.
           headerActions: ({ children }) => (
             <>
+              <button
+                onClick={() => setPanelMode('blocks')}
+                title="Show the elements list to add a new block"
+                style={headerIconButtonStyle}
+              >
+                <span style={{ fontSize: 15 }}>➕</span> Add Elements
+              </button>
+              <button onClick={() => setPagesOpen(true)} title="Pages" style={headerIconButtonStyle}>
+                <span style={{ fontSize: 15 }}>📄</span> Pages
+              </button>
+              <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
+                <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
+              </button>
+              <button onClick={() => setThemesOpen(true)} title="Themes" style={headerIconButtonStyle}>
+                <span style={{ fontSize: 15 }}>🎨</span> Themes
+              </button>
+
               {/* Session-expiring-soon warning — fires 5 min before the JWT
                   actually expires, so the blocking dialog (below) is a fallback,
                   not the first the user hears of it. */}
@@ -611,6 +652,7 @@ export default function App() {
           ),
         }}
       />
+      </div>
       <SiteFooter settings={siteSettings} />
       <WhatsAppWidget settings={siteSettings} />
 
