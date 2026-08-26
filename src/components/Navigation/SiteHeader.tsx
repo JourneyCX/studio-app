@@ -40,20 +40,27 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
                   {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
                 </a>
                 {hasChildren && (
+                  // Outer wrapper starts flush at top:100% (no gap) and uses padding-top
+                  // instead of margin-top for the visual offset, so the hoverable area is
+                  // contiguous from the link down through to the dropdown box — a margin-top
+                  // gap here breaks :hover the moment the pointer crosses it.
                   <div
                     className="sb-nav-dropdown"
-                    style={{
-                      position: 'absolute', top: '100%', left: 0, marginTop: 8,
-                      backgroundColor: '#fff', color: '#1a202c', minWidth: 160,
-                      borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
-                      padding: '6px 0', display: 'none', zIndex: 200,
-                    }}
+                    style={{ position: 'absolute', top: '100%', left: 0, paddingTop: 8, display: 'none', zIndex: 200 }}
                   >
-                    {link.children!.map((child, j) => (
-                      <a key={j} href={child.url} style={{ display: 'block', padding: '8px 14px', color: '#1a202c', textDecoration: 'none', fontSize: 14 }}>
-                        {child.label}
-                      </a>
-                    ))}
+                    <div
+                      style={{
+                        backgroundColor: '#fff', color: '#1a202c', minWidth: 160,
+                        borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
+                        padding: '6px 0',
+                      }}
+                    >
+                      {link.children!.map((child, j) => (
+                        <a key={j} href={child.url} style={{ display: 'block', padding: '8px 14px', color: '#1a202c', textDecoration: 'none', fontSize: 14 }}>
+                          {child.label}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
