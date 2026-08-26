@@ -26,7 +26,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           {settings.logoUrl
-            ? <img src={settings.logoUrl} alt={settings.logoAlt || 'Store logo'} style={{ height: 40, objectFit: 'contain' }} />
+            ? <img src={settings.logoUrl} alt={settings.logoAlt || 'Store logo'} style={{ height: settings.headerLogoHeight || 40, objectFit: 'contain' }} />
             : <span style={{ fontSize: 20, fontWeight: 700, color: fg }}>{settings.logoText || settings.businessName || 'Your Store'}</span>
           }
         </div>

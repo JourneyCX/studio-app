@@ -76,11 +76,11 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
           >
             {hasBrandBlock && (
               <div>
-                {settings.logoUrl && (
+                {settings.logoUrl && settings.footerShowLogo !== false && (
                   <img
                     src={settings.logoUrl}
                     alt={settings.logoAlt || settings.businessName || ''}
-                    style={{ maxHeight: 32, maxWidth: 160, display: 'block', marginBottom: 10, objectFit: 'contain' }}
+                    style={{ maxHeight: settings.footerLogoHeight || 32, maxWidth: 160, display: 'block', marginBottom: 10, objectFit: 'contain' }}
                   />
                 )}
                 {settings.businessName && <div style={{ fontSize: 18, fontWeight: 700, color: fg }}>{settings.businessName}</div>}

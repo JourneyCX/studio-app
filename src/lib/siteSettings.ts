@@ -7,6 +7,14 @@ export interface SiteSettings {
   logoUrl: string | null
   logoAlt: string | null
   logoText: string | null
+  // Rendered logo height in px, sized independently for header vs. footer since
+  // the footer brand block sits at a different scale to the header nav bar.
+  headerLogoHeight: number
+  footerLogoHeight: number
+  // On/off for the logo image specifically inside the footer's brand block —
+  // distinct from footerShowBrandColumn below, which gates the whole block
+  // (business name/tagline can stay visible with just the logo hidden).
+  footerShowLogo: boolean
   faviconUrl: string | null
   businessName: string | null
   tagline: string | null
@@ -52,7 +60,9 @@ export interface SiteSettings {
 // Graceful defaults — a brand-new tenant mid-provisioning (no sb_site_settings row
 // yet) or a failed fetch must still show a usable preview, not a blank/broken editor.
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  logoUrl: null, logoAlt: null, logoText: null, faviconUrl: null,
+  logoUrl: null, logoAlt: null, logoText: null,
+  headerLogoHeight: 40, footerLogoHeight: 32, footerShowLogo: true,
+  faviconUrl: null,
   businessName: 'Your Store', tagline: null, description: null,
   contactPhone: null, contactEmail: null, contactAddress: null,
   socialLinks: [], navLinks: [],
