@@ -66,7 +66,7 @@ const Card = ({ index, product, showAddToCart, showPrices }: { index: number; pr
         <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: '#2d3748' }}>{product ? product.name : `Product ${index + 1}`}</p>
         {!product && <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13 }}>Short product description</p>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>{product ? `R ${product.price}` : 'R 299.00'}</span>}
+          {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>{product ? `${product.currency_symbol ?? '$'} ${product.price}` : 'R 299.00'}</span>}
           {showAddToCart && (
             <button style={{ background: '#3182ce', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               Add to Cart

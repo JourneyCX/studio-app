@@ -86,8 +86,9 @@ function PlaceholderCard({ index, product, cardStyle, imageAspectRatio, showBadg
   const [imgFailed, setImgFailed] = useState(false)
   const bg = PALETTE[index % PALETTE.length]
   const name = product ? product.name : ['Artisan Mug', 'Linen Tote', 'Bamboo Set', 'Glass Jar', 'Cotton Wrap', 'Ceramic Bowl', 'Woven Basket', 'Stone Vase'][index % 8]
-  const price = product ? `R ${product.on_sale && showSalePrice ? product.sale_price : product.price}` : ['R 249', 'R 399', 'R 189', 'R 329', 'R 159', 'R 449', 'R 299', 'R 219'][index % 8]
-  const origPrice = product ? `R ${product.regular_price}` : ['R 349', 'R 499', 'R 249', 'R 429', 'R 219', 'R 599', 'R 399', 'R 299'][index % 8]
+  const symbol = product?.currency_symbol ?? '$'
+  const price = product ? `${symbol} ${product.on_sale && showSalePrice ? product.sale_price : product.price}` : ['R 249', 'R 399', 'R 189', 'R 329', 'R 159', 'R 449', 'R 299', 'R 219'][index % 8]
+  const origPrice = product ? `${symbol} ${product.regular_price}` : ['R 349', 'R 499', 'R 249', 'R 429', 'R 219', 'R 599', 'R 399', 'R 299'][index % 8]
   const showImage = !!(product?.image_url && !imgFailed)
   // Real, non-sale products have price === regular_price — no strikethrough to show,
   // unlike the fake data, which always implies a discount when showSalePrice is on.

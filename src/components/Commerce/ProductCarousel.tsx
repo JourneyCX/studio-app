@@ -106,7 +106,7 @@ function CarouselCard({ index, product, cardWidth, cardRadius, showBadge, badge,
           {product ? product.name : NAMES[index % NAMES.length]}
         </p>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
-          {showPrice && <span style={{ fontWeight: 800, fontSize: 16, color: textColor }}>{product ? `R ${product.price}` : PRICES[index % PRICES.length]}</span>}
+          {showPrice && <span style={{ fontWeight: 800, fontSize: 16, color: textColor }}>{product ? `${product.currency_symbol ?? '$'} ${product.price}` : PRICES[index % PRICES.length]}</span>}
           {showCart && (
             <button className="pcr-atc" style={{ backgroundColor: accentColor, color: '#fff', border: 'none', padding: '7px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 12, fontWeight: 700 }}>
               + Cart

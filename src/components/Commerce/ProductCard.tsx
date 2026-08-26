@@ -55,7 +55,7 @@ export const ProductCard: ComponentConfig<ProductCardProps> = {
     const liveProduct = categoryEnabled && status === 'success' ? products[0] : undefined
 
     const name  = liveProduct?.name ?? productName
-    const price = liveProduct ? `R ${liveProduct.price}` : productPrice
+    const price = liveProduct ? `${liveProduct.currency_symbol ?? '$'} ${liveProduct.price}` : productPrice
     const image = liveProduct?.image_url ?? productImage
 
     return (

@@ -141,6 +141,10 @@ export interface StoreProduct {
   permalink: string
   stock_status: string
   sku: string
+  // The tenant's real WooCommerce store currency symbol (eg. "R", "$") --
+  // see Store_builder_api::products(). Always present from the API, but
+  // optional here since older cached/mocked callers may not have it.
+  currency_symbol?: string
 }
 
 // Real published post, as returned by Store_builder_api::blog_posts(). url is
