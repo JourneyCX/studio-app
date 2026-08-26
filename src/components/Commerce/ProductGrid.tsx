@@ -55,7 +55,7 @@ const Card = ({ index, product, showAddToCart, showPrices }: { index: number; pr
           src={product!.image_url!}
           alt={product!.name}
           onError={() => setImgFailed(true)}
-          style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }}
+          style={{ width: '100%', height: 200, objectFit: 'contain', display: 'block' }}
         />
       ) : (
         <div style={{ height: 200, background: `hsl(${index * 37}, 30%, 90%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a0aec0', fontSize: 13 }}>

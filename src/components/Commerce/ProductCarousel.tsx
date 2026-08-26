@@ -90,7 +90,7 @@ function CarouselCard({ index, product, cardWidth, cardRadius, showBadge, badge,
     >
       <div style={{ position: 'relative', width: cardWidth, aspectRatio: '1/1', backgroundColor: PALETTE[index % PALETTE.length], display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
         {showImage ? (
-          <img src={product!.image_url!} alt={product!.name} onError={() => setImgFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={product!.image_url!} alt={product!.name} onError={() => setImgFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
         ) : (
           <span style={{ fontSize: 36, opacity: 0.45 }}>{product ? '📷' : '🛍'}</span>
         )}

@@ -97,7 +97,7 @@ function PlaceholderCard({ index, product, cardStyle, imageAspectRatio, showBadg
   const imageNode = (
     <div style={{ position: 'relative', aspectRatio: imageAspectRatio, backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
       {showImage ? (
-        <img src={product!.image_url!} alt={product!.name} onError={() => setImgFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={product!.image_url!} alt={product!.name} onError={() => setImgFailed(true)} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
       ) : (
         <span style={{ fontSize: 40, opacity: 0.5 }}>{product ? '📷' : '🛍'}</span>
       )}
