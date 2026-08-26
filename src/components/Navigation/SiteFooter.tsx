@@ -86,7 +86,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
                 {settings.businessName && <div style={{ fontSize: 18, fontWeight: 700, color: fg }}>{settings.businessName}</div>}
                 {settings.tagline && <div style={{ fontSize: 13, opacity: 0.85, marginTop: 6 }}>{settings.tagline}</div>}
                 {settings.description && (
-                  <div style={{ fontSize: 13, opacity: 0.85, marginTop: 10, lineHeight: 1.6, maxWidth: 280 }}>{settings.description}</div>
+                  <div style={{ fontSize: 13, opacity: 0.85, marginTop: 10, lineHeight: 1.6, maxWidth: 280, textAlign: 'justify' }}>{settings.description}</div>
                 )}
                 {hasContact && (
                   <div style={{ fontSize: 13, opacity: 0.85, marginTop: 10, lineHeight: 1.6 }}>
