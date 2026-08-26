@@ -60,7 +60,7 @@ export const ProductCard: ComponentConfig<ProductCardProps> = {
 
     return (
       <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff', maxWidth: 320 }}>
-        <div style={{ height: 220, overflow: 'hidden', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {image
             ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             : <span style={{ color: '#a0aec0', fontSize: 13 }}>📷 Product Image</span>
