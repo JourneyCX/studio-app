@@ -51,14 +51,16 @@ const Card = ({ index, product, showAddToCart, showPrices }: { index: number; pr
   return (
     <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
       {showImage ? (
-        <img
-          src={product!.image_url!}
-          alt={product!.name}
-          onError={() => setImgFailed(true)}
-          style={{ width: '100%', height: 200, objectFit: 'contain', display: 'block' }}
-        />
+        <div style={{ aspectRatio: '1/1', overflow: 'hidden', background: '#f7f8fa' }}>
+          <img
+            src={product!.image_url!}
+            alt={product!.name}
+            onError={() => setImgFailed(true)}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+          />
+        </div>
       ) : (
-        <div style={{ height: 200, background: `hsl(${index * 37}, 30%, 90%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a0aec0', fontSize: 13 }}>
+        <div style={{ aspectRatio: '1/1', background: `hsl(${index * 37}, 30%, 90%)`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#a0aec0', fontSize: 13 }}>
           {product ? '📷' : 'Product Image'}
         </div>
       )}
