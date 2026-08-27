@@ -1,10 +1,28 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+html, body {
+  height: 100%;
+}
+
 body {
   margin: 0;
+  overflow: hidden; /* document never scrolls — only Puck's own canvas does (see App.tsx chromeHeight hook) */
   font-family: 'Inter', system-ui, sans-serif;
   background: #f7f8fa;
   color: #1a202c;
+}
+
+/* Puck hard-codes its own internal layout to a flat 100dvh, which is what
+   produces the redundant outer document scrollbar (AnnouncementBar/SiteHeader/
+   Puck/SiteFooter together exceed one viewport). Shrink it by the real,
+   JS-measured height of that surrounding chrome instead — via calc() on the
+   same dvh unit Puck already uses, not a percentage. A percentage here would
+   depend on this element's CSS-module ancestor chain having a definite height,
+   which isn't guaranteed and isn't worth the fragility; dvh doesn't have that
+   dependency. --studio-chrome-height is set inline on [data-puck-panel] in
+   App.tsx (see the chromeHeight hook there). */
+[class*="PuckLayout-inner_"] {
+  height: calc(100dvh - var(--studio-chrome-height, 0px)) !important;
 }
 
 .error-screen,

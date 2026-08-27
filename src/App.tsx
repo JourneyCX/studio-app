@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
@@ -506,6 +506,35 @@ export default function App() {
     setEditorKey(k => k + 1)
   }
 
+  // ── Editor shell sizing ─────────────────────────────────────────────────────
+  // AnnouncementBar/SiteHeader/SiteFooter render with their own `zoom: 1.25`
+  // (to visually match the live storefront's body{zoom:1.25}), which Chromium's
+  // flex/grid layout engine sizes wrong once they become flex/grid items — the
+  // box paints at 1.25x but the engine's flex-basis/track math runs pre-zoom,
+  // so header/footer visually overlap the canvas instead of getting their own
+  // row (confirmed live — an earlier flexbox-based version of this fix produced
+  // exactly that overlap). Measuring the real rendered pixel height via
+  // getBoundingClientRect (which reflects zoom correctly) and applying it as a
+  // plain block-flow calc() height sidesteps the bug — no flex/grid involved
+  // in stacking the chrome, only in Puck's own already-working internal layout.
+  const topChromeRef = useRef<HTMLDivElement>(null)
+  const footerChromeRef = useRef<HTMLDivElement>(null)
+  const [chromeHeight, setChromeHeight] = useState(0)
+
+  useLayoutEffect(() => {
+    const topEl = topChromeRef.current
+    const bottomEl = footerChromeRef.current
+    if (!topEl || !bottomEl) return
+    const measure = () => {
+      setChromeHeight(topEl.getBoundingClientRect().height + bottomEl.getBoundingClientRect().height)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(topEl)
+    observer.observe(bottomEl)
+    return () => observer.disconnect()
+  }, [siteSettings])
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (status === 'loading') {
@@ -523,10 +552,21 @@ export default function App() {
       {/* Fixed chrome around the whole Puck editor (toolbar + sidebar + canvas) —
           not injected inside Puck's own preview iframe. Gives the merchant an
           accurate, live preview of the real page's Header/Footer while editing,
-          without Header/Footer being draggable/editable Puck components anymore. */}
-      <AnnouncementBar settings={siteSettings} />
-      <SiteHeader settings={siteSettings} />
-      <div data-puck-panel={panelMode}>
+          without Header/Footer being draggable/editable Puck components anymore.
+          topChromeRef/chromeHeight (see the hook above) feed --studio-chrome-height,
+          which styles.css subtracts from Puck's own hard-coded 100dvh layout, so
+          the document itself never scrolls — only Puck's own canvas does, giving
+          a single Elementor-style scrollbar instead of a nested pair. Plain block
+          flow throughout (not flex/grid) deliberately — see the chromeHeight hook
+          comment for why. */}
+      <div ref={topChromeRef}>
+        <AnnouncementBar settings={siteSettings} />
+        <SiteHeader settings={siteSettings} />
+      </div>
+      <div
+        data-puck-panel={panelMode}
+        style={{ overflow: 'hidden', '--studio-chrome-height': `${chromeHeight}px` } as CSSProperties}
+      >
       <Puck
         key={editorKey}
         config={puckConfig}
@@ -669,7 +709,9 @@ export default function App() {
         }}
       />
       </div>
-      <SiteFooter settings={siteSettings} />
+      <div ref={footerChromeRef}>
+        <SiteFooter settings={siteSettings} />
+      </div>
       <WhatsAppWidget settings={siteSettings} />
 
       {/* Template selector modal */}
