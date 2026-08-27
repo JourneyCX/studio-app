@@ -523,7 +523,11 @@ export default function App() {
       {/* Fixed chrome around the whole Puck editor (toolbar + sidebar + canvas) —
           not injected inside Puck's own preview iframe. Gives the merchant an
           accurate, live preview of the real page's Header/Footer while editing,
-          without Header/Footer being draggable/editable Puck components anymore. */}
+          without Header/Footer being draggable/editable Puck components anymore.
+          studio-editor-shell (styles.css) pins this stack to the viewport height
+          so the document itself never scrolls — only Puck's own canvas does,
+          giving a single Elementor-style scrollbar instead of a nested pair. */}
+      <div className="studio-editor-shell">
       <AnnouncementBar settings={siteSettings} />
       <SiteHeader settings={siteSettings} />
       <div data-puck-panel={panelMode}>
@@ -671,6 +675,7 @@ export default function App() {
       </div>
       <SiteFooter settings={siteSettings} />
       <WhatsAppWidget settings={siteSettings} />
+      </div>
 
       {/* Template selector modal */}
       {tm.isOpen && (

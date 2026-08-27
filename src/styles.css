@@ -1,10 +1,38 @@
 *, *::before, *::after { box-sizing: border-box; }
 
+html, body, #root {
+  height: 100%;
+}
+
 body {
   margin: 0;
+  overflow: hidden; /* single scrollbar lives inside the Puck canvas, not on the document */
   font-family: 'Inter', system-ui, sans-serif;
   background: #f7f8fa;
   color: #1a202c;
+}
+
+/* Elementor-style editor shell: AnnouncementBar/SiteHeader/Puck/SiteFooter
+   stack in a fixed-height flex column instead of free document flow, so the
+   page itself never scrolls. Puck's own layout hard-codes 100dvh (see
+   override below), which is what actually produces the single visible
+   scrollbar, inside ._PuckCanvas_. */
+.studio-editor-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.studio-editor-shell > [data-puck-panel] {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Puck hard-codes its own layout to 100dvh; shrink it to fill the flex
+   remainder left by AnnouncementBar/SiteHeader/SiteFooter instead, so only
+   Puck's internal canvas (which already has its own overflow:auto) scrolls. */
+[class*="PuckLayout-inner_"] {
+  height: 100% !important;
 }
 
 .error-screen,
