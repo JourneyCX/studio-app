@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Puck, usePuck, type Data } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
@@ -506,6 +506,34 @@ export default function App() {
     setEditorKey(k => k + 1)
   }
 
+  // ── Editor shell sizing ─────────────────────────────────────────────────────
+  // Puck hard-codes its own canvas layout to `height: 100dvh`, which — stacked
+  // below AnnouncementBar+SiteHeader in normal document flow — pushes the page
+  // taller than one viewport, producing an outer document scrollbar *in addition
+  // to* Puck's own internal canvas scrollbar (the "two scrollbars" bug). Shrink
+  // Puck's box by the top chrome's real rendered height (measured via
+  // getBoundingClientRect, which — unlike a flex/grid-computed size — correctly
+  // reflects the `zoom: 1.25` AnnouncementBar/SiteHeader render with) so Puck's
+  // canvas starts right below the real header instead of overlapping/overflowing
+  // past it. Deliberately NOT also subtracting SiteFooter's height here — an
+  // earlier version of this fix did, and a tall multi-column footer left almost
+  // no room for the canvas itself. SiteFooter stays in normal flow below Puck's
+  // (now correctly sized) box, so the document scrolls a small amount — just
+  // enough to reach the footer — while Puck's own internal canvas scrollbar
+  // does the actual work of scrolling through page content.
+  const topChromeRef = useRef<HTMLDivElement>(null)
+  const [topChromeHeight, setTopChromeHeight] = useState(0)
+
+  useLayoutEffect(() => {
+    const el = topChromeRef.current
+    if (!el) return
+    const measure = () => setTopChromeHeight(el.getBoundingClientRect().height)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [siteSettings])
+
   // ── Render ─────────────────────────────────────────────────────────────────
 
   if (status === 'loading') {
@@ -523,10 +551,19 @@ export default function App() {
       {/* Fixed chrome around the whole Puck editor (toolbar + sidebar + canvas) —
           not injected inside Puck's own preview iframe. Gives the merchant an
           accurate, live preview of the real page's Header/Footer while editing,
-          without Header/Footer being draggable/editable Puck components anymore. */}
-      <AnnouncementBar settings={siteSettings} />
-      <SiteHeader settings={siteSettings} />
-      <div data-puck-panel={panelMode}>
+          without Header/Footer being draggable/editable Puck components anymore.
+          topChromeRef/topChromeHeight (see the hook above) feed --studio-chrome-height,
+          which styles.css subtracts from Puck's own hard-coded 100dvh canvas height,
+          so Puck's canvas starts right below this real header instead of overlapping
+          or overflowing past it. */}
+      <div ref={topChromeRef}>
+        <AnnouncementBar settings={siteSettings} />
+        <SiteHeader settings={siteSettings} />
+      </div>
+      <div
+        data-puck-panel={panelMode}
+        style={{ '--studio-chrome-height': `${topChromeHeight}px` } as CSSProperties}
+      >
       <Puck
         key={editorKey}
         config={puckConfig}

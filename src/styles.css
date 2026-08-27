@@ -28,6 +28,20 @@ body {
   font-family: 'Inter', system-ui, sans-serif !important;
 }
 
+/* Puck hard-codes its own canvas layout to a flat 100dvh, which — stacked
+   below the real AnnouncementBar/SiteHeader chrome in normal document flow —
+   pushes the whole page taller than one viewport, producing an outer document
+   scrollbar on top of Puck's own internal canvas scrollbar. Shrink it by the
+   real, JS-measured height of that header chrome (App.tsx's topChromeHeight
+   hook) via calc() on the same dvh unit Puck already uses — not a percentage,
+   which would depend on this element's CSS-module ancestor chain having a
+   definite height, and not touching SiteFooter, which stays in normal flow
+   below (see the App.tsx comment for why). --studio-chrome-height is set
+   inline on [data-puck-panel] in App.tsx. */
+[class*="PuckLayout-inner_"] {
+  height: calc(100dvh - var(--studio-chrome-height, 0px)) !important;
+}
+
 /* Single-column Elementor/WordPress-style editor sidebar (App.tsx,
    PanelModeSync). Puck (@measured/puck 0.18) hard-codes Components+Outline
    into its "left" grid-area and Fields into "right"; App.tsx keeps
