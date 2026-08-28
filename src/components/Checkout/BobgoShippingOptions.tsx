@@ -106,17 +106,28 @@ function ShippingOptionsInner(props: BobgoShippingOptionsProps) {
     }
   }, [apiUrl, storeId])
 
+  // Listens for the same provider-agnostic 'shipping:*' events
+  // ShippingOptions.tsx does, NOT a 'bobgo:*'-prefixed pair — the only widget
+  // that ever collects an address (DeliveryAddressForm.tsx) only dispatches
+  // 'shipping:address-changed', and nothing anywhere dispatches a
+  // 'bobgo:address-changed'/'bobgo:cart-changed' event. This component
+  // previously listened for those non-existent events, meaning it could
+  // never receive a live address update and Bob Go rates never loaded via
+  // the standard Puck widget flow, in either renderer. Only the *outbound*
+  // events (bobgo:rate-selected / bobgo:pickup-selected) stay Bob-Go-
+  // prefixed, since BobgoPickupSelector/BobgoShippingSummary need to know
+  // which provider's rate shape to expect.
   useEffect(() => {
     if (typeof document === 'undefined') return
     sessionRef.current = getSessionToken()
 
     const handler = (e: Event) => fetchRates((e as CustomEvent).detail ?? {})
-    document.addEventListener('bobgo:address-changed', handler)
-    document.addEventListener('bobgo:cart-changed',   handler)
+    document.addEventListener('shipping:address-changed', handler)
+    document.addEventListener('shipping:cart-changed',   handler)
 
     return () => {
-      document.removeEventListener('bobgo:address-changed', handler)
-      document.removeEventListener('bobgo:cart-changed',   handler)
+      document.removeEventListener('shipping:address-changed', handler)
+      document.removeEventListener('shipping:cart-changed',   handler)
     }
   }, [fetchRates])
 
