@@ -99,3 +99,26 @@
     display: none;
   }
 }
+
+/* ── Nav-specific visibility ────────────────────────────────────────────────
+   A horizontal nav needs more room than a content grid does — logo, several
+   links, a CTA, and a cart icon all in one row — so it switches to the
+   hamburger a full tier earlier than sb-mobile-only/sb-desktop-only above:
+   at the tablet/desktop boundary, not the mobile/tablet one. Real tablets
+   (iPad portrait = 768px, iPad Air portrait ≈ 820px, iPad Pro 11" portrait =
+   834px) land in or above the general "desktop" bucket, where the plain nav
+   doesn't fit — confirmed by Dana testing on a real tablet 2026-08-28. */
+.sb-nav-mobile-only {
+  display: none;
+}
+.sb-nav-desktop-only {
+  display: block;
+}
+@media (max-width: 1023px) {
+  .sb-nav-mobile-only {
+    display: block;
+  }
+  .sb-nav-desktop-only {
+    display: none;
+  }
+}

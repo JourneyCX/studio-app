@@ -51,9 +51,9 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
 
         {/* Desktop nav — unchanged hover-dropdown behavior, hidden below the
             mobile breakpoint (styles/responsive.css). Wrapped in a plain div
-            with no inline `display` of its own so .sb-desktop-only's
+            with no inline `display` of its own so .sb-nav-desktop-only's
             block/none toggle isn't fighting the nav's own `display:flex`. */}
-        <div className="sb-desktop-only">
+        <div className="sb-nav-desktop-only">
           <nav style={{ display: 'flex', gap: 28 }}>
             {navLinks.map((link, i) => {
               const hasChildren = (link.children?.length ?? 0) > 0
@@ -98,7 +98,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
           {settings.headerCtaText && (
             <a
               href={settings.headerCtaUrl || '#'}
-              className="sb-desktop-only"
+              className="sb-nav-desktop-only"
               style={{
                 backgroundColor: accent,
                 color: '#ffffff',
@@ -116,7 +116,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
           {navLinks.length > 0 && (
             <button
               type="button"
-              className="sb-mobile-only"
+              className="sb-nav-mobile-only"
               onClick={() => setMobileOpen(open => !open)}
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
@@ -132,7 +132,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
           multi-level links use tap-to-expand instead of a :hover pattern
           that has no equivalent on touch. */}
       {mobileOpen && (
-        <nav className="sb-mobile-only" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+        <nav className="sb-nav-mobile-only" style={{ borderTop: '1px solid rgba(0,0,0,0.08)' }}>
           {navLinks.map((link, i) => {
             const hasChildren = (link.children?.length ?? 0) > 0
             const isExpanded = expanded.has(i)
