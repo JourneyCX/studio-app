@@ -1,0 +1,95 @@
+/* Shared responsive toolkit for Store Builder widgets — Phase 1 foundation.
+   Mirrored 1:1 (same class names, same breakpoint values) in
+   nuxt-storefront/assets/css/responsive.css so a widget's mobile behavior
+   ported from here to the live Vue renderer needs zero re-derivation.
+
+   Nothing here is wired into any widget yet — these are opt-in classes
+   widgets adopt during the Phase 4 widget-by-widget sweep. Adding this file
+   changes no existing rendering.
+
+   Breakpoints (two, matching common device-width conventions):
+     mobile:  <  640px
+     tablet:  640px – 1023px
+     desktop: >= 1024px
+   The Puck editor's viewport-preview toggle (App.tsx `<Puck viewports=…>`)
+   uses 375 / 768 / 1440 as representative device widths within those same
+   bands — the CSS breakpoints below are the actual layout thresholds.
+
+   KNOWN INTERACTION TO RESOLVE BEFORE/DURING PHASE 4: the live storefront
+   (nuxt-storefront/layouts/default.vue) applies `body { zoom: 1.25 }`
+   site-wide to compensate for hardcoded px font sizes. Zoom renders content
+   25% larger than these breakpoint widths assume, so a layout that just
+   fits at 640px un-zoomed can visually overflow once zoomed. Don't tune
+   mobile layouts against the zoomed renderer without accounting for this —
+   see the flagged note in that file. */
+
+:root {
+  --sb-bp-tablet: 640px;
+  --sb-bp-desktop: 1024px;
+}
+
+/* ── Auto-collapsing grid ──────────────────────────────────────────────────
+   Drop-in replacement for a widget's inline `gridTemplateColumns: repeat(N,
+   1fr)`. Add className="sb-grid" alongside the existing inline style — the
+   media queries below use !important specifically so they can override an
+   inline style without touching the widget's own column-count logic or
+   Puck field config. Desktop keeps whatever column count the widget's own
+   inline style/props already produce. */
+.sb-grid {
+  gap: var(--sb-grid-gap, 24px);
+}
+@media (max-width: 767px) {
+  .sb-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .sb-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Fully CSS-driven alternative for widgets that don't need a specific
+   desktop column count — collapses on its own with no media query and no
+   inline gridTemplateColumns at all. --sb-grid-min is the minimum comfortable
+   width for one item; wrapped in min(...,100%) so a large min value can't
+   itself cause horizontal overflow on a narrower screen than the min. */
+.sb-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(var(--sb-grid-min, 240px), 100%), 1fr));
+  gap: var(--sb-grid-gap, 24px);
+}
+
+/* ── Flex row → column stack ───────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .sb-flex-stack {
+    flex-direction: column !important;
+  }
+}
+
+/* ── Fluid typography ──────────────────────────────────────────────────────
+   Replace a hardcoded `fontSize: 48` inline style with one of these
+   classes (drop the inline fontSize) to scale smoothly between mobile and
+   desktop instead of staying fixed. */
+.sb-text-fluid-lg {
+  font-size: clamp(1.75rem, 4vw + 1rem, 3rem); /* ~28px – 48px, hero H1 */
+}
+.sb-text-fluid-md {
+  font-size: clamp(1.375rem, 2.5vw + 0.75rem, 2rem); /* ~22px – 32px, section H2 */
+}
+
+/* ── Visibility helpers (mobile nav, etc.) ─────────────────────────────── */
+.sb-mobile-only {
+  display: none;
+}
+.sb-desktop-only {
+  display: initial;
+}
+@media (max-width: 767px) {
+  .sb-mobile-only {
+    display: initial;
+  }
+  .sb-desktop-only {
+    display: none;
+  }
+}

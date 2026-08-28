@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { Puck, usePuck, type Data } from '@measured/puck'
+import { Puck, usePuck, type Data, type Viewports } from '@measured/puck'
 import { puckConfig } from './lib/puck/config'
 import { stratumApi, setActiveToken, setActiveTenantId, STRATUM_ORIGIN, SessionExpiredError, type StudioSession } from './lib/api'
 import { useTemplateManager, uid } from './lib/useTemplateManager'
@@ -130,6 +130,18 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 const EMPTY_DATA: Data = { root: { props: {} }, content: [], zones: {} }
+
+// Puck ships a built-in viewport-preview toggle (defaultViewports: 360/768/1280
+// Small/Medium/Large) that was already rendering in the header before this change —
+// it isn't wired to anything below, it just resizes the preview iframe. Relabeled
+// to this project's actual target device widths, matching the breakpoints
+// styles/responsive.css's media queries use (max-width:767px / 768-1023px), so the
+// number a merchant sees in the toggle matches where the CSS actually changes.
+const STUDIO_VIEWPORTS: Viewports = [
+  { width: 375, height: 'auto', icon: 'Smartphone', label: 'Mobile' },
+  { width: 768, height: 'auto', icon: 'Tablet', label: 'Tablet' },
+  { width: 1440, height: 'auto', icon: 'Monitor', label: 'Desktop' },
+]
 
 const headerIconButtonStyle: CSSProperties = {
   padding: '7px 12px',
@@ -569,6 +581,7 @@ export default function App() {
         config={puckConfig}
         data={puckData}
         ui={INITIAL_PUCK_UI}
+        viewports={STUDIO_VIEWPORTS}
         headerTitle={pageName}
         onPublish={handlePublish}
         onChange={handleChange}
