@@ -84,7 +84,9 @@ function DeliveryAddressFormInner({ headline, accentColor, backgroundColor }: De
         <input style={inputStyle} type="text" placeholder="29 Poplar Rd"
           value={address.street} onChange={e => set('street', e.target.value)} />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
+      {/* sb-grid (styles/responsive.css) stacks City/Postal Code/Country to 1
+          column on mobile instead of squeezing three fields onto one row. */}
+      <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 12 }}>
         <div>
           <label style={labelStyle}>City</label>
           <input style={inputStyle} type="text" placeholder="Cape Town" value={address.city} onChange={e => set('city', e.target.value)} />

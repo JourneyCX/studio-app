@@ -292,7 +292,9 @@ function PickupSelectorInner(props: PickupSelectorProps) {
       )}
       {layout === 'split' && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr' }}>
+          {/* sb-grid (styles/responsive.css) stacks list above map on mobile
+              instead of squeezing a 300px list pane onto a 375px screen. */}
+          <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: '300px 1fr' }}>
             {listPane}
             {mapPane}
           </div>
