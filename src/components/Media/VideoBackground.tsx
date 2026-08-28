@@ -135,8 +135,10 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
 
         {/* Content */}
         <div style={{ position: 'relative', zIndex: 2, maxWidth: textAlign === 'center' ? 700 : 580, padding: '64px 40px', textAlign }}>
+          {/* sb-text-fluid-lg (styles/responsive.css) scales this down on
+              narrow screens instead of staying fixed at 52px. */}
           {headline && (
-            <h1 style={{ color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.1, textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
+            <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 20px', lineHeight: 1.1, textShadow: '0 2px 12px rgba(0,0,0,0.3)' }}>
               {headline}
             </h1>
           )}

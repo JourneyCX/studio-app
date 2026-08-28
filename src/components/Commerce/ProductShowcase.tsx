@@ -250,7 +250,9 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
           {(headline || subheadline || ctaText) && (
             <div style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
               <div>
-                {headline && <h2 style={{ color: textColor, fontSize: 32, fontWeight: 800, margin: '0 0 10px' }}>{headline}</h2>}
+                {/* sb-text-fluid-md (styles/responsive.css) scales this down on
+                    narrow screens instead of staying fixed at 32px. */}
+                {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 10px' }}>{headline}</h2>}
                 {subheadline && <p style={{ color: textColor, opacity: 0.65, fontSize: 17, margin: 0 }}>{subheadline}</p>}
               </div>
               {ctaText && (
@@ -268,7 +270,10 @@ export const ProductShowcase: ComponentConfig<ProductShowcaseProps> = {
               No products found — add products in Warehouse, or switch "Show Placeholder" on to preview the layout.
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
+            /* sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+               and 2 on tablet regardless of the merchant's chosen column count —
+               desktop keeps whatever `columns` picks. */
+            <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
               {(useFake || status === 'loading' || status === 'error'
                 ? Array.from({ length: clamp })
                 : products.slice(0, clamp)

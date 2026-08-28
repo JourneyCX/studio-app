@@ -62,7 +62,10 @@ export const CollectionList: ComponentConfig<CollectionListProps> = {
           {headline && <h2 style={{ margin: '0 0 32px', fontSize: 28, fontWeight: 700, color: '#1a202c' }}>{headline}</h2>}
           {isStrip
             ? <div style={{ display: 'flex', gap: 20, overflowX: 'auto', paddingBottom: 4 }}>{collections.map(card)}</div>
-            : <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 20 }}>{collections.map(card)}</div>
+            // sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+            // and 2 on tablet regardless of the merchant's chosen column count —
+            // desktop keeps whatever `columns` picks.
+            : <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 20 }}>{collections.map(card)}</div>
           }
         </div>
       </section>

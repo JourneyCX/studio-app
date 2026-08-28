@@ -162,8 +162,10 @@ export const ParticleBackground: ComponentConfig<ParticleBackgroundProps> = {
         />
         {(headline || subheadline || primaryButtonText) && (
           <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: '64px 32px', maxWidth: 680 }}>
+            {/* sb-text-fluid-lg (styles/responsive.css) scales this down on
+                narrow screens instead of staying fixed at 48px. */}
             {headline && (
-              <h2 style={{ color: textColor, fontSize: 48, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.15 }}>{headline}</h2>
+              <h2 className="sb-text-fluid-lg" style={{ color: textColor, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.15 }}>{headline}</h2>
             )}
             {subheadline && (
               <p style={{ color: textColor, opacity: 0.75, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>

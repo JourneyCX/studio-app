@@ -62,7 +62,9 @@ function PostCard({ title, excerpt, thumbnail, date, author, category, url, i, l
   const isList = layout === 'list'
   return (
     <article style={{ backgroundColor: cardColor, borderRadius, overflow: 'hidden', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', display: isList ? 'flex' : 'block', border: '1px solid #f1f5f9' }}>
-      <div style={isList ? { width: 200, flexShrink: 0 } : { aspectRatio: '16/9', position: 'relative' }}>
+      {/* min(200px, 30vw) keeps this list-view thumbnail from forcing horizontal
+          overflow in the flex row on a narrow phone */}
+      <div style={isList ? { width: 'min(200px, 30vw)', flexShrink: 0 } : { aspectRatio: '16/9', position: 'relative' }}>
         {thumbnail ? (
           <img src={thumbnail} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         ) : (
@@ -208,7 +210,10 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       )
     } else {
       grid = (
-        <div style={{ display: 'flex', flexDirection: layout === 'list' ? 'column' : 'grid' as React.CSSProperties['flexDirection'], ...(layout !== 'list' ? { display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)` } : {}), gap: 20 }}>
+        // sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+        // and 2 on tablet regardless of the merchant's chosen column count —
+        // harmless in list mode too since display:flex ignores grid-template-columns.
+        <div className="sb-grid" style={{ display: 'flex', flexDirection: layout === 'list' ? 'column' : 'grid' as React.CSSProperties['flexDirection'], ...(layout !== 'list' ? { display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)` } : {}), gap: 20 }}>
           {posts.map((p, i) => <PostCard key={i} {...p} i={i} {...cardProps} />)}
         </div>
       )
@@ -220,7 +225,9 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
           {(headline || subheadline || ctaText) && (
             <div style={{ marginBottom: 40, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
               <div>
-                {headline    && <h2 style={{ color: textColor, fontSize: 32, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>}
+                {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
+                    mobile and desktop instead of staying fixed at 32px */}
+                {headline    && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>}
                 {subheadline && <p  style={{ color: textColor, opacity: 0.65, fontSize: 17, margin: 0 }}>{subheadline}</p>}
               </div>
               {ctaText && (

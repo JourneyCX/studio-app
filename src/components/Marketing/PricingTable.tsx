@@ -97,11 +97,12 @@ export const PricingTable: ComponentConfig<PricingTableProps> = {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           {(headline || subheadline) && (
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              {headline && <h2 style={{ color: textColor, fontSize: 36, fontWeight: 800, margin: '0 0 16px' }}>{headline}</h2>}
+              {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 16px' }}>{headline}</h2>}
               {subheadline && <p style={{ color: textColor, opacity: 0.7, fontSize: 18, margin: 0, lineHeight: 1.65 }}>{subheadline}</p>}
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${plans.length}, 1fr)`, gap: 24, alignItems: 'start' }}>
+          {/* sb-grid collapses this to 1 column on mobile / 2 on tablet regardless of plan count */}
+          <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${plans.length}, 1fr)`, gap: 24, alignItems: 'start' }}>
             {plans.map((plan, i) => {
               const features = plan.features ? plan.features.split('\n').filter(Boolean) : []
               return (

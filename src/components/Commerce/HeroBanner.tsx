@@ -59,7 +59,9 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
           <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
         )}
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 640 }}>
-          <h1 style={{ color: '#fff', fontSize: 48, fontWeight: 800, margin: '0 0 16px', lineHeight: 1.15 }}>{headline}</h1>
+          {/* sb-text-fluid-lg (styles/responsive.css) scales this down on
+              narrow screens instead of staying fixed at 48px. */}
+          <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 16px', lineHeight: 1.15 }}>{headline}</h1>
           <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: 18, margin: '0 0 32px', lineHeight: 1.6 }}>{subheadline}</p>
           {buttonText && (
             <a

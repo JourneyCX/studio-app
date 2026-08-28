@@ -102,7 +102,7 @@ export const FAQAccordion: ComponentConfig<FAQAccordionProps> = {
         <div style={{ maxWidth: maxWidth, margin: '0 auto' }}>
           {(headline || subheadline) && (
             <div style={{ textAlign: 'center', marginBottom: 48 }}>
-              {headline && <h2 style={{ color: textColor, fontSize: 36, fontWeight: 800, margin: '0 0 16px' }}>{headline}</h2>}
+              {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 16px' }}>{headline}</h2>}
               {subheadline && <p style={{ color: textColor, opacity: 0.7, fontSize: 18, margin: 0, lineHeight: 1.65 }}>{subheadline}</p>}
             </div>
           )}

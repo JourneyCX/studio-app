@@ -85,7 +85,7 @@ export const HeroSection: ComponentConfig<HeroSectionProps> = {
               {eyebrow}
             </span>
           )}
-          <h1 style={{ color: resolvedHeadlineColor, fontSize: 52, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.12 }}>{headline}</h1>
+          <h1 className="sb-text-fluid-lg" style={{ color: resolvedHeadlineColor, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.12 }}>{headline}</h1>
           {subheadline && (
             <p style={{ color: resolvedSubheadlineColor, opacity: 0.8, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
           )}

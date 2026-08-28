@@ -81,11 +81,12 @@ export const Testimonials: ComponentConfig<TestimonialsProps> = {
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {(headline || subheadline) && (
             <div style={{ textAlign: 'center', marginBottom: 56 }}>
-              {headline && <h2 style={{ color: textColor, fontSize: 36, fontWeight: 800, margin: '0 0 16px' }}>{headline}</h2>}
+              {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 16px' }}>{headline}</h2>}
               {subheadline && <p style={{ color: textColor, opacity: 0.7, fontSize: 18, margin: 0, lineHeight: 1.65 }}>{subheadline}</p>}
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 24 }}>
+          {/* sb-grid collapses this to 1 column on mobile / 2 on tablet regardless of the merchant's chosen column count */}
+          <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 24 }}>
             {items.map((item, i) => (
               <div key={i} style={{ backgroundColor: cardColor, borderRadius: 16, padding: 32, boxShadow: '0 2px 12px rgba(0,0,0,0.07)', display: 'flex', flexDirection: 'column', gap: 0 }}>
                 <StarRating rating={Math.min(5, Math.max(1, item.rating))} color={accentColor} />

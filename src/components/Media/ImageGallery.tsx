@@ -114,8 +114,11 @@ function GalleryInner(props: ImageGalleryProps) {
       )}
 
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        {headline && <h2 style={{ color: textColor, fontSize: 32, fontWeight: 800, margin: '0 0 36px' }}>{headline}</h2>}
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
+        {/* sb-text-fluid-md (styles/responsive.css) scales this down on
+            narrow screens instead of staying fixed at 32px. */}
+        {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 36px' }}>{headline}</h2>}
+        {/* sb-grid collapses this to 1 column on mobile / 2 on tablet regardless of the merchant's chosen column count */}
+        <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
           {displayImages.map((img, i) => (
             <div key={i}>
               <div className="gal-item" style={{ borderRadius, aspectRatio: imageAspectRatio }} onClick={() => open(i)}>

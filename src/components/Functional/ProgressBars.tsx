@@ -44,7 +44,9 @@ function BarsInner(props: ProgressBarsProps) {
       <div style={{ maxWidth: 800, margin: '0 auto' }}>
         {(headline || subheadline) && (
           <div style={{ marginBottom: 44 }}>
-            {headline    && <h2 style={{ color: textColor, fontSize: 32, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>}
+            {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
+                mobile and desktop instead of staying fixed at 32px */}
+            {headline    && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>}
             {subheadline && <p  style={{ color: textColor, opacity: 0.65, fontSize: 17, margin: 0, lineHeight: 1.65 }}>{subheadline}</p>}
           </div>
         )}

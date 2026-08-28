@@ -42,7 +42,9 @@ export function WhatsAppWidget({ settings }: { settings: SiteSettings }) {
       {open && settings.whatsappPopupEnabled && (
         <div
           style={{
-            width: 280, marginBottom: 12, borderRadius: 12, overflow: 'hidden',
+            // min(280px, calc(100vw - 48px)) leaves 24px breathing room on each
+            // side so the popup can't overflow off-screen on a very narrow phone
+            width: 'min(280px, calc(100vw - 48px))', marginBottom: 12, borderRadius: 12, overflow: 'hidden',
             boxShadow: '0 12px 32px rgba(0,0,0,0.24)', backgroundColor: '#fff',
           }}
         >

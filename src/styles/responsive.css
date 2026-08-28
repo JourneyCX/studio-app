@@ -87,12 +87,17 @@
 /* ── Fluid typography ──────────────────────────────────────────────────────
    Replace a hardcoded `fontSize: 48` inline style with one of these
    classes (drop the inline fontSize) to scale smoothly between mobile and
-   desktop instead of staying fixed. */
+   desktop instead of staying fixed. Ranges calibrated against the actual
+   spread of hardcoded headline sizes found across the widget set
+   (Phase 4 audit, 2026-08-28): hero H1s cluster at 48–52px, section H2s at
+   32–40px — each tier's max deliberately covers its whole cluster rather
+   than the exact original value, a small deliberate normalization rather
+   than a per-widget custom clamp for each. */
 .sb-text-fluid-lg {
-  font-size: clamp(1.75rem, 4vw + 1rem, 3rem); /* ~28px – 48px, hero H1 */
+  font-size: clamp(1.75rem, 4vw + 1rem, 3.25rem); /* ~28px – 52px, hero H1 */
 }
 .sb-text-fluid-md {
-  font-size: clamp(1.375rem, 2.5vw + 0.75rem, 2rem); /* ~22px – 32px, section H2 */
+  font-size: clamp(1.5rem, 3vw + 0.75rem, 2.5rem); /* ~24px – 40px, section H2 */
 }
 
 /* ── Visibility helpers (mobile nav, etc.) ─────────────────────────────────

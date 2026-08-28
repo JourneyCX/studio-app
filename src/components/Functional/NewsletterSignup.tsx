@@ -66,7 +66,9 @@ function NewsletterInner(props: NewsletterSignupProps) {
       <section style={{ backgroundColor: accentColor, padding: '56px 24px' }}>
         <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}><MailIcon color="rgba(255,255,255,0.7)" /></div>
-          <h2 style={{ color: '#fff', fontSize: 32, fontWeight: 800, margin: '12px 0 12px' }}>{headline}</h2>
+          {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
+              mobile and desktop instead of staying fixed at 32px */}
+          <h2 className="sb-text-fluid-md" style={{ color: '#fff', fontWeight: 800, margin: '12px 0 12px' }}>{headline}</h2>
           {subheadline && <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 17, margin: '0 0 32px', lineHeight: 1.6 }}>{subheadline}</p>}
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
             {showFirstName && <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ ...inputStyle, flex: '0 1 160px' }} />}

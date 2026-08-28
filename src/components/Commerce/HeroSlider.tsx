@@ -113,7 +113,9 @@ function SliderInner({ slides, minHeight, autoPlay, autoPlayInterval, showDots, 
       }}>
         <div style={{ maxWidth: 700 }}>
           {slide.headline && (
-            <h1 style={{ color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 18px', lineHeight: 1.12, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+            /* sb-text-fluid-lg (styles/responsive.css) scales this down on
+               narrow screens instead of staying fixed at 52px. */
+            <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 18px', lineHeight: 1.12, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
               {slide.headline}
             </h1>
           )}

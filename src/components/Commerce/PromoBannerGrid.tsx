@@ -106,7 +106,10 @@ export const PromoBannerGrid: ComponentConfig<PromoBannerGridProps> = {
     return (
       <section style={{ backgroundColor, padding: `${paddingVertical}px 24px` }}>
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
+          {/* sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+              and 2 on tablet regardless of the merchant's chosen column count —
+              desktop keeps whatever `columns` picks. */}
+          <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
             {banners.map((banner, i) => {
               const pos = positionStyles[banner.textPosition] ?? positionStyles['center']
               const dimness = (banner.overlayOpacity ?? 25) / 100

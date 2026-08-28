@@ -65,7 +65,7 @@ export const CallToAction: ComponentConfig<CallToActionProps> = {
           <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
         )}
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 680, margin: '0 auto' }}>
-          <h2 style={{ color: textColor, fontSize: 40, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.15 }}>{headline}</h2>
+          <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.15 }}>{headline}</h2>
           {subheadline && (
             <p style={{ color: textColor, opacity: 0.85, fontSize: 18, margin: '0 0 40px', lineHeight: 1.65 }}>{subheadline}</p>
           )}

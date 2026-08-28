@@ -67,7 +67,9 @@ function SliderInner(props: BeforeAfterSliderProps) {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         {(headline || subheadline) && (
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
-            {headline && <h2 style={{ color: textColor, fontSize: 32, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>}
+            {/* sb-text-fluid-md (styles/responsive.css) scales this down on
+                narrow screens instead of staying fixed at 32px. */}
+            {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>}
             {subheadline && <p style={{ color: textColor, opacity: 0.65, fontSize: 17, margin: 0, lineHeight: 1.6 }}>{subheadline}</p>}
           </div>
         )}

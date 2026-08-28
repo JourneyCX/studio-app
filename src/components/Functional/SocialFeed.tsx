@@ -84,7 +84,9 @@ function TwitterEmbed({ username, height, textColor, accentColor }: { username: 
 function InstagramPlaceholder({ username, columns, count, accentColor, textColor, borderRadius }: { username: string; columns: number; count: number; accentColor: string; textColor: string; borderRadius: number }) {
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 4 }}>
+      {/* sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+          and 2 on tablet regardless of the merchant's chosen column count */}
+      <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap: 4 }}>
         {Array.from({ length: count }).map((_, i) => (
           <div key={i} style={{ aspectRatio: '1/1', backgroundColor: IG_COLORS[i % IG_COLORS.length], borderRadius: borderRadius / 3, overflow: 'hidden', position: 'relative', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ fontSize: 22, opacity: 0.4 }}>📷</span>
@@ -123,7 +125,9 @@ function TikTokEmbed({ videoUrl, borderRadius }: { videoUrl: string; borderRadiu
       <iframe
         src={`https://www.tiktok.com/embed/v2/${id}`}
         allow="autoplay; fullscreen; picture-in-picture"
-        style={{ width: 325, height: 580, border: 'none', borderRadius }}
+        // min(325px, 100%) so the embed can't force horizontal page overflow
+        // on a phone narrower than 325px
+        style={{ width: 'min(325px, 100%)', height: 580, border: 'none', borderRadius }}
       />
     </div>
   )

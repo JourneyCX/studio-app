@@ -141,7 +141,10 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
           {!useFake && status === 'error' && (
             <p style={{ margin: '0 0 12px', fontSize: 12, color: '#dd6b20' }}>⚠ Couldn't load live products — showing placeholder layout instead.</p>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
+          {/* sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+              and 2 on tablet regardless of the merchant's chosen column count —
+              desktop keeps whatever `columns` picks. */}
+          <div className="sb-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(${columns}, 1fr)`, gap }}>
             {body}
           </div>
         </div>
