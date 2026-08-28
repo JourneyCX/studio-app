@@ -36,7 +36,11 @@ export const Columns: ComponentConfig<ColumnsProps> = {
   render({ distribution, gap, backgroundColor }) {
     const dist = DISTRIBUTIONS[distribution] ?? DISTRIBUTIONS.equal2
     return (
-      <div style={{ backgroundColor, display: 'grid', gridTemplateColumns: dist.template, gap }}>
+      // sb-grid (styles/responsive.css) collapses this to 1 column on mobile
+      // and 2 on tablet regardless of the merchant's chosen distribution —
+      // a 4-column or 1:3 sidebar split has no business staying that shape
+      // on a 375px screen. Desktop keeps whatever `dist.template` picks.
+      <div className="sb-grid" style={{ backgroundColor, display: 'grid', gridTemplateColumns: dist.template, gap }}>
         {Array.from({ length: dist.cols }).map((_, i) => (
           <DropZone key={i} zone={`col-${i}`} />
         ))}

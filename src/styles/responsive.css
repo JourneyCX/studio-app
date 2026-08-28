@@ -60,6 +60,23 @@
   gap: var(--sb-grid-gap, 24px);
 }
 
+/* ── Fluid container padding ────────────────────────────────────────────────
+   A merchant-chosen desktop horizontal padding (Layout/Container) can eat
+   too much of a 375px-wide screen — e.g. 80px of padding either side leaves
+   only 215px for actual content. Caps it at 24px on mobile without
+   overriding a merchant who already chose something smaller: reads the
+   widget's own value back via --sb-container-px (set inline alongside the
+   class) and keeps whichever is smaller. Vertical padding is left alone —
+   excess vertical space is a scroll-distance nicety, not a content-clipping
+   correctness issue the way horizontal overflow is. */
+.sb-container {}
+@media (max-width: 767px) {
+  .sb-container {
+    padding-left: min(var(--sb-container-px, 24px), 24px) !important;
+    padding-right: min(var(--sb-container-px, 24px), 24px) !important;
+  }
+}
+
 /* ── Flex row → column stack ───────────────────────────────────────────── */
 @media (max-width: 767px) {
   .sb-flex-stack {

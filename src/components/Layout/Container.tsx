@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { DropZone, type ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
 
@@ -24,7 +25,13 @@ export const Container: ComponentConfig<ContainerProps> = {
   },
   render({ paddingY, paddingX, maxWidth, backgroundColor }) {
     return (
-      <section style={{ backgroundColor, padding: `${paddingY}px ${paddingX}px` }}>
+      // sb-container (styles/responsive.css) caps horizontal padding at 24px
+      // on mobile via --sb-container-px, so a large desktop paddingX doesn't
+      // eat most of a 375px screen's width.
+      <section
+        className="sb-container"
+        style={{ backgroundColor, padding: `${paddingY}px ${paddingX}px`, '--sb-container-px': `${paddingX}px` } as CSSProperties}
+      >
         <div style={{ maxWidth, margin: '0 auto' }}>
           <DropZone zone="content" />
         </div>
