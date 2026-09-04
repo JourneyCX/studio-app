@@ -100,6 +100,19 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
           onChange={e => onChange({ description: e.target.value })}
         />
       </Field>
+      <Field>
+        <label style={label}>Shipping &amp; Returns Policy</label>
+        <textarea
+          style={{ ...input, minHeight: 100, resize: 'vertical' }}
+          value={settings.shippingReturnsPolicy ?? ''}
+          placeholder="e.g. how long delivery takes, which couriers you use, your return window and conditions..."
+          onChange={e => onChange({ shippingReturnsPolicy: e.target.value })}
+        />
+        <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0' }}>
+          Not shown on the storefront yet — used by the Storefront AI Assistant chat
+          widget to answer shipping and returns questions accurately instead of guessing.
+        </p>
+      </Field>
       <div style={row}>
         <div style={{ flex: 1 }}>
           <TextInput text="Logo Alt Text" value={settings.logoAlt} onChange={v => onChange({ logoAlt: v })} />

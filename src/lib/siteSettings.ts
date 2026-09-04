@@ -19,6 +19,11 @@ export interface SiteSettings {
   businessName: string | null
   tagline: string | null
   description: string | null
+  // Free-text merchant policy copy — not rendered on the storefront by this phase,
+  // consumed server-side by the Storefront AI Assistant chat endpoint
+  // (Ai_assistant_storefront::_store_context()) so it can quote real shipping/
+  // returns policy instead of guessing.
+  shippingReturnsPolicy: string | null
   contactPhone: string | null
   contactEmail: string | null
   contactAddress: string | null
@@ -64,6 +69,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   headerLogoHeight: 40, footerLogoHeight: 32, footerShowLogo: true,
   faviconUrl: null,
   businessName: 'Your Store', tagline: null, description: null,
+  shippingReturnsPolicy: null,
   contactPhone: null, contactEmail: null, contactAddress: null,
   socialLinks: [], navLinks: [],
   headerBackgroundColor: '#ffffff', headerTextColor: '#1a202c', headerAccentColor: '#1a202c',
