@@ -45,6 +45,31 @@ function TypingDots({ color }: { color: string }) {
   )
 }
 
+// Message bubbles used to render via plain JSX text interpolation, so a real
+// product URL the assistant returns (e.g. "🔗 https://.../product/x") sat
+// there as inert text -- same bug as nuxt-storefront's mirror of this
+// component, fixed there first (confirmed live 2026-09-07). The system
+// prompt deliberately has the backend emit bare URLs, never markdown
+// [text](url) syntax, so linkification happens on the frontend instead.
+// escapeHtml() runs BEFORE any markup is inserted, so this stays XSS-safe
+// even though the input includes a real shopper's own typed message
+// (rendered through this same function) -- necessary here specifically
+// because dangerouslySetInnerHTML, unlike JSX's {expr}, does NOT auto-escape.
+function escapeHtml(text: string): string {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function formatMessage(content: string, accentColor: string): string {
+  let html = escapeHtml(content)
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+    const trailing = url.match(/[.,;:!?)\]]+$/)?.[0] ?? ''
+    const clean = trailing ? url.slice(0, -trailing.length) : url
+    return `<a href="${clean}" target="_blank" rel="noopener noreferrer" style="color:${accentColor};text-decoration:underline;">${clean}</a>${trailing}`
+  })
+  return html
+}
+
 function ChatInner(props: AIToolProps) {
   const { mode, headline, subheadline, proxyEndpoint, apiKey, systemPrompt, starterPrompts, inputPlaceholder, assistantName, assistantAvatar, accentColor, backgroundColor, cardColor, textColor, borderRadius, maxHeight } = props
 
@@ -54,7 +79,10 @@ function ChatInner(props: AIToolProps) {
   const [error, setError]         = useState('')
   const bottomRef                 = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages, loading])
+  // block:'nearest' (not the 'start' default) keeps this scoped to the messages
+  // container instead of aligning the marker to the viewport top and hiding
+  // the answer above it -- see nuxt-storefront AITool.vue for the live-confirmed bug.
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }) }, [messages, loading])
 
   const starters = starterPrompts.split('\n').map(s => s.trim()).filter(Boolean).slice(0, 4)
 
@@ -161,9 +189,10 @@ function ChatInner(props: AIToolProps) {
                 {msg.role === 'assistant' && (
                   <div style={{ width: 32, height: 32, borderRadius: '50%', backgroundColor: accentColor + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>{meta.icon}</div>
                 )}
-                <div style={{ maxWidth: '75%', backgroundColor: msg.role === 'user' ? accentColor : textColor + '0c', color: msg.role === 'user' ? '#fff' : textColor, borderRadius: msg.role === 'user' ? `${borderRadius / 1.5}px ${borderRadius / 1.5}px 4px ${borderRadius / 1.5}px` : `${borderRadius / 1.5}px ${borderRadius / 1.5}px ${borderRadius / 1.5}px 4px`, padding: '10px 14px', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                  {msg.content}
-                </div>
+                <div
+                  style={{ maxWidth: '75%', backgroundColor: msg.role === 'user' ? accentColor : textColor + '0c', color: msg.role === 'user' ? '#fff' : textColor, borderRadius: msg.role === 'user' ? `${borderRadius / 1.5}px ${borderRadius / 1.5}px 4px ${borderRadius / 1.5}px` : `${borderRadius / 1.5}px ${borderRadius / 1.5}px ${borderRadius / 1.5}px 4px`, padding: '10px 14px', fontSize: 14, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}
+                  dangerouslySetInnerHTML={{ __html: formatMessage(msg.content, accentColor) }}
+                />
               </div>
             ))}
 
