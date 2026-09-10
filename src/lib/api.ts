@@ -126,6 +126,19 @@ export interface PageSettingsPatch {
   pageName?: string
 }
 
+// A Pixabay search result, as returned by Store_builder_api::stock_photos_search().
+// Deliberately has no download URL field — only previewURL/webformatURL
+// (display thumbnails). applyStockPhoto(id) resolves the real download
+// server-side; the browser never carries a fetchable Pixabay source URL.
+export interface PixabayPhoto {
+  id: number
+  previewURL: string | null
+  webformatURL: string | null
+  width: number
+  height: number
+  tags: string
+}
+
 // Real synced product, as returned by Store_builder_api::products(). image_url
 // is already rewritten through the wc_image proxy (or null) — never a raw
 // tenant-internal WC host URL, which the browser couldn't reach anyway.
@@ -263,6 +276,39 @@ export const stratumApi = {
   // Convenience wrapper — uses the module-level active token (set after login).
   uploadActiveVideo(file: File): Promise<{ url: string; error?: string }> {
     return stratumApi.uploadVideo(file, _activeToken)
+  },
+
+  // ImageUploadField's "Search Pixabay" tab — proxy-browse half. Response
+  // carries only Pixabay photo IDs + preview thumbnails, never a fetchable
+  // download URL — applyStockPhoto() below resolves that server-side. See
+  // Store_builder_api::stock_photos_search() and
+  // docs/specs/Stratum_Pixabay_Stock_Photo_Integration_Spec_v1.0.md.
+  searchStockPhotos(
+    query: string,
+    page: number,
+    token: string,
+  ): Promise<{ photos?: PixabayPhoto[]; page?: number; error?: string }> {
+    return request(
+      'GET',
+      `/admin/store_builder_api/stock_photos_search?q=${encodeURIComponent(query)}&page=${page}`,
+      token,
+    )
+  },
+
+  // Convenience wrapper — uses the module-level active token (set after login).
+  searchActiveStockPhotos(query: string, page = 1): Promise<{ photos?: PixabayPhoto[]; page?: number; error?: string }> {
+    return stratumApi.searchStockPhotos(query, page, _activeToken)
+  },
+
+  // Deferred-pull half — body carries only the Pixabay photo ID, never a URL.
+  // See Store_builder_api::stock_photos_apply().
+  applyStockPhoto(pixabayId: number, token: string): Promise<{ url?: string; pixabayId?: number; error?: string }> {
+    return request('POST', `/admin/store_builder_api/stock_photos_apply`, token, { pixabayId })
+  },
+
+  // Convenience wrapper — uses the module-level active token (set after login).
+  applyActiveStockPhoto(pixabayId: number): Promise<{ url?: string; pixabayId?: number; error?: string }> {
+    return stratumApi.applyStockPhoto(pixabayId, _activeToken)
   },
 
   // Product Category dropdown fields (ProductGrid/Carousel/Showcase). Reads the
