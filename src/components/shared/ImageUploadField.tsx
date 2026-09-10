@@ -45,8 +45,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
     }
   }
 
-  async function handleSearch(e?: React.FormEvent) {
-    e?.preventDefault()
+  async function handleSearch() {
     if (!query.trim()) return
     setSearching(true)
     setPixabayError('')
@@ -136,16 +135,26 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
 
       {tab === 'pixabay' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 6 }}>
+          {/* Deliberately NOT a <form> — Puck's own Fields sidebar (DefaultFields,
+              @measured/puck) already wraps every custom field in its own <form>,
+              and HTML doesn't support nested forms: the browser silently drops a
+              nested <form> open tag, so a type="submit" button here would submit
+              Puck's outer form instead, causing a real page navigation and
+              stripping the JWT session token the editor was opened with
+              ("No session token found" — confirmed live 2026-09-10). Enter-to-
+              search is wired via onKeyDown instead of relying on form submit. */}
+          <div style={{ display: 'flex', gap: 6 }}>
             <input
               type="text"
               value={query}
               onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleSearch() } }}
               placeholder="Search free stock photos…"
               style={{ flex: 1, fontSize: 12, padding: '6px 8px', border: '1px solid #e2e8f0', borderRadius: 4 }}
             />
             <button
-              type="submit"
+              type="button"
+              onClick={handleSearch}
               disabled={searching || !query.trim()}
               style={{
                 fontSize: 12, padding: '5px 12px', borderRadius: 4,
@@ -155,7 +164,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
             >
               {searching ? '⏳' : 'Search'}
             </button>
-          </form>
+          </div>
 
           {photos.length > 0 && (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, maxHeight: 160, overflowY: 'auto' }}>
