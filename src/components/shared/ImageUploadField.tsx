@@ -167,7 +167,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
           </div>
 
           {photos.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, maxHeight: 160, overflowY: 'auto' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, maxHeight: 280, overflowY: 'auto' }}>
               {photos.map(photo => (
                 <button
                   key={photo.id}
