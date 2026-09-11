@@ -12,7 +12,6 @@ import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
 import { AnnouncementBar } from './components/Navigation/AnnouncementBar'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
-import { ThemesPanel } from './components/ThemesPanel'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -210,7 +209,6 @@ export default function App() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
   const [pagesOpen, setPagesOpen] = useState(false)
-  const [themesOpen, setThemesOpen] = useState(false)
   // 'blocks' = the add-elements list is the visible left-hand panel;
   // 'fields' = the selected item's properties are. See PanelModeSync.
   const [panelMode, setPanelMode] = useState<'blocks' | 'fields'>('blocks')
@@ -588,10 +586,10 @@ export default function App() {
         overrides={{
           iframe: PuckIframeZoom,
           // The left panel's content when panelMode is 'blocks' — Puck's own
-          // categorized component list, untouched. Pages/Site Settings/Themes
+          // categorized component list, untouched. Pages/Site Settings
           // used to live here too, but this panel is hidden whenever fields
           // are showing (see the module-level comment on PanelModeSync above),
-          // so those three moved to headerActions below, where they're always
+          // so those two moved to headerActions below, where they're always
           // reachable regardless of panel mode.
           components: ({ children }) => (
             <>
@@ -600,7 +598,7 @@ export default function App() {
               {children}
             </>
           ),
-          // Inject Pages/Site Settings/Themes, an "Add Elements" button back
+          // Inject Pages/Site Settings, an "Add Elements" button back
           // to the block list, a "Templates" button, and an unsaved-changes
           // badge into the Puck header alongside the default actions. This
           // whole cluster lives in the header (not either side panel) because
@@ -619,9 +617,6 @@ export default function App() {
               </button>
               <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
-              </button>
-              <button onClick={() => setThemesOpen(true)} title="Themes" style={headerIconButtonStyle}>
-                <span style={{ fontSize: 15 }}>🎨</span> Themes
               </button>
 
               {/* Session-expiring-soon warning — fires 5 min before the JWT
@@ -754,17 +749,6 @@ export default function App() {
           initialSettings={siteSettings}
           onClose={() => setSiteSettingsOpen(false)}
           onSaved={updated => setSiteSettings(updated)}
-        />
-      )}
-
-      {/* Themes panel (🎨 Themes, top of the Blocks panel) — whole-site Theme
-          Manager themes, distinct from the per-page Templates modal above. */}
-      {themesOpen && session && (
-        <ThemesPanel
-          tenantId={session.tenantId}
-          token={token}
-          onClose={() => setThemesOpen(false)}
-          onApplied={() => window.location.reload()}
         />
       )}
 
