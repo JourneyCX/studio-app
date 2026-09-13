@@ -10,6 +10,7 @@ import { Container }     from '@/components/Layout/Container'
 import { Columns }       from '@/components/Layout/Columns'
 import { TextBlock }     from '@/components/Content/TextBlock'
 import { ImageBlock }    from '@/components/Content/ImageBlock'
+import { IconBox }       from '@/components/Content/IconBox'
 import { Spacer }        from '@/components/Content/Spacer'
 import { Divider }       from '@/components/Content/Divider'
 import { HeroBanner }       from '@/components/Commerce/HeroBanner'
@@ -55,6 +56,7 @@ export const puckConfig: Config = {
     Columns,
     TextBlock,
     ImageBlock,
+    IconBox,
     Spacer,
     Divider,
     HeroBanner,
@@ -113,7 +115,7 @@ export const puckConfig: Config = {
     },
     content: {
       title: 'Content',
-      components: ['TextBlock', 'ImageBlock', 'Spacer', 'Divider'],
+      components: ['TextBlock', 'ImageBlock', 'IconBox', 'Spacer', 'Divider'],
     },
     commerce: {
       title: 'E-commerce',
