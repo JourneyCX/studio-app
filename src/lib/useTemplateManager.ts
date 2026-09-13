@@ -66,6 +66,7 @@ export function useTemplateManager(
   const [personalTemplates, setPersonalTemplates] = useState<StoreTemplate[]>([])
   const [loadingPersonal,   setLoadingPersonal]   = useState(false)
   const [savingAsTemplate,  setSavingAsTemplate]  = useState(false)
+  const [deletingTemplateId, setDeletingTemplateId] = useState<string | null>(null)
   const [categoryOptions,   setCategoryOptions]   = useState<TemplateCategoryOption[]>(FALLBACK_TEMPLATE_CATEGORY_OPTIONS)
 
   const notify = useCallback((type: Notification['type'], message: string) => {
@@ -155,6 +156,29 @@ export function useTemplateManager(
     [tenantId, token, isOpen, notify],
   )
 
+  // Permanently delete one of the subscriber's own personal templates (never a
+  // master one — stratumApi.deletePersonalTemplate()/the backing CI3 endpoint
+  // both scope deletion to templates the calling tenant actually owns). This
+  // is the only way to remove a saved template from the picker — saving as
+  // template makes an independent copy, so deleting the source page it was
+  // saved from has no effect on it.
+  const deleteTemplate = useCallback(
+    async (templateId: string) => {
+      if (!tenantId) return
+      setDeletingTemplateId(templateId)
+      try {
+        await stratumApi.deletePersonalTemplate(tenantId, templateId, token)
+        setPersonalTemplates(prev => prev.filter(t => t.id !== templateId))
+        notify('success', 'Template deleted.')
+      } catch (err) {
+        notify('error', err instanceof Error ? err.message : 'Failed to delete template.')
+      } finally {
+        setDeletingTemplateId(null)
+      }
+    },
+    [tenantId, token, notify],
+  )
+
   return {
     isOpen,
     openSelector:        () => setIsOpen(true),
@@ -167,6 +191,8 @@ export function useTemplateManager(
     applyTemplate,
     savingAsTemplate,
     saveAsTemplate,
+    deletingTemplateId,
+    deleteTemplate,
     categoryOptions,
   }
 }

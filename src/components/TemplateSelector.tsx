@@ -15,6 +15,10 @@ interface TemplateSelectorProps {
   onApply: (template: StoreTemplate) => void
   onSaveAsTemplate: (puckData: Data, name: string, category: TemplateCategory) => void
   onClose: () => void
+  // Personal-template deletion — undefined/omitted templates (master ones)
+  // never show a delete control at all, see TemplateCard below.
+  onDeleteTemplate?: (templateId: string) => void
+  deletingTemplateId?: string | null
   // Live, admin-managed category list (store_theme_categories via
   // stratumApi.getThemeCategories()) — same list Store Theme Manager uses for
   // Themes/Master Templates. Falls back to a "General"-only list if the
@@ -34,10 +38,15 @@ export function TemplateSelector({
   onApply,
   onSaveAsTemplate,
   onClose,
+  onDeleteTemplate,
+  deletingTemplateId = null,
   categoryOptions = FALLBACK_TEMPLATE_CATEGORY_OPTIONS,
 }: TemplateSelectorProps) {
   const [activeCategory, setActiveCategory] = useState<'all' | TemplateCategory>('all')
   const [confirmId,      setConfirmId]      = useState<string | null>(null)
+  // Separate from confirmId (Apply's own two-click state) — a card must be
+  // able to arm its Delete confirmation independently of its Apply one.
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
   const [saveFormOpen,   setSaveFormOpen]   = useState(false)
   const [saveName,       setSaveName]       = useState('')
   const [saveCategory,   setSaveCategory]   = useState<TemplateCategory>('general')
@@ -57,6 +66,14 @@ export function TemplateSelector({
       onApply(template)
     } else {
       setConfirmId(template.id)
+    }
+  }
+
+  const handleDeleteClick = (template: StoreTemplate) => {
+    if (deleteConfirmId === template.id) {
+      onDeleteTemplate?.(template.id)
+    } else {
+      setDeleteConfirmId(template.id)
     }
   }
 
@@ -201,6 +218,11 @@ export function TemplateSelector({
                   isConfirming={confirmId === template.id}
                   onApplyClick={() => handleApplyClick(template)}
                   onCancelConfirm={() => setConfirmId(null)}
+                  isDeletable={!!onDeleteTemplate && !!template.isPersonal}
+                  isDeleting={deletingTemplateId === template.id}
+                  isDeleteConfirming={deleteConfirmId === template.id}
+                  onDeleteClick={() => handleDeleteClick(template)}
+                  onCancelDeleteConfirm={() => setDeleteConfirmId(null)}
                 />
               ))}
               {loadingPersonal && <LoadingCard />}
@@ -329,6 +351,11 @@ interface TemplateCardProps {
   isConfirming: boolean
   onApplyClick: () => void
   onCancelConfirm: () => void
+  isDeletable: boolean
+  isDeleting: boolean
+  isDeleteConfirming: boolean
+  onDeleteClick: () => void
+  onCancelDeleteConfirm: () => void
 }
 
 function TemplateCard({
@@ -337,6 +364,11 @@ function TemplateCard({
   isConfirming,
   onApplyClick,
   onCancelConfirm,
+  isDeletable,
+  isDeleting,
+  isDeleteConfirming,
+  onDeleteClick,
+  onCancelDeleteConfirm,
 }: TemplateCardProps) {
   return (
     <div
@@ -469,7 +501,44 @@ function TemplateCard({
 
       {/* Action */}
       <div style={{ padding: '10px 15px 15px', display: 'flex', gap: 7 }}>
-        {isConfirming ? (
+        {isDeleteConfirming ? (
+          <>
+            <button
+              onClick={onDeleteClick}
+              disabled={isDeleting}
+              style={{
+                flex: 1,
+                padding: '9px',
+                backgroundColor: '#dc2626',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: isDeleting ? 'default' : 'pointer',
+                opacity: isDeleting ? 0.75 : 1,
+              }}
+            >
+              {isDeleting ? 'Deleting…' : '🗑 Yes, Delete'}
+            </button>
+            {!isDeleting && (
+              <button
+                onClick={onCancelDeleteConfirm}
+                style={{
+                  padding: '9px 11px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#64748b',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            )}
+          </>
+        ) : isConfirming ? (
           <>
             <button
               onClick={onApplyClick}
@@ -507,24 +576,45 @@ function TemplateCard({
             )}
           </>
         ) : (
-          <button
-            onClick={onApplyClick}
-            disabled={isApplying}
-            style={{
-              flex: 1,
-              padding: '9px',
-              backgroundColor: '#f8fafc',
-              color: '#0f172a',
-              border: '1px solid #e2e8f0',
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 600,
-              cursor: isApplying ? 'default' : 'pointer',
-              opacity: isApplying ? 0.6 : 1,
-            }}
-          >
-            {isApplying ? 'Applying…' : 'Apply Template'}
-          </button>
+          <>
+            <button
+              onClick={onApplyClick}
+              disabled={isApplying}
+              style={{
+                flex: 1,
+                padding: '9px',
+                backgroundColor: '#f8fafc',
+                color: '#0f172a',
+                border: '1px solid #e2e8f0',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: isApplying ? 'default' : 'pointer',
+                opacity: isApplying ? 0.6 : 1,
+              }}
+            >
+              {isApplying ? 'Applying…' : 'Apply Template'}
+            </button>
+            {isDeletable && (
+              <button
+                onClick={onDeleteClick}
+                aria-label="Delete template"
+                title="Delete template"
+                style={{
+                  padding: '9px 11px',
+                  backgroundColor: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fee2e2',
+                  borderRadius: 8,
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                🗑
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

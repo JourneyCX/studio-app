@@ -728,6 +728,8 @@ export default function App() {
           onApply={template => tm.applyTemplate(template, handleTemplateApplied)}
           onSaveAsTemplate={tm.saveAsTemplate}
           onClose={tm.closeSelector}
+          onDeleteTemplate={tm.deleteTemplate}
+          deletingTemplateId={tm.deletingTemplateId}
           categoryOptions={tm.categoryOptions}
         />
       )}
