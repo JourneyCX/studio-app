@@ -1367,6 +1367,14 @@ const shopWithFiltersPuckState: Data = {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Master template catalogue — ordered by tier priority
+//
+// `category` values here must be real store_theme_categories slugs (fetched
+// dynamically for the tab bar/save picker — see useTemplateManager) so these
+// built-in examples stay filterable under the same tabs a real tenant sees.
+// Remapped 2026-09-13 from the old hardcoded fashion/digital/beauty/restaurant/
+// pets/furniture taxonomy, which had no relationship to the admin-managed
+// list at all. No exact match exists yet for "beauty"/"pets" — filed under
+// 'general' rather than guessing at a category Dana hasn't created.
 // ─────────────────────────────────────────────────────────────────────────────
 export const MASTER_TEMPLATES: StoreTemplate[] = [
   // ── General ─────────────────────────────────────────────────────────────
@@ -1392,7 +1400,7 @@ export const MASTER_TEMPLATES: StoreTemplate[] = [
   {
     id: 'tmpl_electronics_v1',
     name: 'TechVault Electronics',
-    category: 'digital',
+    category: 'electronics',
     thumbnail: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=600&q=80',
     description: 'Spec-forward tech store: hero, trending carousel, product showcase, trade-in CTA, and newsletter.',
     tags: ['electronics', 'gadgets', 'tech', 'modern', 'trade-in'],
@@ -1401,7 +1409,7 @@ export const MASTER_TEMPLATES: StoreTemplate[] = [
   {
     id: 'tmpl_beauty_v1',
     name: 'GlowLab Beauty',
-    category: 'beauty',
+    category: 'general',
     thumbnail: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?auto=format&fit=crop&w=600&q=80',
     description: 'Clean beauty and skincare: hero, ingredient trust badges, bestseller showcase, skin quiz CTA, reviews, FAQ, and 10% off newsletter.',
     tags: ['beauty', 'skincare', 'clean beauty', 'health', 'subscription'],
@@ -1411,7 +1419,7 @@ export const MASTER_TEMPLATES: StoreTemplate[] = [
   {
     id: 'tmpl_foodbev_v1',
     name: 'FreshBox Food & Drink',
-    category: 'restaurant',
+    category: 'food',
     thumbnail: 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80',
     description: 'Farm-to-table subscription box: countdown timer, 3-tier pricing table, recipe blog, FAQ, and 50% off first box offer.',
     tags: ['food', 'subscription', 'DTC', 'recipe', 'farm-to-table', 'delivery'],
@@ -1420,7 +1428,7 @@ export const MASTER_TEMPLATES: StoreTemplate[] = [
   {
     id: 'tmpl_pet_v1',
     name: 'PawHQ Pet Supplies',
-    category: 'pets',
+    category: 'general',
     thumbnail: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?auto=format&fit=crop&w=600&q=80',
     description: 'Pet food and accessories: shop-by-species grid, vet-trust feature grid, trending carousel, subscribe & save CTA, and FAQ.',
     tags: ['pets', 'dogs', 'cats', 'pet food', 'recurring', 'wellness'],
@@ -1430,7 +1438,7 @@ export const MASTER_TEMPLATES: StoreTemplate[] = [
   {
     id: 'tmpl_home_v1',
     name: 'Habitat & Co. Home',
-    category: 'furniture',
+    category: 'Home & Décor',
     thumbnail: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80',
     description: 'Furniture and home goods: shop-by-room grid, quality badges, overlay product showcase, featured blog, and design consultation CTA.',
     tags: ['furniture', 'home', 'garden', 'interior', 'solid wood', 'South African'],
@@ -1439,7 +1447,7 @@ export const MASTER_TEMPLATES: StoreTemplate[] = [
   {
     id: 'tmpl_jewelry_v1',
     name: 'Aurum Fine Jewellery',
-    category: 'fashion',
+    category: 'Jewelry',
     thumbnail: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?auto=format&fit=crop&w=600&q=80',
     description: 'Fine jewellery with zoom gallery: dark hero, 5-column product showcase, lightbox image gallery, hallmark trust badges, and FAQ.',
     tags: ['jewellery', 'gold', 'diamonds', 'luxury', 'accessories', 'high-end'],

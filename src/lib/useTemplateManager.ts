@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Data } from '@measured/puck'
-import type { StoreTemplate, TemplateCategory } from '@/types/templates'
+import type { StoreTemplate, TemplateCategory, TemplateCategoryOption } from '@/types/templates'
+import { FALLBACK_TEMPLATE_CATEGORY_OPTIONS } from '@/types/templates'
 import { MASTER_TEMPLATES } from '@/lib/templates/masterTemplates'
 import { stratumApi } from '@/lib/api'
 
@@ -65,6 +66,7 @@ export function useTemplateManager(
   const [personalTemplates, setPersonalTemplates] = useState<StoreTemplate[]>([])
   const [loadingPersonal,   setLoadingPersonal]   = useState(false)
   const [savingAsTemplate,  setSavingAsTemplate]  = useState(false)
+  const [categoryOptions,   setCategoryOptions]   = useState<TemplateCategoryOption[]>(FALLBACK_TEMPLATE_CATEGORY_OPTIONS)
 
   const notify = useCallback((type: Notification['type'], message: string) => {
     setNotification({ type, message })
@@ -81,6 +83,23 @@ export function useTemplateManager(
       .then(res => setPersonalTemplates(res.templates as unknown as StoreTemplate[]))
       .catch(() => setPersonalTemplates([]))
       .finally(() => setLoadingPersonal(false))
+  }, [isOpen, tenantId, token])
+
+  // Fetch the real, admin-managed category list (store_theme_categories) each
+  // time the modal opens — same table Store Theme Manager uses for Themes and
+  // Master Templates, so a category picked here always lines up with what the
+  // "Promote to Master Template" screen offers later. Falls back silently to
+  // FALLBACK_TEMPLATE_CATEGORY_OPTIONS (just "General") on any failure so the
+  // picker never renders empty.
+  useEffect(() => {
+    if (!isOpen || !tenantId) return
+    stratumApi
+      .getThemeCategories(tenantId, token)
+      .then(res => setCategoryOptions([
+        { value: 'all', label: 'All Templates' },
+        ...res.categories.map(c => ({ value: c.slug, label: c.name })),
+      ]))
+      .catch(() => setCategoryOptions(FALLBACK_TEMPLATE_CATEGORY_OPTIONS))
   }, [isOpen, tenantId, token])
 
   // Master templates always come first so they are never displaced by personal ones.
@@ -148,5 +167,6 @@ export function useTemplateManager(
     applyTemplate,
     savingAsTemplate,
     saveAsTemplate,
+    categoryOptions,
   }
 }

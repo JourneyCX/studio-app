@@ -728,6 +728,7 @@ export default function App() {
           onApply={template => tm.applyTemplate(template, handleTemplateApplied)}
           onSaveAsTemplate={tm.saveAsTemplate}
           onClose={tm.closeSelector}
+          categoryOptions={tm.categoryOptions}
         />
       )}
 

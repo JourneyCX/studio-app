@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Data } from '@measured/puck'
-import type { StoreTemplate, TemplateCategory } from '@/types/templates'
-import { TEMPLATE_CATEGORY_OPTIONS } from '@/types/templates'
+import type { StoreTemplate, TemplateCategory, TemplateCategoryOption } from '@/types/templates'
+import { FALLBACK_TEMPLATE_CATEGORY_OPTIONS } from '@/types/templates'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -15,6 +15,11 @@ interface TemplateSelectorProps {
   onApply: (template: StoreTemplate) => void
   onSaveAsTemplate: (puckData: Data, name: string, category: TemplateCategory) => void
   onClose: () => void
+  // Live, admin-managed category list (store_theme_categories via
+  // stratumApi.getThemeCategories()) — same list Store Theme Manager uses for
+  // Themes/Master Templates. Falls back to a "General"-only list if the
+  // caller hasn't fetched one yet (e.g. not signed in to a real tenant).
+  categoryOptions?: TemplateCategoryOption[]
 }
 
 // ---------------------------------------------------------------------------
@@ -29,6 +34,7 @@ export function TemplateSelector({
   onApply,
   onSaveAsTemplate,
   onClose,
+  categoryOptions = FALLBACK_TEMPLATE_CATEGORY_OPTIONS,
 }: TemplateSelectorProps) {
   const [activeCategory, setActiveCategory] = useState<'all' | TemplateCategory>('all')
   const [confirmId,      setConfirmId]      = useState<string | null>(null)
@@ -146,7 +152,7 @@ export function TemplateSelector({
             flexShrink: 0,
           }}
         >
-          {TEMPLATE_CATEGORY_OPTIONS.map(opt => {
+          {categoryOptions.map(opt => {
             const active = activeCategory === opt.value
             return (
               <button
@@ -246,7 +252,7 @@ export function TemplateSelector({
                   color: '#0f172a',
                 }}
               >
-                {TEMPLATE_CATEGORY_OPTIONS.filter(o => o.value !== 'all').map(o => (
+                {categoryOptions.filter(o => o.value !== 'all').map(o => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>

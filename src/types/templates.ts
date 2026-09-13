@@ -1,28 +1,24 @@
 import type { Data } from '@measured/puck'
 
-export type TemplateCategory =
-  | 'fashion'
-  | 'digital'
-  | 'restaurant'
-  | 'beauty'
-  | 'furniture'
-  | 'pets'
-  | 'general'
+// A category is just whatever slug the admin-managed store_theme_categories
+// table holds (see Store_theme_manager_model::get_theme_categories(), fetched
+// via stratumApi.getThemeCategories()) — no longer a fixed frontend union, so
+// a category Dana adds/renames from the CI3 admin Categories screen shows up
+// here without a studio-app rebuild. 'general' remains the safe default for
+// anything saved before this list existed or fetched before the API responds.
+export type TemplateCategory = string
 
 export interface TemplateCategoryOption {
   value: TemplateCategory | 'all'
   label: string
 }
 
-export const TEMPLATE_CATEGORY_OPTIONS: TemplateCategoryOption[] = [
-  { value: 'all',        label: 'All Templates' },
-  { value: 'fashion',    label: 'Fashion & Jewellery' },
-  { value: 'digital',    label: 'Electronics' },
-  { value: 'beauty',     label: 'Health & Beauty' },
-  { value: 'restaurant', label: 'Food & Beverage' },
-  { value: 'pets',       label: 'Pet Supplies' },
-  { value: 'furniture',  label: 'Home & Garden' },
-  { value: 'general',    label: 'General' },
+// Fallback only — used before the real list has loaded (or if the fetch
+// fails) so the picker never renders empty. Real categories always come from
+// stratumApi.getThemeCategories() once available; see useTemplateManager.
+export const FALLBACK_TEMPLATE_CATEGORY_OPTIONS: TemplateCategoryOption[] = [
+  { value: 'all',     label: 'All Templates' },
+  { value: 'general', label: 'General' },
 ]
 
 export interface StoreTemplate {

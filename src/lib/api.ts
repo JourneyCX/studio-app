@@ -400,4 +400,15 @@ export const stratumApi = {
     return request('DELETE', `/admin/store_builder_api/templates/${tenantId}/${templateId}`, token)
   },
 
+  // GET /admin/store_builder_api/theme_categories/{tenantId}
+  // Same admin-managed category list Store Theme Manager uses for Themes and
+  // Master Templates (store_theme_categories) — fetched live so Studio's own
+  // category picker can't drift into a separate, hardcoded taxonomy.
+  getThemeCategories(
+    tenantId: number,
+    token: string,
+  ): Promise<{ categories: Array<{ slug: string; name: string }> }> {
+    return request('GET', `/admin/store_builder_api/theme_categories/${tenantId}`, token)
+  },
+
 }
