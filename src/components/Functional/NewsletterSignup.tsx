@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { ImageUploadField } from '../shared/ImageUploadField'
 
 export type NewsletterSignupProps = {
   layout: 'banner' | 'card' | 'minimal'
@@ -14,7 +15,10 @@ export type NewsletterSignupProps = {
   webhookUrl: string
   accentColor: string
   backgroundColor: string
+  backgroundImage: string
+  overlayOpacity: number
   textColor: string
+  textAlign: 'left' | 'center' | 'right'
   borderRadius: number
 }
 
@@ -30,7 +34,7 @@ function MailIcon({ color }: { color: string }) {
 }
 
 function NewsletterInner(props: NewsletterSignupProps) {
-  const { layout, showFirstName, headline, subheadline, placeholder, buttonText, privacyText, successMessage, webhookUrl, accentColor, backgroundColor, textColor, borderRadius } = props
+  const { layout, showFirstName, headline, subheadline, placeholder, buttonText, privacyText, successMessage, webhookUrl, accentColor, backgroundColor, backgroundImage, overlayOpacity, textColor, textAlign, borderRadius } = props
   const [email, setEmail]       = useState('')
   const [firstName, setFirstName] = useState('')
   const [status, setStatus]     = useState<Status>('idle')
@@ -49,6 +53,15 @@ function NewsletterInner(props: NewsletterSignupProps) {
   const inputStyle: React.CSSProperties = { flex: 1, padding: '13px 18px', border: '1px solid rgba(255,255,255,0.25)', borderRadius: borderRadius / 1.5, fontSize: 15, outline: 'none', backgroundColor: 'rgba(255,255,255,0.12)', color: '#fff', minWidth: 0 }
   const inputStyleLight: React.CSSProperties = { flex: 1, padding: '12px 16px', border: `1px solid #e2e8f0`, borderRadius: borderRadius / 1.5, fontSize: 15, outline: 'none', backgroundColor: '#fff', color: textColor, minWidth: 0 }
 
+  const hasImage = !!backgroundImage
+  const sectionBgStyle: React.CSSProperties = hasImage
+    ? { position: 'relative', backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+    : { backgroundColor }
+  const overlay = hasImage && (
+    <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
+  )
+  const justify = textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center'
+
   if (status === 'success') {
     return (
       <section style={{ backgroundColor: layout === 'banner' ? accentColor : backgroundColor, padding: '56px 24px', textAlign: 'center' }}>
@@ -63,14 +76,15 @@ function NewsletterInner(props: NewsletterSignupProps) {
 
   if (layout === 'banner') {
     return (
-      <section style={{ backgroundColor: accentColor, padding: '56px 24px' }}>
-        <div style={{ maxWidth: 700, margin: '0 auto', textAlign: 'center' }}>
-          <div style={{ marginBottom: 8, display: 'flex', justifyContent: 'center' }}><MailIcon color="rgba(255,255,255,0.7)" /></div>
+      <section style={{ ...(hasImage ? sectionBgStyle : { backgroundColor: accentColor }), padding: '56px 24px' }}>
+        {overlay}
+        <div style={{ position: 'relative', maxWidth: 700, margin: '0 auto', textAlign }}>
+          <div style={{ marginBottom: 8, display: 'flex', justifyContent: justify }}><MailIcon color="rgba(255,255,255,0.7)" /></div>
           {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
               mobile and desktop instead of staying fixed at 32px */}
           <h2 className="sb-text-fluid-md" style={{ color: '#fff', fontWeight: 800, margin: '12px 0 12px' }}>{headline}</h2>
           {subheadline && <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 17, margin: '0 0 32px', lineHeight: 1.6 }}>{subheadline}</p>}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: justify }}>
             {showFirstName && <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ ...inputStyle, flex: '0 1 160px' }} />}
             <input type="email" required placeholder={placeholder} value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
             <button type="submit" disabled={status === 'loading'} style={{ padding: '13px 28px', borderRadius: borderRadius / 1.5, backgroundColor: '#fff', color: accentColor, border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer', whiteSpace: 'nowrap' }}>
@@ -85,14 +99,15 @@ function NewsletterInner(props: NewsletterSignupProps) {
 
   if (layout === 'card') {
     return (
-      <section style={{ backgroundColor, padding: '64px 24px' }}>
-        <div style={{ maxWidth: 540, margin: '0 auto', backgroundColor: '#fff', borderRadius, padding: '48px 48px', boxShadow: '0 8px 40px rgba(0,0,0,0.1)', border: '1px solid #f1f5f9', textAlign: 'center' }}>
-          <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: accentColor + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}><MailIcon color={accentColor} /></div>
+      <section style={{ ...sectionBgStyle, padding: '64px 24px' }}>
+        {overlay}
+        <div style={{ position: 'relative', maxWidth: 540, margin: '0 auto', backgroundColor: '#fff', borderRadius, padding: '48px 48px', boxShadow: '0 8px 40px rgba(0,0,0,0.1)', border: '1px solid #f1f5f9', textAlign }}>
+          <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: accentColor + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: textAlign === 'left' ? '0 auto 20px 0' : textAlign === 'right' ? '0 0 20px auto' : '0 auto 20px' }}><MailIcon color={accentColor} /></div>
           <h2 style={{ color: textColor, fontSize: 26, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>
           {subheadline && <p style={{ color: textColor, opacity: 0.65, fontSize: 15, margin: '0 0 28px', lineHeight: 1.6 }}>{subheadline}</p>}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {showFirstName && <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ ...inputStyleLight, textAlign: 'center' }} />}
-            <input type="email" required placeholder={placeholder} value={email} onChange={(e) => setEmail(e.target.value)} style={{ ...inputStyleLight, textAlign: 'center' }} />
+            {showFirstName && <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ ...inputStyleLight, textAlign }} />}
+            <input type="email" required placeholder={placeholder} value={email} onChange={(e) => setEmail(e.target.value)} style={{ ...inputStyleLight, textAlign }} />
             <button type="submit" disabled={status === 'loading'} style={{ padding: '13px', borderRadius: borderRadius / 1.5, backgroundColor: accentColor, color: '#fff', border: 'none', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
               {status === 'loading' ? 'Subscribing…' : buttonText}
             </button>
@@ -105,10 +120,11 @@ function NewsletterInner(props: NewsletterSignupProps) {
 
   // minimal — inline row
   return (
-    <section style={{ backgroundColor, padding: '32px 24px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+    <section style={{ ...sectionBgStyle, padding: '32px 24px' }}>
+      {overlay}
+      <div style={{ position: 'relative', maxWidth: 800, margin: '0 auto' }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
-          <div style={{ flex: '1 1 240px' }}>
+          <div style={{ flex: '1 1 240px', textAlign }}>
             <h3 style={{ color: textColor, fontSize: 20, fontWeight: 700, margin: '0 0 6px' }}>{headline}</h3>
             {subheadline && <p style={{ color: textColor, opacity: 0.6, fontSize: 14, margin: 0 }}>{subheadline}</p>}
           </div>
@@ -140,7 +156,10 @@ export const NewsletterSignup: ComponentConfig<NewsletterSignupProps> = {
     webhookUrl:    { type: 'text',   label: 'Webhook / API URL (optional — leave blank to add signups to your Email Marketing list; enter your own URL to use a third-party service instead)' },
     accentColor:   { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundImage: { type: 'custom', label: 'Background Image (optional — overrides Background Colour)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    overlayOpacity: { type: 'number', label: 'Dark Overlay (0–100, used with Background Image)' },
     textColor:     { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    textAlign:     { type: 'radio',  label: 'Text Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }, { label: 'Right', value: 'right' }] },
     borderRadius:  { type: 'number', label: 'Border Radius (px)' },
   },
   defaultProps: {
@@ -155,7 +174,10 @@ export const NewsletterSignup: ComponentConfig<NewsletterSignupProps> = {
     webhookUrl:    '',
     accentColor:   '#2563eb',
     backgroundColor: '#f8fafc',
+    backgroundImage: '',
+    overlayOpacity: 45,
     textColor:     '#1e293b',
+    textAlign:     'center',
     borderRadius:  12,
   },
   render(props) { return <NewsletterInner {...props} /> },
