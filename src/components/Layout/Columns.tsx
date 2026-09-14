@@ -9,6 +9,14 @@ export type ColumnsProps = {
   distribution: string
   gap: number
   backgroundColor: string
+  verticalAlign: 'stretch' | 'top' | 'center' | 'bottom'
+}
+
+const VERTICAL_ALIGN_CSS: Record<ColumnsProps['verticalAlign'], string> = {
+  stretch: 'stretch',
+  top:     'start',
+  center:  'center',
+  bottom:  'end',
 }
 
 const DISTRIBUTIONS: Record<string, { label: string; template: string; cols: number }> = {
@@ -31,16 +39,26 @@ export const Columns: ComponentConfig<ColumnsProps> = {
     },
     gap:             { type: 'number', label: 'Gap (px)' },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    verticalAlign: {
+      type: 'select',
+      label: 'Vertical Align (when columns end up different heights)',
+      options: [
+        { label: 'Stretch (default — fills the row)', value: 'stretch' },
+        { label: 'Top',    value: 'top' },
+        { label: 'Center', value: 'center' },
+        { label: 'Bottom', value: 'bottom' },
+      ],
+    },
   },
-  defaultProps: { distribution: 'equal2', gap: 24, backgroundColor: 'transparent' },
-  render({ distribution, gap, backgroundColor }) {
+  defaultProps: { distribution: 'equal2', gap: 24, backgroundColor: 'transparent', verticalAlign: 'stretch' },
+  render({ distribution, gap, backgroundColor, verticalAlign }) {
     const dist = DISTRIBUTIONS[distribution] ?? DISTRIBUTIONS.equal2
     return (
       // sb-grid (styles/responsive.css) collapses this to 1 column on mobile
       // and 2 on tablet regardless of the merchant's chosen distribution —
       // a 4-column or 1:3 sidebar split has no business staying that shape
       // on a 375px screen. Desktop keeps whatever `dist.template` picks.
-      <div className="sb-grid" style={{ backgroundColor, display: 'grid', gridTemplateColumns: dist.template, gap }}>
+      <div className="sb-grid" style={{ backgroundColor, display: 'grid', gridTemplateColumns: dist.template, gap, alignItems: VERTICAL_ALIGN_CSS[verticalAlign] ?? 'stretch' }}>
         {Array.from({ length: dist.cols }).map((_, i) => (
           <DropZone key={i} zone={`col-${i}`} />
         ))}
