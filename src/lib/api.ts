@@ -411,4 +411,20 @@ export const stratumApi = {
     return request('GET', `/admin/store_builder_api/theme_categories/${tenantId}`, token)
   },
 
+  // GET /admin/store_builder_api/item_custom_fields/{tenantId}
+  // Real Warehouse item Custom Fields (Setup > Custom Fields, "belongs to" =
+  // Items) — backs ProductTabs' field picker so a theme designer selects a
+  // real, already-defined field instead of typing its slug by hand.
+  getItemCustomFields(
+    tenantId: number,
+    token: string,
+  ): Promise<{ fields: Array<{ id: number; name: string; slug: string }> }> {
+    return request('GET', `/admin/store_builder_api/item_custom_fields/${tenantId}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveItemCustomFields(): Promise<{ fields: Array<{ id: number; name: string; slug: string }> }> {
+    return stratumApi.getItemCustomFields(_activeTenantId, _activeToken)
+  },
+
 }
