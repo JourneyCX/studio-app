@@ -15,6 +15,7 @@ export type IconBoxProps = {
   descriptionColor: string
   align: 'left' | 'center' | 'right'
   gap: number
+  minHeight: number
 }
 
 export const IconBox: ComponentConfig<IconBoxProps> = {
@@ -38,6 +39,7 @@ export const IconBox: ComponentConfig<IconBoxProps> = {
     descriptionColor:    { type: 'custom',   label: 'Description Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     align: { type: 'select', label: 'Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
     gap:   { type: 'number', label: 'Spacing Between Elements (px)' },
+    minHeight: { type: 'number', label: 'Box Min Height (px, 0 = auto — never clips content, just pads shorter boxes to match)' },
   },
   defaultProps: {
     icon: '📦',
@@ -52,11 +54,12 @@ export const IconBox: ComponentConfig<IconBoxProps> = {
     descriptionColor: '#4a5568',
     align: 'center',
     gap: 10,
+    minHeight: 0,
   },
-  render({ icon, iconImage, iconSize, iconColor, title, titleFontSize, titleColor, description, descriptionFontSize, descriptionColor, align, gap }) {
+  render({ icon, iconImage, iconSize, iconColor, title, titleFontSize, titleColor, description, descriptionFontSize, descriptionColor, align, gap, minHeight }) {
     const alignItems = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start'
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems, textAlign: align, gap }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems, textAlign: align, gap, minHeight: minHeight || undefined, boxSizing: 'border-box' }}>
         {iconImage ? (
           <img src={iconImage} alt="" style={{ width: iconSize, height: iconSize, objectFit: 'contain' }} />
         ) : icon ? (
