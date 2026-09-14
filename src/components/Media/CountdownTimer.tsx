@@ -11,7 +11,7 @@ export type CountdownTimerProps = {
   showHours: boolean
   showMinutes: boolean
   showSeconds: boolean
-  cardStyle: 'card' | 'minimal' | 'neon'
+  cardStyle: 'card' | 'minimal' | 'neon' | 'bar'
   accentColor: string
   backgroundColor: string
   cardColor: string
@@ -110,6 +110,50 @@ function Separator({ textColor }: { textColor: string }) {
   )
 }
 
+// Abbreviated labels for the slim bar style — a stacked "MINUTES" label
+// reads fine under a 52px card digit, but wastes width sitting inline
+// next to a 14px number, so the bar uses shorter forms.
+const BAR_LABELS: Record<keyof TimeLeft, string> = { days: 'Days', hours: 'Hours', minutes: 'Mins', seconds: 'Sec' }
+
+interface BarTimerProps extends CountdownTimerProps { time: TimeLeft; done: boolean }
+
+// Slim, single-row announcement-bar layout — deliberately not built on
+// TimeUnit/Separator (those are sized for the 52px stacked-card styles),
+// so it stays narrow enough to sit inside a Columns dropzone instead of a
+// full-width hero section.
+function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, showSeconds, accentColor, backgroundColor, textColor, primaryButtonUrl, time, done }: BarTimerProps) {
+  const units: { key: keyof TimeLeft; show: boolean }[] = [
+    { key: 'days',    show: showDays },
+    { key: 'hours',   show: showHours },
+    { key: 'minutes', show: showMinutes },
+    { key: 'seconds', show: showSeconds },
+  ]
+  const visibleUnits = units.filter((u) => u.show)
+
+  const bar = (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, backgroundColor, color: textColor, padding: '14px 24px' }}>
+      {headline && <span style={{ fontSize: 15, fontWeight: 600 }}>{headline}</span>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        {done && endMessage ? (
+          <span style={{ fontSize: 14, fontWeight: 700, color: accentColor }}>{endMessage}</span>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600, fontVariantNumeric: 'tabular-nums', flexWrap: 'wrap' }}>
+            {visibleUnits.map((u, i) => (
+              <span key={u.key} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                {i > 0 && <span style={{ opacity: 0.4 }}>:</span>}
+                {pad(time[u.key])} {BAR_LABELS[u.key]}
+              </span>
+            ))}
+          </div>
+        )}
+        {primaryButtonUrl && <span style={{ fontSize: 18, lineHeight: 1 }} aria-hidden="true">&rsaquo;</span>}
+      </div>
+    </div>
+  )
+
+  return primaryButtonUrl ? <a href={primaryButtonUrl} style={{ textDecoration: 'none', display: 'block' }}>{bar}</a> : bar
+}
+
 function TimerInner(props: CountdownTimerProps) {
   const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, cardColor, textColor, labelColor, primaryButtonText, primaryButtonUrl } = props
 
@@ -121,6 +165,10 @@ function TimerInner(props: CountdownTimerProps) {
     const id = setInterval(() => setTime(getTimeLeft(targetDate)), 1000)
     return () => clearInterval(id)
   }, [targetDate])
+
+  if (cardStyle === 'bar') {
+    return <BarTimer {...props} time={time} done={done} />
+  }
 
   const units: { key: keyof TimeLeft; label: string; show: boolean }[] = [
     { key: 'days',    label: 'Days',    show: showDays },
@@ -186,7 +234,7 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     showHours:         { type: 'radio',   label: 'Show Hours',   options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showMinutes:       { type: 'radio',   label: 'Show Minutes', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     showSeconds:       { type: 'radio',   label: 'Show Seconds', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    cardStyle:         { type: 'select',  label: 'Card Style', options: [{ label: 'Card (classic)', value: 'card' }, { label: 'Minimal (borderless)', value: 'minimal' }, { label: 'Neon (dark glow)', value: 'neon' }] },
+    cardStyle:         { type: 'select',  label: 'Card Style', options: [{ label: 'Card (classic)', value: 'card' }, { label: 'Minimal (borderless)', value: 'minimal' }, { label: 'Neon (dark glow)', value: 'neon' }, { label: 'Bar (slim announcement — fits columns)', value: 'bar' }] },
     accentColor:       { type: 'custom',  label: 'Accent / Glow Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor:   { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardColor:         { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
