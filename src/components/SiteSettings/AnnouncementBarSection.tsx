@@ -172,6 +172,18 @@ export function AnnouncementBarSection({ settings, onChange }: SectionProps) {
           <ColorPicker text="Text Color" value={settings.announcementTextColor} fallback="#ffffff" onChange={v => onChange({ announcementTextColor: v })} />
         </div>
       </div>
+
+      <Field>
+        <label style={label}>Font Size (px)</label>
+        <input
+          type="number"
+          min={10}
+          max={24}
+          style={{ ...input, maxWidth: 120 }}
+          value={settings.announcementFontSize}
+          onChange={e => onChange({ announcementFontSize: Math.min(24, Math.max(10, Number(e.target.value) || 13)) })}
+        />
+      </Field>
     </div>
   )
 }
