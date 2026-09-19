@@ -16,12 +16,16 @@ function toColorInputValue(v: string | null, fallback: string): string {
   return v && HEX_RE.test(v) ? v : fallback
 }
 
-// <input type="datetime-local"> wants "YYYY-MM-DDTHH:mm" (no seconds/timezone) —
-// the stored value is a full ISO string (MySQL DATETIME via the API), so strip
-// down to what the input accepts and back up when the user edits it.
+// <input type="datetime-local"> wants "YYYY-MM-DDTHH:mm" (no seconds/timezone), shown
+// in the merchant's own local time. The stored value round-trips through a MySQL
+// DATETIME column and comes back as a naive "YYYY-MM-DD HH:mm:ss" string (UTC by
+// convention, but with no timezone marker) — new Date() would otherwise parse that
+// space-separated form as this browser's local time instead of UTC, so force it to
+// be read as UTC before converting to the picker's local wall-clock display.
 function toDatetimeLocalValue(v: string | null): string {
   if (!v) return ''
-  const d = new Date(v)
+  const iso = /Z$|[+-]\d{2}:?\d{2}$/.test(v) ? v : `${v.replace(' ', 'T')}Z`
+  const d = new Date(iso)
   if (isNaN(d.getTime())) return ''
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
