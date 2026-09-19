@@ -60,6 +60,12 @@ export interface SiteSettings {
   announcementTextColor: string | null
   announcementLinkUrl: string | null
   announcementSpeed: number
+  // Optional "sale ends in" countdown shown alongside the message. ISO 8601
+  // datetime string (e.g. from a <input type="datetime-local">); the bar
+  // hides the countdown once the target time has passed but keeps showing
+  // the message.
+  announcementShowCountdown: boolean
+  announcementCountdownEnd: string | null
 }
 
 // Graceful defaults — a brand-new tenant mid-provisioning (no sb_site_settings row
@@ -82,4 +88,5 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   announcementEnabled: false, announcementMessage: null, announcementMode: 'static',
   announcementBgColor: '#dc2626', announcementTextColor: '#ffffff', announcementLinkUrl: null,
   announcementSpeed: 20,
+  announcementShowCountdown: false, announcementCountdownEnd: null,
 }

@@ -16,6 +16,17 @@ function toColorInputValue(v: string | null, fallback: string): string {
   return v && HEX_RE.test(v) ? v : fallback
 }
 
+// <input type="datetime-local"> wants "YYYY-MM-DDTHH:mm" (no seconds/timezone) —
+// the stored value is a full ISO string (MySQL DATETIME via the API), so strip
+// down to what the input accepts and back up when the user edits it.
+function toDatetimeLocalValue(v: string | null): string {
+  if (!v) return ''
+  const d = new Date(v)
+  if (isNaN(d.getTime())) return ''
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+}
+
 function Field({ children }: { children: React.ReactNode }) {
   return <div style={field}>{children}</div>
 }
@@ -125,6 +136,29 @@ export function AnnouncementBarSection({ settings, onChange }: SectionProps) {
           onChange={e => onChange({ announcementLinkUrl: e.target.value })}
         />
       </Field>
+
+      <Field>
+        <label style={toggleRow}>
+          <input
+            type="checkbox"
+            checked={settings.announcementShowCountdown}
+            onChange={e => onChange({ announcementShowCountdown: e.target.checked })}
+          />
+          Show a countdown timer ("Sale ends in…")
+        </label>
+      </Field>
+
+      {settings.announcementShowCountdown && (
+        <Field>
+          <label style={label}>Countdown Ends At</label>
+          <input
+            type="datetime-local"
+            style={{ ...input, maxWidth: 240 }}
+            value={toDatetimeLocalValue(settings.announcementCountdownEnd)}
+            onChange={e => onChange({ announcementCountdownEnd: e.target.value ? new Date(e.target.value).toISOString() : null })}
+          />
+        </Field>
+      )}
 
       <div style={row}>
         <div style={{ flex: 1 }}>
