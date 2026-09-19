@@ -46,7 +46,7 @@ function pad(n: number) { return String(n).padStart(2, '0') }
 // getTimeLeft()/setInterval pattern, kept as a separate small copy rather than a shared
 // import since that component is a full Puck section (card/neon/bar styles, CTA button)
 // and this bar is unrelated site chrome with its own simpler render path.
-function CountdownDisplay({ target, textColor, fontSize }: { target: string; textColor: string; fontSize: number }) {
+function CountdownDisplay({ target, textColor, fontSize, bold }: { target: string; textColor: string; fontSize: number; bold: boolean }) {
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(target))
 
   useEffect(() => {
@@ -62,7 +62,7 @@ function CountdownDisplay({ target, textColor, fontSize }: { target: string; tex
     <div
       style={{
         display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0,
-        fontSize, fontWeight: 700, color: textColor, fontVariantNumeric: 'tabular-nums',
+        fontSize, fontWeight: bold ? 700 : 400, color: textColor, fontVariantNumeric: 'tabular-nums',
         whiteSpace: 'nowrap',
       }}
     >
@@ -86,6 +86,8 @@ export function AnnouncementBar({ settings }: { settings: SiteSettings }) {
   const text = settings.announcementTextColor || '#ffffff'
   const speed = Math.max(settings.announcementSpeed || 20, 5)
   const fontSize = settings.announcementFontSize || 13
+  const countdownFontSize = settings.announcementCountdownFontSize || 13
+  const countdownBold = settings.announcementCountdownBold !== false
   const message = settings.announcementMessage
   const isScroll = settings.announcementMode === 'scroll'
   const showCountdown = settings.announcementShowCountdown && !!settings.announcementCountdownEnd
@@ -144,7 +146,7 @@ export function AnnouncementBar({ settings }: { settings: SiteSettings }) {
           <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{inner}</div>
         )}
         {showCountdown && (
-          <CountdownDisplay target={settings.announcementCountdownEnd as string} textColor={text} fontSize={fontSize} />
+          <CountdownDisplay target={settings.announcementCountdownEnd as string} textColor={text} fontSize={countdownFontSize} bold={countdownBold} />
         )}
       </div>
       {isScroll && (

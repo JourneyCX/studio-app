@@ -66,9 +66,14 @@ export interface SiteSettings {
   // the message.
   announcementShowCountdown: boolean
   announcementCountdownEnd: string | null
-  // Message + countdown text size in px. The bar's own padding doesn't scale
-  // with it, so a larger size grows the bar's height rather than clipping.
+  // Message text size in px (countdown has its own size/weight below). The
+  // bar's own padding doesn't scale with it, so a larger size grows the
+  // bar's height rather than clipping.
   announcementFontSize: number
+  // Countdown ("Days : Hours : Mins : Sec") text size/weight — independent
+  // of the message's announcementFontSize above.
+  announcementCountdownFontSize: number
+  announcementCountdownBold: boolean
 }
 
 // Graceful defaults — a brand-new tenant mid-provisioning (no sb_site_settings row
@@ -93,4 +98,5 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   announcementSpeed: 20,
   announcementShowCountdown: false, announcementCountdownEnd: null,
   announcementFontSize: 13,
+  announcementCountdownFontSize: 13, announcementCountdownBold: true,
 }

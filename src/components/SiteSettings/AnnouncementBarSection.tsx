@@ -164,6 +164,33 @@ export function AnnouncementBarSection({ settings, onChange }: SectionProps) {
         </Field>
       )}
 
+      {settings.announcementShowCountdown && (
+        <Field>
+          <label style={label}>Countdown Font Size (px)</label>
+          <input
+            type="number"
+            min={10}
+            max={32}
+            style={{ ...input, maxWidth: 120 }}
+            value={settings.announcementCountdownFontSize}
+            onChange={e => onChange({ announcementCountdownFontSize: Math.min(32, Math.max(10, Number(e.target.value) || 13)) })}
+          />
+        </Field>
+      )}
+
+      {settings.announcementShowCountdown && (
+        <Field>
+          <label style={toggleRow}>
+            <input
+              type="checkbox"
+              checked={settings.announcementCountdownBold}
+              onChange={e => onChange({ announcementCountdownBold: e.target.checked })}
+            />
+            Bold countdown text
+          </label>
+        </Field>
+      )}
+
       <div style={row}>
         <div style={{ flex: 1 }}>
           <ColorPicker text="Background Color" value={settings.announcementBgColor} fallback="#dc2626" onChange={v => onChange({ announcementBgColor: v })} />
@@ -174,7 +201,7 @@ export function AnnouncementBarSection({ settings, onChange }: SectionProps) {
       </div>
 
       <Field>
-        <label style={label}>Font Size (px)</label>
+        <label style={label}>Message Font Size (px)</label>
         <input
           type="number"
           min={10}
