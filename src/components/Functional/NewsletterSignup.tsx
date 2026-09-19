@@ -76,9 +76,9 @@ function NewsletterInner(props: NewsletterSignupProps) {
 
   if (layout === 'banner') {
     return (
-      <section style={{ ...(hasImage ? sectionBgStyle : { backgroundColor: accentColor }), padding: '56px 24px' }}>
+      <section style={{ ...(hasImage ? sectionBgStyle : { backgroundColor: accentColor }), padding: '56px 24px', display: 'flex', justifyContent: justify }}>
         {overlay}
-        <div style={{ position: 'relative', maxWidth: 700, margin: '0 auto', textAlign }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: 700, textAlign }}>
           <div style={{ marginBottom: 8, display: 'flex', justifyContent: justify }}><MailIcon color="rgba(255,255,255,0.7)" /></div>
           {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
               mobile and desktop instead of staying fixed at 32px */}
@@ -99,9 +99,9 @@ function NewsletterInner(props: NewsletterSignupProps) {
 
   if (layout === 'card') {
     return (
-      <section style={{ ...sectionBgStyle, padding: '64px 24px' }}>
+      <section style={{ ...sectionBgStyle, padding: '64px 24px', display: 'flex', justifyContent: justify }}>
         {overlay}
-        <div style={{ position: 'relative', maxWidth: 540, margin: '0 auto', backgroundColor: '#fff', borderRadius, padding: '48px 48px', boxShadow: '0 8px 40px rgba(0,0,0,0.1)', border: '1px solid #f1f5f9', textAlign }}>
+        <div style={{ position: 'relative', width: '100%', maxWidth: 540, backgroundColor: '#fff', borderRadius, padding: '48px 48px', boxShadow: '0 8px 40px rgba(0,0,0,0.1)', border: '1px solid #f1f5f9', textAlign }}>
           <div style={{ width: 56, height: 56, borderRadius: '50%', backgroundColor: accentColor + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: textAlign === 'left' ? '0 auto 20px 0' : textAlign === 'right' ? '0 0 20px auto' : '0 auto 20px' }}><MailIcon color={accentColor} /></div>
           <h2 style={{ color: textColor, fontSize: 26, fontWeight: 800, margin: '0 0 12px' }}>{headline}</h2>
           {subheadline && <p style={{ color: textColor, opacity: 0.65, fontSize: 15, margin: '0 0 28px', lineHeight: 1.6 }}>{subheadline}</p>}
@@ -120,9 +120,9 @@ function NewsletterInner(props: NewsletterSignupProps) {
 
   // minimal — inline row
   return (
-    <section style={{ ...sectionBgStyle, padding: '32px 24px' }}>
+    <section style={{ ...sectionBgStyle, padding: '32px 24px', display: 'flex', justifyContent: justify }}>
       {overlay}
-      <div style={{ position: 'relative', maxWidth: 800, margin: '0 auto' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: 800 }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
           <div style={{ flex: '1 1 240px', textAlign }}>
             <h3 style={{ color: textColor, fontSize: 20, fontWeight: 700, margin: '0 0 6px' }}>{headline}</h3>
@@ -159,7 +159,7 @@ export const NewsletterSignup: ComponentConfig<NewsletterSignupProps> = {
     backgroundImage: { type: 'custom', label: 'Background Image (optional — overrides Background Colour)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity: { type: 'number', label: 'Dark Overlay (0–100, used with Background Image)' },
     textColor:     { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
-    textAlign:     { type: 'radio',  label: 'Text Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }, { label: 'Right', value: 'right' }] },
+    textAlign:     { type: 'radio',  label: 'Content Alignment (text, email field & button)', options: [{ label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }, { label: 'Right', value: 'right' }] },
     borderRadius:  { type: 'number', label: 'Border Radius (px)' },
   },
   defaultProps: {
