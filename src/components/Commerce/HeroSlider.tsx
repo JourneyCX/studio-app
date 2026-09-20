@@ -25,6 +25,11 @@ type Slide = {
   // convention as HeroBanner's headlineFontSize/subheadlineFontSize.
   headlineFontSize: number
   subheadlineFontSize: number
+  // Distance (px) between the text block and the button. Applies whether the
+  // button sits inline below the text or is anchored to one of the
+  // top/bottom-* positions — those now anchor to the text block's own edge
+  // rather than the slide's edge, so this field is the actual visual gap.
+  buttonGap: number
 }
 
 export type HeroSliderProps = {
@@ -36,20 +41,26 @@ export type HeroSliderProps = {
   showArrows: boolean
 }
 
-const btnPositionStyle: Record<ButtonPosition, React.CSSProperties> = {
-  'inline':        {},
-  'bottom-left':   { position: 'absolute', bottom: 40, left: 48, zIndex: 3 },
-  'bottom-center': { position: 'absolute', bottom: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 3 },
-  'bottom-right':  { position: 'absolute', bottom: 40, right: 48, zIndex: 3 },
-  'top-left':      { position: 'absolute', top: 40, left: 48, zIndex: 3 },
-  'top-center':    { position: 'absolute', top: 40, left: '50%', transform: 'translateX(-50%)', zIndex: 3 },
-  'top-right':     { position: 'absolute', top: 40, right: 48, zIndex: 3 },
+// Anchored relative to the text block's own box (a `position: relative`
+// ancestor), not the slide — so the gap always reflects the actual distance
+// from the headline/subheadline, regardless of slide height.
+function btnPositionStyle(position: ButtonPosition, gap: number): React.CSSProperties {
+  switch (position) {
+    case 'inline':        return {}
+    case 'bottom-left':   return { position: 'absolute', top: '100%', marginTop: gap, left: 0, zIndex: 3 }
+    case 'bottom-center': return { position: 'absolute', top: '100%', marginTop: gap, left: '50%', transform: 'translateX(-50%)', zIndex: 3 }
+    case 'bottom-right':  return { position: 'absolute', top: '100%', marginTop: gap, right: 0, zIndex: 3 }
+    case 'top-left':      return { position: 'absolute', bottom: '100%', marginBottom: gap, left: 0, zIndex: 3 }
+    case 'top-center':    return { position: 'absolute', bottom: '100%', marginBottom: gap, left: '50%', transform: 'translateX(-50%)', zIndex: 3 }
+    case 'top-right':     return { position: 'absolute', bottom: '100%', marginBottom: gap, right: 0, zIndex: 3 }
+  }
 }
 
 function SliderButton({ slide }: { slide: Slide }) {
   if (!slide.buttonText || slide.slideClickable) return null
   const isOutline = slide.buttonStyle === 'outline'
   const col = slide.buttonColor || '#ffffff'
+  const gap = slide.buttonGap ?? 20
   return (
     <a
       href={slide.buttonUrl || '#'}
@@ -66,7 +77,7 @@ function SliderButton({ slide }: { slide: Slide }) {
         letterSpacing: '0.08em',
         textTransform: 'uppercase',
         whiteSpace: 'nowrap',
-        ...btnPositionStyle[slide.buttonPosition || 'inline'],
+        ...btnPositionStyle(slide.buttonPosition || 'inline', gap),
       }}
     >
       {slide.buttonText}
@@ -116,7 +127,7 @@ function SliderInner({ slides, minHeight, autoPlay, autoPlayInterval, showDots, 
         padding: '60px 48px',
         textAlign: align,
       }}>
-        <div style={{ maxWidth: 700 }}>
+        <div style={{ maxWidth: 700, position: 'relative' }}>
           {slide.headline && (
             /* sb-text-fluid-lg (styles/responsive.css) scales this down on
                narrow screens instead of staying fixed at 52px. */
@@ -125,17 +136,15 @@ function SliderInner({ slides, minHeight, autoPlay, autoPlayInterval, showDots, 
             </h1>
           )}
           {slide.subheadline && (
-            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : '0 0 36px', lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>
+            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : `0 0 ${slide.buttonGap ?? 20}px`, lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>
               {slide.subheadline}
             </p>
           )}
-          {/* Inline button — only rendered here when position = inline */}
-          {!isPositioned && <SliderButton slide={slide} />}
+          {/* Positioned buttons (top/bottom-*) are absolute against this div,
+              so they anchor to the text block itself, not the slide. */}
+          <SliderButton slide={slide} />
         </div>
       </div>
-
-      {/* Absolutely positioned button */}
-      {isPositioned && <SliderButton slide={slide} />}
 
       {/* Arrows */}
       {showArrows && total > 1 && (
@@ -209,6 +218,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         ]},
         headlineFontSize:    { type: 'number', label: 'Headline Font Size (px, 0 = auto)' },
         subheadlineFontSize: { type: 'number', label: 'Subheadline Font Size (px, 0 = auto)' },
+        buttonGap:           { type: 'number', label: 'Button Gap From Text (px)' },
       },
       defaultItemProps: {
         image: '', headline: 'New Collection', subheadline: 'Discover the latest arrivals.',
@@ -217,7 +227,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         backgroundSize: 'cover', backgroundPosition: 'center',
         buttonText: 'Shop Now', buttonUrl: '/shop',
         buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left',
-        headlineFontSize: 0, subheadlineFontSize: 0,
+        headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20,
       },
       getItemSummary: (item: Slide) => item.headline || 'Slide',
     },
@@ -225,8 +235,8 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
   defaultProps: {
     minHeight: 520, autoPlay: true, autoPlayInterval: 5000, showDots: true, showArrows: true,
     slides: [
-      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0 },
-      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0 },
+      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20 },
+      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20 },
     ],
   },
   render(props) { return <SliderInner {...props} /> },
