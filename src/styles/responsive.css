@@ -49,6 +49,28 @@
   }
 }
 
+/* ── Sidebar-style column split ────────────────────────────────────────────
+   A narrow filter/nav sidebar next to a wide content column (Columns'
+   sidebar13/sidebar31 distributions — e.g. ProductFilter beside ProductGrid)
+   needs more room than a plain N-up content grid: forcing it into .sb-grid's
+   "2 equal columns" tablet treatment squeezes a ~220px filter panel and a
+   product grid — which then collapses its OWN inner .sb-grid to 2 columns
+   at the same breakpoint — into two halves of the screen each, producing a
+   sidebar-width strip next to two cramped, clipped product cards (found live
+   on the Theme Demo store's category pages, 2026-09-20). Same reasoning as
+   .sb-nav-mobile-only/.sb-nav-desktop-only below: this stacks a full tier
+   earlier than .sb-grid, at the tablet/desktop boundary rather than the
+   mobile/tablet one, so the sidebar sits above the content until there's
+   genuine desktop-width room for the split. */
+.sb-grid-sidebar {
+  gap: var(--sb-grid-gap, 24px);
+}
+@media (max-width: 1023px) {
+  .sb-grid-sidebar {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* Fully CSS-driven alternative for widgets that don't need a specific
    desktop column count — collapses on its own with no media query and no
    inline gridTemplateColumns at all. --sb-grid-min is the minimum comfortable

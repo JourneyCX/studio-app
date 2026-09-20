@@ -53,12 +53,20 @@ export const Columns: ComponentConfig<ColumnsProps> = {
   defaultProps: { distribution: 'equal2', gap: 24, backgroundColor: 'transparent', verticalAlign: 'stretch' },
   render({ distribution, gap, backgroundColor, verticalAlign }) {
     const dist = DISTRIBUTIONS[distribution] ?? DISTRIBUTIONS.equal2
+    // sb-grid-sidebar (styles/responsive.css) stacks a sidebar13/sidebar31 split a
+    // full tier earlier than the plain .sb-grid distributions below — a narrow
+    // filter/nav column next to a wide content column (e.g. ProductFilter beside
+    // ProductGrid) has no room at tablet width either, and forcing both this grid
+    // AND the content column's own inner grid to "2 equal columns" at the same
+    // breakpoint compounds into a cramped strip either side.
+    const isSidebar = distribution === 'sidebar13' || distribution === 'sidebar31'
     return (
       // sb-grid (styles/responsive.css) collapses this to 1 column on mobile
       // and 2 on tablet regardless of the merchant's chosen distribution —
-      // a 4-column or 1:3 sidebar split has no business staying that shape
-      // on a 375px screen. Desktop keeps whatever `dist.template` picks.
-      <div className="sb-grid" style={{ backgroundColor, display: 'grid', gridTemplateColumns: dist.template, gap, alignItems: VERTICAL_ALIGN_CSS[verticalAlign] ?? 'stretch' }}>
+      // a 4-column split has no business staying that shape on a 375px
+      // screen. Desktop keeps whatever `dist.template` picks. Sidebar
+      // distributions use sb-grid-sidebar instead (stacks below 1024px).
+      <div className={isSidebar ? 'sb-grid-sidebar' : 'sb-grid'} style={{ backgroundColor, display: 'grid', gridTemplateColumns: dist.template, gap, alignItems: VERTICAL_ALIGN_CSS[verticalAlign] ?? 'stretch' }}>
         {Array.from({ length: dist.cols }).map((_, i) => (
           <DropZone key={i} zone={`col-${i}`} />
         ))}
