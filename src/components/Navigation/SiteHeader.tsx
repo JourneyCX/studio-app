@@ -10,6 +10,9 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
   const accent = settings.headerAccentColor || fg
 
   const navLinks = settings.navLinks ?? []
+  const navFontFamily = settings.headerNavFontFamily || "'Montserrat', sans-serif"
+  const navFontSize = settings.headerNavFontSize || 15
+  const navChildFontSize = Math.max(11, navFontSize - 1)
 
   // Mobile nav panel open/closed, and which top-level links (by index) have
   // their children expanded — a tap-to-expand accordion, since the desktop
@@ -59,7 +62,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
               const hasChildren = (link.children?.length ?? 0) > 0
               return (
                 <div key={i} style={{ position: 'relative' }} className="sb-nav-item">
-                  <a href={link.url} style={{ color: fg, textDecoration: 'none', fontSize: 15, fontWeight: 500, fontFamily: "'Montserrat', sans-serif", display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <a href={link.url} style={{ color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily, display: 'flex', alignItems: 'center', gap: 4 }}>
                     {link.label}
                     {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
                   </a>
@@ -80,7 +83,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
                         }}
                       >
                         {link.children!.map((child, j) => (
-                          <a key={j} href={child.url} style={{ display: 'block', padding: '8px 14px', color: '#1a202c', textDecoration: 'none', fontSize: 14 }}>
+                          <a key={j} href={child.url} style={{ display: 'block', padding: '8px 14px', color: '#1a202c', textDecoration: 'none', fontSize: navChildFontSize, fontFamily: navFontFamily }}>
                             {child.label}
                           </a>
                         ))}
@@ -142,7 +145,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
                   <a
                     href={link.url}
                     onClick={() => setMobileOpen(false)}
-                    style={{ flex: 1, padding: '14px 24px', color: fg, textDecoration: 'none', fontSize: 16, fontWeight: 500, fontFamily: "'Montserrat', sans-serif" }}
+                    style={{ flex: 1, padding: '14px 24px', color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily }}
                   >
                     {link.label}
                   </a>
@@ -165,7 +168,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
                         key={j}
                         href={child.url}
                         onClick={() => setMobileOpen(false)}
-                        style={{ display: 'block', padding: '10px 24px 10px 40px', color: fg, opacity: 0.85, textDecoration: 'none', fontSize: 15 }}
+                        style={{ display: 'block', padding: '10px 24px 10px 40px', color: fg, opacity: 0.85, textDecoration: 'none', fontSize: navChildFontSize, fontFamily: navFontFamily }}
                       >
                         {child.label}
                       </a>

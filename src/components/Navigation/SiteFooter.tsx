@@ -57,6 +57,8 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
   const hasBrandBlock  = settings.footerShowBrandColumn !== false && Boolean(settings.businessName || settings.tagline || settings.logoUrl)
   const hasContact     = Boolean(settings.contactPhone || settings.contactEmail || settings.contactAddress)
   const showRichRow    = hasBrandBlock || hasColumns || hasSocialLinks
+  const navFontFamily  = settings.footerNavFontFamily || undefined
+  const navFontSize    = settings.footerNavFontSize || 13
 
   return (
     <footer style={{ backgroundColor: bg, color: fg, padding: '32px 24px', textAlign: 'center', zoom: 1.25 }}>
@@ -104,7 +106,7 @@ export function SiteFooter({ settings }: { settings: SiteSettings }) {
                   <a
                     key={j}
                     href={link.url}
-                    style={{ display: 'block', marginBottom: 6, fontSize: 13, opacity: 0.85, textDecoration: 'none', color: fg }}
+                    style={{ display: 'block', marginBottom: 6, fontSize: navFontSize, fontFamily: navFontFamily, opacity: 0.85, textDecoration: 'none', color: fg }}
                   >
                     {link.label}
                   </a>

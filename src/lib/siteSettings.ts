@@ -38,10 +38,20 @@ export interface SiteSettings {
   headerSticky: boolean
   headerCtaText: string | null
   headerCtaUrl: string | null
+  // CSS font-family value (e.g. "'Poppins', sans-serif"), applied to the whole
+  // main menu — top-level links and dropdown children, desktop and mobile.
+  // null = renderer's own default (Montserrat, matching the pre-existing
+  // hardcoded value). See FONT_OPTIONS in FontsSection.tsx for the fixed list
+  // of choices — kept in sync with nuxt-storefront's own copy.
+  headerNavFontFamily: string | null
+  headerNavFontSize: number
   footerBackgroundColor: string | null
   footerTextColor: string | null
   footerAccentColor: string | null
   footerCopyrightText: string | null
+  // Same convention, applied to the footer's column link lists ("footer menus").
+  footerNavFontFamily: string | null
+  footerNavFontSize: number
   footerColumns: { heading: string; links: { label: string; url: string }[] }[]
   // On/off for the brand block (logo + business name + tagline) rendered as the
   // footer's first column. Counts against the Pages panel's 4-column footer cap
@@ -88,8 +98,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   socialLinks: [], navLinks: [],
   headerBackgroundColor: '#ffffff', headerTextColor: '#1a202c', headerAccentColor: '#1a202c',
   headerSticky: true, headerCtaText: null, headerCtaUrl: null,
+  headerNavFontFamily: null, headerNavFontSize: 15,
   footerBackgroundColor: '#1a202c', footerTextColor: '#a0aec0', footerAccentColor: '#ffffff',
   footerCopyrightText: null, footerColumns: [], footerShowBrandColumn: true,
+  footerNavFontFamily: null, footerNavFontSize: 13,
   whatsappEnabled: false, whatsappPopupEnabled: true, whatsappPhone: null,
   whatsappMessageTitle: 'Chat with us on WhatsApp!', whatsappMessageBody: 'Hello, how can we help you?',
   whatsappButtonColor: '#25D366',

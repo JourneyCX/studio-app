@@ -155,7 +155,7 @@ export function SiteSettingsPanel({ tenantId, token, initialSettings, onClose, o
           <div style={{ flex: 1, overflowY: 'auto', padding: '24px 28px' }}>
             {active === 'branding' && <BrandingSection settings={settings} onChange={patch} />}
             {active === 'colors'   && <ColorsSection settings={settings} onChange={patch} />}
-            {active === 'fonts'    && <FontsSection />}
+            {active === 'fonts'    && <FontsSection settings={settings} onChange={patch} />}
             {active === 'store'    && <StoreSettingsSection settings={settings} onChange={patch} />}
             {active === 'whatsapp' && <WhatsAppSection settings={settings} onChange={patch} />}
             {active === 'announcement' && <AnnouncementBarSection settings={settings} onChange={patch} />}
