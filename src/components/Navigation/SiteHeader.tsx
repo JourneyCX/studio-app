@@ -13,6 +13,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
   const navFontFamily = settings.headerNavFontFamily || "'Montserrat', sans-serif"
   const navFontSize = settings.headerNavFontSize || 15
   const navChildFontSize = Math.max(11, navFontSize - 1)
+  const navLeft = settings.headerMenuPosition === 'nav-left'
 
   // Mobile nav panel open/closed, and which top-level links (by index) have
   // their children expanded — a tap-to-expand accordion, since the desktop
@@ -28,6 +29,64 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
       return next
     })
   }
+
+  // Logo and desktop nav swap places depending on headerMenuPosition — same flex
+  // row and space-between mechanics either way, just reordered.
+  const logoEl = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      {settings.logoUrl
+        ? <img src={settings.logoUrl} alt={settings.logoAlt || 'Store logo'} style={{ height: settings.headerLogoHeight || 40, objectFit: 'contain' }} />
+        : <span style={{ fontSize: 20, fontWeight: 700, color: fg }}>{settings.logoText || settings.businessName || 'Your Store'}</span>
+      }
+    </div>
+  )
+
+  // Desktop nav — unchanged hover-dropdown behavior, hidden below the mobile
+  // breakpoint (styles/responsive.css). Wrapped in a plain div with no inline
+  // `display` of its own so .sb-nav-desktop-only's block/none toggle isn't
+  // fighting the nav's own `display:flex`.
+  const navEl = (
+    <div className="sb-nav-desktop-only">
+      <nav style={{ display: 'flex', gap: 28 }}>
+        {navLinks.map((link, i) => {
+          const hasChildren = (link.children?.length ?? 0) > 0
+          return (
+            <div key={i} style={{ position: 'relative' }} className="sb-nav-item">
+              <a href={link.url} style={{ color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily, display: 'flex', alignItems: 'center', gap: 4 }}>
+                {link.label}
+                {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
+              </a>
+              {hasChildren && (
+                // Outer wrapper starts flush at top:100% (no gap) and uses padding-top
+                // instead of margin-top for the visual offset, so the hoverable area is
+                // contiguous from the link down through to the dropdown box — a margin-top
+                // gap here breaks :hover the moment the pointer crosses it.
+                <div
+                  className="sb-nav-dropdown"
+                  style={{ position: 'absolute', top: '100%', left: 0, paddingTop: 8, display: 'none', zIndex: 200 }}
+                >
+                  <div
+                    style={{
+                      backgroundColor: '#fff', color: '#1a202c', minWidth: 160,
+                      borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
+                      padding: '6px 0',
+                    }}
+                  >
+                    {link.children!.map((child, j) => (
+                      <a key={j} href={child.url} style={{ display: 'block', padding: '8px 14px', color: '#1a202c', textDecoration: 'none', fontSize: navChildFontSize, fontFamily: navFontFamily }}>
+                        {child.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </nav>
+      <style>{`.sb-nav-item:hover .sb-nav-dropdown { display: block !important; }`}</style>
+    </div>
+  )
 
   return (
     <header
@@ -45,57 +104,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
       }}
     >
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {settings.logoUrl
-            ? <img src={settings.logoUrl} alt={settings.logoAlt || 'Store logo'} style={{ height: settings.headerLogoHeight || 40, objectFit: 'contain' }} />
-            : <span style={{ fontSize: 20, fontWeight: 700, color: fg }}>{settings.logoText || settings.businessName || 'Your Store'}</span>
-          }
-        </div>
-
-        {/* Desktop nav — unchanged hover-dropdown behavior, hidden below the
-            mobile breakpoint (styles/responsive.css). Wrapped in a plain div
-            with no inline `display` of its own so .sb-nav-desktop-only's
-            block/none toggle isn't fighting the nav's own `display:flex`. */}
-        <div className="sb-nav-desktop-only">
-          <nav style={{ display: 'flex', gap: 28 }}>
-            {navLinks.map((link, i) => {
-              const hasChildren = (link.children?.length ?? 0) > 0
-              return (
-                <div key={i} style={{ position: 'relative' }} className="sb-nav-item">
-                  <a href={link.url} style={{ color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {link.label}
-                    {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
-                  </a>
-                  {hasChildren && (
-                    // Outer wrapper starts flush at top:100% (no gap) and uses padding-top
-                    // instead of margin-top for the visual offset, so the hoverable area is
-                    // contiguous from the link down through to the dropdown box — a margin-top
-                    // gap here breaks :hover the moment the pointer crosses it.
-                    <div
-                      className="sb-nav-dropdown"
-                      style={{ position: 'absolute', top: '100%', left: 0, paddingTop: 8, display: 'none', zIndex: 200 }}
-                    >
-                      <div
-                        style={{
-                          backgroundColor: '#fff', color: '#1a202c', minWidth: 160,
-                          borderRadius: 6, boxShadow: '0 8px 24px rgba(0,0,0,0.16)',
-                          padding: '6px 0',
-                        }}
-                      >
-                        {link.children!.map((child, j) => (
-                          <a key={j} href={child.url} style={{ display: 'block', padding: '8px 14px', color: '#1a202c', textDecoration: 'none', fontSize: navChildFontSize, fontFamily: navFontFamily }}>
-                            {child.label}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </nav>
-          <style>{`.sb-nav-item:hover .sb-nav-dropdown { display: block !important; }`}</style>
-        </div>
+        {navLeft ? <>{navEl}{logoEl}</> : <>{logoEl}{navEl}</>}
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {settings.headerCtaText && (

@@ -13,6 +13,7 @@ const field: React.CSSProperties      = { marginBottom: 16 }
 const row: React.CSSProperties        = { display: 'flex', gap: 14 }
 const sectionTitle: React.CSSProperties = { fontSize: 13, fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: 0.4, margin: '0 0 14px', paddingTop: 20, borderTop: '1px solid #f1f5f9' }
 const smallBtn: React.CSSProperties   = { fontSize: 12, fontWeight: 600, padding: '6px 12px', borderRadius: 6, border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#334155', cursor: 'pointer' }
+const toggleRow: React.CSSProperties  = { display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 600, color: '#334155', cursor: 'pointer' }
 const removeBtn: React.CSSProperties  = { fontSize: 12, fontWeight: 600, padding: '6px 10px', borderRadius: 6, border: '1px solid #fecaca', backgroundColor: '#fef2f2', color: '#dc2626', cursor: 'pointer', flexShrink: 0 }
 
 function Field({ children }: { children: React.ReactNode }) {
@@ -144,6 +145,29 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
           />
           Sticky header
         </label>
+      </Field>
+      <Field>
+        <label style={label}>Menu Position</label>
+        <div style={row}>
+          <label style={{ ...toggleRow, flex: 1 }}>
+            <input
+              type="radio"
+              name="header-menu-position"
+              checked={settings.headerMenuPosition === 'logo-left'}
+              onChange={() => onChange({ headerMenuPosition: 'logo-left' })}
+            />
+            Logo left, menu center
+          </label>
+          <label style={{ ...toggleRow, flex: 1 }}>
+            <input
+              type="radio"
+              name="header-menu-position"
+              checked={settings.headerMenuPosition === 'nav-left'}
+              onChange={() => onChange({ headerMenuPosition: 'nav-left' })}
+            />
+            Menu left, logo center
+          </label>
+        </div>
       </Field>
       <div style={row}>
         <div style={{ flex: 1 }}>

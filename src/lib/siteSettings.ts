@@ -45,6 +45,10 @@ export interface SiteSettings {
   // of choices — kept in sync with nuxt-storefront's own copy.
   headerNavFontFamily: string | null
   headerNavFontSize: number
+  // Which side of the header the logo sits on. 'logo-left' (default) matches every
+  // existing tenant's current rendering unchanged: logo left, Main Menu next to it.
+  // 'nav-left' swaps them: Main Menu on the left, logo in the middle slot instead.
+  headerMenuPosition: 'logo-left' | 'nav-left'
   footerBackgroundColor: string | null
   footerTextColor: string | null
   footerAccentColor: string | null
@@ -99,6 +103,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   headerBackgroundColor: '#ffffff', headerTextColor: '#1a202c', headerAccentColor: '#1a202c',
   headerSticky: true, headerCtaText: null, headerCtaUrl: null,
   headerNavFontFamily: null, headerNavFontSize: 15,
+  headerMenuPosition: 'logo-left',
   footerBackgroundColor: '#1a202c', footerTextColor: '#a0aec0', footerAccentColor: '#ffffff',
   footerCopyrightText: null, footerColumns: [], footerShowBrandColumn: true,
   footerNavFontFamily: null, footerNavFontSize: 13,
