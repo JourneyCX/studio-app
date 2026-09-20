@@ -135,6 +135,23 @@ export interface StoreProduct {
   currency_symbol?: string
 }
 
+// A tenant's manually-curated, cross-category product grouping — see
+// Store_builder_api::collections()/collection(). item_count/product_ids are
+// mutually exclusive across the two shapes this same JSON key set is used
+// for (list vs single-collection detail); both are optional here so one
+// interface covers both call sites without a union type.
+export interface StoreCollection {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+  image_url: string | null
+  is_published: boolean
+  page_slug: string | null
+  item_count?: number
+  product_ids?: number[]
+}
+
 // Real published post, as returned by Store_builder_api::blog_posts(). url is
 // already the relative /blog/{slug} path the storefront route expects.
 export interface StoreBlogPost {
@@ -306,20 +323,70 @@ export const stratumApi = {
   getProducts(
     tenantId: number,
     token: string,
-    opts?: { categorySlug?: string; perPage?: number; maxPrice?: number; search?: string },
+    opts?: { categorySlug?: string; perPage?: number; maxPrice?: number; search?: string; include?: number[] },
   ): Promise<{ products: StoreProduct[] }> {
     const params = new URLSearchParams()
     if (opts?.categorySlug) params.set('category_slug', opts.categorySlug)
     if (opts?.perPage) params.set('per_page', String(opts.perPage))
     if (opts?.maxPrice != null) params.set('max_price', String(opts.maxPrice))
     if (opts?.search) params.set('search', opts.search)
+    // Collections widget/detail page: a specific, ordered set of product IDs
+    // (see Store_builder_api::products()'s `include`/`orderby=include` handling).
+    if (opts?.include && opts.include.length > 0) params.set('include', opts.include.join(','))
     const qs = params.toString()
     return request('GET', `/admin/store_builder_api/products/${tenantId}${qs ? `?${qs}` : ''}`, token)
   },
 
   // Convenience wrapper — uses the module-level active token/tenant (set after login).
-  getActiveProducts(opts?: { categorySlug?: string; perPage?: number; maxPrice?: number; search?: string }): Promise<{ products: StoreProduct[] }> {
+  getActiveProducts(opts?: { categorySlug?: string; perPage?: number; maxPrice?: number; search?: string; include?: number[] }): Promise<{ products: StoreProduct[] }> {
     return stratumApi.getProducts(_activeTenantId, _activeToken, opts)
+  },
+
+  // ── Collections manager ────────────────────────────────────────────────
+  getCollections(tenantId: number, token: string): Promise<{ collections: StoreCollection[] }> {
+    return request('GET', `/admin/store_builder_api/collections/${tenantId}`, token)
+  },
+
+  getActiveCollections(): Promise<{ collections: StoreCollection[] }> {
+    return stratumApi.getCollections(_activeTenantId, _activeToken)
+  },
+
+  getCollection(tenantId: number, token: string, slug: string): Promise<{ collection: StoreCollection }> {
+    return request('GET', `/admin/store_builder_api/collection/${tenantId}/${encodeURIComponent(slug)}`, token)
+  },
+
+  getActiveCollection(slug: string): Promise<{ collection: StoreCollection }> {
+    return stratumApi.getCollection(_activeTenantId, _activeToken, slug)
+  },
+
+  saveCollection(
+    tenantId: number,
+    token: string,
+    data: { id?: number; name: string; description?: string | null; image_url?: string | null; product_ids: number[] },
+  ): Promise<{ success: boolean; collection: StoreCollection }> {
+    return request('POST', `/admin/store_builder_api/collection_save/${tenantId}`, token, data)
+  },
+
+  saveActiveCollection(
+    data: { id?: number; name: string; description?: string | null; image_url?: string | null; product_ids: number[] },
+  ): Promise<{ success: boolean; collection: StoreCollection }> {
+    return stratumApi.saveCollection(_activeTenantId, _activeToken, data)
+  },
+
+  deleteCollection(tenantId: number, token: string, id: number): Promise<{ success: boolean }> {
+    return request('POST', `/admin/store_builder_api/collection_delete/${tenantId}`, token, { id })
+  },
+
+  deleteActiveCollection(id: number): Promise<{ success: boolean }> {
+    return stratumApi.deleteCollection(_activeTenantId, _activeToken, id)
+  },
+
+  setCollectionPublished(tenantId: number, token: string, id: number, published: boolean): Promise<{ success: boolean; page_slug: string | null }> {
+    return request('POST', `/admin/store_builder_api/collection_publish/${tenantId}`, token, { id, published })
+  },
+
+  setActiveCollectionPublished(id: number, published: boolean): Promise<{ success: boolean; page_slug: string | null }> {
+    return stratumApi.setCollectionPublished(_activeTenantId, _activeToken, id, published)
   },
 
   // Real published posts for BlogPostList's "Auto" mode live-preview render

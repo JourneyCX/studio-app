@@ -12,6 +12,7 @@ import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
 import { AnnouncementBar } from './components/Navigation/AnnouncementBar'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
+import { CollectionsPanel } from './components/Collections/CollectionsPanel'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -209,6 +210,7 @@ export default function App() {
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
   const [pagesOpen, setPagesOpen] = useState(false)
+  const [collectionsOpen, setCollectionsOpen] = useState(false)
   // 'blocks' = the add-elements list is the visible left-hand panel;
   // 'fields' = the selected item's properties are. See PanelModeSync.
   const [panelMode, setPanelMode] = useState<'blocks' | 'fields'>('blocks')
@@ -615,6 +617,9 @@ export default function App() {
               <button onClick={() => setPagesOpen(true)} title="Pages" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>📄</span> Pages
               </button>
+              <button onClick={() => setCollectionsOpen(true)} title="Collections" style={headerIconButtonStyle}>
+                <span style={{ fontSize: 15 }}>📦</span> Collections
+              </button>
               <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
               </button>
@@ -742,6 +747,11 @@ export default function App() {
           onClose={() => setPagesOpen(false)}
           onNavigateToPage={handleNavigateToPage}
         />
+      )}
+
+      {/* Collections panel (📦 Collections, top of the Blocks panel) */}
+      {collectionsOpen && session && (
+        <CollectionsPanel onClose={() => setCollectionsOpen(false)} />
       )}
 
       {/* Site Settings overlay (gear icon, top of the Blocks panel) */}

@@ -45,7 +45,9 @@ export type ProductGridProps = {
 // a permanent manual "preview layout before I have products" override). `product`
 // set → real name/price/image; omitted → the original synthetic placeholder content,
 // byte-for-byte unchanged from before.
-const Card = ({ index, product, showAddToCart, showPrices }: { index: number; product?: StoreProduct; showAddToCart: boolean; showPrices: boolean }) => {
+// Exported for reuse by CollectionDetail.tsx, which renders the same real-
+// product card markup for a collection's resolved member products.
+export const Card = ({ index, product, showAddToCart, showPrices }: { index: number; product?: StoreProduct; showAddToCart: boolean; showPrices: boolean }) => {
   const [imgFailed, setImgFailed] = useState(false)
   const showImage = product ? (product.image_url && !imgFailed) : false
   return (
