@@ -126,7 +126,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
         { label: 'Manual — pick posts below', value: 'manual' },
       ],
     },
-    postCount:    { type: 'number',  label: 'Max Posts to Show (leave blank for all in Manual, 3 in Auto)' },
+    postCount:    { type: 'number',  label: 'Max Posts to Show (leave blank for all)' },
     accentColor:  { type: 'custom',  label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardColor:    { type: 'custom',  label: 'Card Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
@@ -177,8 +177,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     // postsSource key at all and must keep rendering its hand-typed posts
     // array exactly as before — only NEW blocks default to 'auto'.
     const isAuto = (postsSource ?? 'manual') === 'auto'
-    const autoCount = typeof postCount === 'number' ? postCount : 3
-    const { status, posts: livePosts } = useTenantBlogPosts(autoCount, isAuto)
+    const { status, posts: livePosts } = useTenantBlogPosts(postCount, isAuto)
 
     let posts: BlogPost[]
     let loadError = false
@@ -203,7 +202,9 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
           <PostCard {...first} i={0} {...cardProps} />
           {rest.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              {rest.slice(0, 3).map((p, i) => <PostCard key={i + 1} {...p} i={i + 1} {...cardProps} />)}
+              {/* Grid Columns doubles as "how many posts in the featured sidebar" here —
+                  the featured layout has no other use for that field. */}
+              {rest.slice(0, columns).map((p, i) => <PostCard key={i + 1} {...p} i={i + 1} {...cardProps} />)}
             </div>
           )}
         </div>

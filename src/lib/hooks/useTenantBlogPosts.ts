@@ -11,7 +11,9 @@ export type UseTenantBlogPostsResult =
   | { status: 'success'; posts: StoreBlogPost[] }
 
 // enabled=false skips the fetch entirely — used when "Show Placeholder" is on.
-export function useTenantBlogPosts(count: number, enabled: boolean = true): UseTenantBlogPostsResult {
+// count=undefined omits the limit param entirely so the backend's own default
+// (20, see Store_builder_api::blog_posts()) applies instead of an artificial cap.
+export function useTenantBlogPosts(count: number | undefined, enabled: boolean = true): UseTenantBlogPostsResult {
   const [state, setState] = useState<UseTenantBlogPostsResult>({ status: 'loading', posts: [] })
 
   useEffect(() => {
