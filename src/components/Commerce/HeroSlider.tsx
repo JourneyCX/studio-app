@@ -20,6 +20,11 @@ type Slide = {
   overlayOpacity: number
   backgroundSize: 'cover' | 'contain' | '100% 100%' | '100% auto'
   backgroundPosition: string
+  // 0 (default) keeps the headline on the responsive sb-text-fluid-lg clamp
+  // (28px–52px across viewport widths) instead of a fixed size — same
+  // convention as HeroBanner's headlineFontSize/subheadlineFontSize.
+  headlineFontSize: number
+  subheadlineFontSize: number
 }
 
 export type HeroSliderProps = {
@@ -115,12 +120,12 @@ function SliderInner({ slides, minHeight, autoPlay, autoPlayInterval, showDots, 
           {slide.headline && (
             /* sb-text-fluid-lg (styles/responsive.css) scales this down on
                narrow screens instead of staying fixed at 52px. */
-            <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 18px', lineHeight: 1.12, textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>
+            <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 18px', lineHeight: 1.12, textShadow: '0 2px 8px rgba(0,0,0,0.4)', ...(slide.headlineFontSize ? { fontSize: slide.headlineFontSize } : {}) }}>
               {slide.headline}
             </h1>
           )}
           {slide.subheadline && (
-            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: 20, margin: isPositioned ? 0 : '0 0 36px', lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>
+            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : '0 0 36px', lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>
               {slide.subheadline}
             </p>
           )}
@@ -202,6 +207,8 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
           { label: 'Top centre',          value: 'top-center' },
           { label: 'Top right',           value: 'top-right' },
         ]},
+        headlineFontSize:    { type: 'number', label: 'Headline Font Size (px, 0 = auto)' },
+        subheadlineFontSize: { type: 'number', label: 'Subheadline Font Size (px, 0 = auto)' },
       },
       defaultItemProps: {
         image: '', headline: 'New Collection', subheadline: 'Discover the latest arrivals.',
@@ -210,6 +217,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         backgroundSize: 'cover', backgroundPosition: 'center',
         buttonText: 'Shop Now', buttonUrl: '/shop',
         buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left',
+        headlineFontSize: 0, subheadlineFontSize: 0,
       },
       getItemSummary: (item: Slide) => item.headline || 'Slide',
     },
@@ -217,8 +225,8 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
   defaultProps: {
     minHeight: 520, autoPlay: true, autoPlayInterval: 5000, showDots: true, showArrows: true,
     slides: [
-      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left' },
-      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left' },
+      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0 },
+      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0 },
     ],
   },
   render(props) { return <SliderInner {...props} /> },
