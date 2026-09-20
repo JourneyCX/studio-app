@@ -115,11 +115,9 @@ export function CollectionEditModal({ collection, onClose, onSaved }: Collection
         </div>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {error && <p style={{ fontSize: 12.5, color: '#dc2626', margin: 0 }}>{error}</p>}
-
           <div>
-            <label style={label}>Name</label>
-            <input style={input} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Golden Essentials" />
+            <label style={label}>Name <span style={{ color: '#dc2626' }}>*</span></label>
+            <input style={{ ...input, borderColor: !name.trim() ? '#fca5a5' : '#e2e8f0' }} value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Golden Essentials" />
           </div>
 
           <div>
@@ -185,14 +183,24 @@ export function CollectionEditModal({ collection, onClose, onSaved }: Collection
           </div>
         </div>
 
-        <div style={{ padding: '14px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', justifyContent: 'flex-end', gap: 8, flexShrink: 0 }}>
+        <div style={{ padding: '14px 24px', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 12, flexShrink: 0 }}>
+          {/* Lives in the footer (not the scrollable body above) so it's visible
+              regardless of scroll position — the body's Name field can be scrolled
+              out of view once Image/Products are showing, which is exactly how a
+              real merchant reported "clicking Save does nothing": the button was
+              silently HTML-disabled (empty Name), giving zero visible feedback. */}
+          {!name.trim() && !error && (
+            <span style={{ fontSize: 12, color: '#dc2626' }}>Name is required — scroll up to fill it in.</span>
+          )}
+          {error && <span style={{ fontSize: 12, color: '#dc2626' }}>{error}</span>}
           <button
             onClick={handleSave}
             disabled={saving || !name.trim()}
             style={{
               padding: '9px 18px', borderRadius: 8, border: 'none',
-              backgroundColor: saving ? '#93c5fd' : '#2563eb', color: '#fff',
-              fontSize: 13.5, fontWeight: 700, cursor: saving ? 'default' : 'pointer',
+              backgroundColor: saving ? '#93c5fd' : !name.trim() ? '#cbd5e1' : '#2563eb',
+              color: !name.trim() && !saving ? '#64748b' : '#fff',
+              fontSize: 13.5, fontWeight: 700, cursor: (saving || !name.trim()) ? 'not-allowed' : 'pointer',
             }}
           >
             {saving ? 'Saving…' : 'Save Collection'}
