@@ -14,6 +14,13 @@ export type ProductTabsProps = {
   textColor: string
   accentColor: string
   maxWidth: number
+  alignment: 'left' | 'center' | 'right'
+}
+
+const ALIGNMENT_MARGIN: Record<ProductTabsProps['alignment'], string> = {
+  left:   '0 auto 0 0',
+  center: '0 auto',
+  right:  '0 0 0 auto',
 }
 
 // Editor-side, preview-only — same limitation as Commerce/ProductDetail.tsx:
@@ -33,6 +40,15 @@ export const ProductTabs: ComponentConfig<ProductTabsProps> = {
     textColor:       { type: 'custom', label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     accentColor:     { type: 'custom', label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     maxWidth:        { type: 'number', label: 'Content Max Width (px)' },
+    alignment: {
+      type: 'select',
+      label: 'Alignment (when narrower than the screen)',
+      options: [
+        { label: 'Left',   value: 'left' },
+        { label: 'Center', value: 'center' },
+        { label: 'Right',  value: 'right' },
+      ],
+    },
     tabs: {
       type: 'array',
       label: 'Tabs',
@@ -49,12 +65,13 @@ export const ProductTabs: ComponentConfig<ProductTabsProps> = {
     textColor:       '#1a202c',
     accentColor:     '#2b6cb0',
     maxWidth:        1200,
+    alignment:       'center',
     tabs: [
       { label: 'Care Instructions', fieldSlug: '' },
       { label: 'Materials & Craft', fieldSlug: '' },
     ],
   },
-  render({ tabs, backgroundColor, textColor, accentColor, maxWidth }) {
+  render({ tabs, backgroundColor, textColor, accentColor, maxWidth, alignment }) {
     const [active, setActive] = useState(0)
     const current = tabs[active]
 
@@ -68,7 +85,7 @@ export const ProductTabs: ComponentConfig<ProductTabsProps> = {
 
     return (
       <section style={{ backgroundColor, padding: '24px' }}>
-        <div style={{ maxWidth, margin: '0 auto' }}>
+        <div style={{ maxWidth, margin: ALIGNMENT_MARGIN[alignment] ?? ALIGNMENT_MARGIN.center }}>
           <div style={{ display: 'flex', gap: 8, borderBottom: `1px solid ${textColor}1a`, marginBottom: 24, flexWrap: 'wrap' }}>
             {tabs.map((tab, i) => (
               <button
