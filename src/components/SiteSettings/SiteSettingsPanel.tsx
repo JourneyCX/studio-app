@@ -7,8 +7,9 @@ import { FontsSection } from './FontsSection'
 import { StoreSettingsSection } from './StoreSettingsSection'
 import { WhatsAppSection } from './WhatsAppSection'
 import { AnnouncementBarSection } from './AnnouncementBarSection'
+import { ShopAssistantSection } from './ShopAssistantSection'
 
-type SectionKey = 'branding' | 'colors' | 'fonts' | 'store' | 'whatsapp' | 'announcement'
+type SectionKey = 'branding' | 'colors' | 'fonts' | 'store' | 'whatsapp' | 'announcement' | 'assistant'
 
 const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
   { key: 'branding', label: 'Branding', icon: '🖼️' },
@@ -17,6 +18,7 @@ const SECTIONS: { key: SectionKey; label: string; icon: string }[] = [
   { key: 'store', label: 'Store Settings', icon: '⚙️' },
   { key: 'whatsapp', label: 'WhatsApp', icon: '💬' },
   { key: 'announcement', label: 'Announcement Bar', icon: '📢' },
+  { key: 'assistant', label: 'Shop Assistant', icon: '🤖' },
 ]
 
 interface SiteSettingsPanelProps {
@@ -159,6 +161,7 @@ export function SiteSettingsPanel({ tenantId, token, initialSettings, onClose, o
             {active === 'store'    && <StoreSettingsSection settings={settings} onChange={patch} />}
             {active === 'whatsapp' && <WhatsAppSection settings={settings} onChange={patch} />}
             {active === 'announcement' && <AnnouncementBarSection settings={settings} onChange={patch} />}
+            {active === 'assistant' && <ShopAssistantSection settings={settings} onChange={patch} />}
           </div>
         </div>
       </div>

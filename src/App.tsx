@@ -9,6 +9,7 @@ import { SessionExpiredDialog } from './components/SessionExpiredDialog'
 import { SiteHeader } from './components/Navigation/SiteHeader'
 import { SiteFooter } from './components/Navigation/SiteFooter'
 import { WhatsAppWidget } from './components/Navigation/WhatsAppWidget'
+import { ShopAssistantBubble } from './components/Navigation/ShopAssistantBubble'
 import { AnnouncementBar } from './components/Navigation/AnnouncementBar'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
@@ -721,6 +722,7 @@ export default function App() {
       </div>
       <SiteFooter settings={siteSettings} />
       <WhatsAppWidget settings={siteSettings} />
+      <ShopAssistantBubble settings={siteSettings} />
 
       {/* Template selector modal */}
       {tm.isOpen && (

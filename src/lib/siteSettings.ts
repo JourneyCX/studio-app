@@ -88,6 +88,23 @@ export interface SiteSettings {
   // of the message's announcementFontSize above.
   announcementCountdownFontSize: number
   announcementCountdownBold: boolean
+  // Floating "Shop Assistant" chat bubble — site-wide chrome fixed to the bottom
+  // of every screen (same tier as the WhatsApp button above), independent of the
+  // per-page "AI-Powered Tool" Puck block (AITool.tsx), which a merchant can still
+  // drag onto individual pages as before. aiBubbleProxyEndpoint/aiBubbleApiKey are
+  // resolved and persisted server-side by update_site_settings() the moment this
+  // section is first saved (same never-rotates key AITool.tsx's resolveData() gets)
+  // — never set from this client, read-only here.
+  aiBubbleEnabled: boolean
+  aiBubblePosition: 'bottom-right' | 'bottom-left'
+  aiBubbleAssistantName: string | null
+  aiBubbleGreeting: string | null
+  // One prompt per line, same convention as AITool.tsx's starterPrompts.
+  aiBubbleStarterPrompts: string | null
+  aiBubbleAccentColor: string | null
+  aiBubbleSystemPrompt: string | null
+  aiBubbleProxyEndpoint: string | null
+  aiBubbleApiKey: string | null
 }
 
 // Graceful defaults — a brand-new tenant mid-provisioning (no sb_site_settings row
@@ -116,4 +133,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   announcementShowCountdown: false, announcementCountdownEnd: null,
   announcementFontSize: 13,
   announcementCountdownFontSize: 13, announcementCountdownBold: true,
+  aiBubbleEnabled: false, aiBubblePosition: 'bottom-right',
+  aiBubbleAssistantName: 'Shop Assistant', aiBubbleGreeting: 'Hi! How can I help you today?',
+  aiBubbleStarterPrompts: null, aiBubbleAccentColor: '#2563eb', aiBubbleSystemPrompt: null,
+  aiBubbleProxyEndpoint: null, aiBubbleApiKey: null,
 }
