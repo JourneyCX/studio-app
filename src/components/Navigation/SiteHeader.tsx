@@ -14,6 +14,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
   const navFontSize = settings.headerNavFontSize || 15
   const navChildFontSize = Math.max(11, navFontSize - 1)
   const navLeft = settings.headerMenuPosition === 'nav-left'
+  const navItemSpacing = settings.headerNavItemSpacing || 28
 
   // Mobile nav panel open/closed, and which top-level links (by index) have
   // their children expanded — a tap-to-expand accordion, since the desktop
@@ -47,7 +48,7 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
   // fighting the nav's own `display:flex`.
   const navEl = (
     <div className="sb-nav-desktop-only">
-      <nav style={{ display: 'flex', gap: 28 }}>
+      <nav style={{ display: 'flex', gap: navItemSpacing }}>
         {navLinks.map((link, i) => {
           const hasChildren = (link.children?.length ?? 0) > 0
           return (

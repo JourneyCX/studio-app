@@ -44,9 +44,11 @@ const sizeInputStyle: React.CSSProperties = {
 // Same free-typing-then-clamp-on-blur pattern as BrandingSection's LogoSizeInput
 // — a controlled number input that clamps every keystroke fights backspacing
 // a two-digit value down to type a new one.
-function FontSizeInput({ value, fallback, onCommit }: {
+function ClampedNumberInput({ value, fallback, min, max, onCommit }: {
   value: number
   fallback: number
+  min: number
+  max: number
   onCommit: (n: number) => void
 }) {
   const [text, setText] = useState(String(value))
@@ -55,8 +57,8 @@ function FontSizeInput({ value, fallback, onCommit }: {
   return (
     <input
       type="number"
-      min={10}
-      max={32}
+      min={min}
+      max={max}
       style={sizeInputStyle}
       value={text}
       onChange={e => {
@@ -67,12 +69,20 @@ function FontSizeInput({ value, fallback, onCommit }: {
         }
       }}
       onBlur={() => {
-        const clamped = Math.min(32, Math.max(10, Number(text) || fallback))
+        const clamped = Math.min(max, Math.max(min, Number(text) || fallback))
         setText(String(clamped))
         onCommit(clamped)
       }}
     />
   )
+}
+
+function FontSizeInput({ value, fallback, onCommit }: {
+  value: number
+  fallback: number
+  onCommit: (n: number) => void
+}) {
+  return <ClampedNumberInput value={value} fallback={fallback} min={10} max={32} onCommit={onCommit} />
 }
 
 function FontFields({
@@ -124,6 +134,18 @@ export function FontsSection({ settings, onChange }: SectionProps) {
           onSizeChange={n => onChange({ headerNavFontSize: n })}
         />
         <p style={hint}>The header navigation links, including dropdown sub-items.</p>
+
+        <div style={{ marginTop: 16, maxWidth: 100 }}>
+          <label style={{ ...label, fontSize: 12, marginBottom: 6 }}>Item Spacing (px)</label>
+          <ClampedNumberInput
+            value={settings.headerNavItemSpacing}
+            fallback={28}
+            min={8}
+            max={80}
+            onCommit={n => onChange({ headerNavItemSpacing: n })}
+          />
+          <p style={hint}>Space between top-level menu items (desktop only).</p>
+        </div>
       </div>
 
       <div style={group}>

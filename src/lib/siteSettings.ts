@@ -49,6 +49,10 @@ export interface SiteSettings {
   // existing tenant's current rendering unchanged: logo left, Main Menu next to it.
   // 'nav-left' swaps them: Main Menu on the left, logo in the middle slot instead.
   headerMenuPosition: 'logo-left' | 'nav-left'
+  // Horizontal gap (px) between top-level Main Menu items, desktop only. Default 28
+  // matches what the header nav's `gap` was hardcoded to before this setting existed.
+  // Kept in sync with nuxt-storefront's stratum.ts.
+  headerNavItemSpacing: number
   footerBackgroundColor: string | null
   footerTextColor: string | null
   footerAccentColor: string | null
@@ -120,7 +124,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   headerBackgroundColor: '#ffffff', headerTextColor: '#1a202c', headerAccentColor: '#1a202c',
   headerSticky: true, headerCtaText: null, headerCtaUrl: null,
   headerNavFontFamily: null, headerNavFontSize: 15,
-  headerMenuPosition: 'logo-left',
+  headerMenuPosition: 'logo-left', headerNavItemSpacing: 28,
   footerBackgroundColor: '#1a202c', footerTextColor: '#a0aec0', footerAccentColor: '#ffffff',
   footerCopyrightText: null, footerColumns: [], footerShowBrandColumn: true,
   footerNavFontFamily: null, footerNavFontSize: 13,
