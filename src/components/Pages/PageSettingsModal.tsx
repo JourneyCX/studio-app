@@ -87,78 +87,88 @@ export function PageSettingsModal({ tenantId, token, page, onClose, onSaved }: P
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
           <div style={field}>
-            <label style={label}>Page Name</label>
+            <label style={label}>{pageType === 'page_link' ? 'Link Label' : 'Page Name'}</label>
             <input style={input} value={pageName} onChange={e => setPageName(e.target.value)} />
           </div>
 
-          <div style={sectionTitle}>Page Type</div>
-          <div style={field}>
-            <label style={label}>What type of page is this?</label>
-            <select style={input} value={pageType} onChange={e => { setPageType(e.target.value as PageType); setConfig({}) }}>
-              <optgroup label="Content">
-                <option value="static_content">Static content</option>
-                <option value="blog_list" disabled>Blog list (no blog module)</option>
-              </optgroup>
-              <optgroup label="Shop">
-                <option value="all_products">All products</option>
-                <option value="product_category_list">Product category list</option>
-                <option value="single_product_category">Single product category</option>
-              </optgroup>
-              <optgroup label="Other">
-                <option value="anchor_link">Anchor link</option>
-                <option value="external_url">External URL</option>
-              </optgroup>
-            </select>
-          </div>
+          {pageType === 'page_link' ? (
+            <p style={{ fontSize: 12.5, color: '#64748b', margin: '-8px 0 0' }}>
+              🔗 This is a footer-only link that mirrors another page — it always points at
+              wherever that page currently lives, and has no content or SEO settings of its own.
+              Delete it from the Pages panel to remove just this link (the original page is unaffected).
+            </p>
+          ) : (
+            <>
+              <div style={sectionTitle}>Page Type</div>
+              <div style={field}>
+                <label style={label}>What type of page is this?</label>
+                <select style={input} value={pageType} onChange={e => { setPageType(e.target.value as PageType); setConfig({}) }}>
+                  <optgroup label="Content">
+                    <option value="static_content">Static content</option>
+                    <option value="blog_list" disabled>Blog list (no blog module)</option>
+                  </optgroup>
+                  <optgroup label="Shop">
+                    <option value="all_products">All products</option>
+                    <option value="product_category_list">Product category list</option>
+                    <option value="single_product_category">Single product category</option>
+                  </optgroup>
+                  <optgroup label="Other">
+                    <option value="anchor_link">Anchor link</option>
+                    <option value="external_url">External URL</option>
+                  </optgroup>
+                </select>
+              </div>
 
-          {pageType === 'single_product_category' && (
-            <div style={field}>
-              <label style={label}>Category ID</label>
-              <input
-                style={input}
-                type="number"
-                placeholder="WooCommerce category ID"
-                value={config.categoryId ?? ''}
-                onChange={e => setConfig({ categoryId: e.target.value ? Number(e.target.value) : undefined })}
-              />
-            </div>
+              {pageType === 'single_product_category' && (
+                <div style={field}>
+                  <label style={label}>Category ID</label>
+                  <input
+                    style={input}
+                    type="number"
+                    placeholder="WooCommerce category ID"
+                    value={config.categoryId ?? ''}
+                    onChange={e => setConfig({ categoryId: e.target.value ? Number(e.target.value) : undefined })}
+                  />
+                </div>
+              )}
+              {pageType === 'anchor_link' && (
+                <div style={field}>
+                  <label style={label}>Anchor target</label>
+                  <input style={input} placeholder="#section-id" value={config.anchor ?? ''} onChange={e => setConfig({ anchor: e.target.value })} />
+                </div>
+              )}
+              {pageType === 'external_url' && (
+                <div style={field}>
+                  <label style={label}>URL</label>
+                  <input style={input} placeholder="https://…" value={config.url ?? ''} onChange={e => setConfig({ url: e.target.value })} />
+                </div>
+              )}
+
+              <div style={sectionTitle}>SEO Settings</div>
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 14 }}>
+                <div style={{ fontSize: 15, color: '#1a0dab', marginBottom: 2 }}>{seoTitle || pageName}</div>
+                <div style={{ fontSize: 12, color: '#006621', marginBottom: 4 }}>{STRATUM_ORIGIN}/{page.page_slug}</div>
+                <div style={{ fontSize: 12.5, color: '#545454' }}>{seoDesc || 'Add a description to help search engines understand your page content.'}</div>
+              </div>
+
+              <div style={field}>
+                <label style={label}>SEO Title <CharCounter value={seoTitle} max={60} /></label>
+                <input style={input} value={seoTitle} onChange={e => setSeoTitle(e.target.value)} maxLength={60} />
+              </div>
+              <div style={field}>
+                <label style={label}>SEO Description <CharCounter value={seoDesc} max={160} /></label>
+                <textarea style={{ ...input, minHeight: 64, resize: 'vertical' }} value={seoDesc} onChange={e => setSeoDesc(e.target.value)} maxLength={160} />
+              </div>
+              <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '-8px 0 16px' }}>
+                These may be automatically updated later by the AI SEO Manager.
+              </p>
+
+              <div style={field}>
+                <label style={label}>Social Sharing Image</label>
+                <ImageUploadField value={ogImage} onChange={setOgImage} />
+              </div>
+            </>
           )}
-          {pageType === 'anchor_link' && (
-            <div style={field}>
-              <label style={label}>Anchor target</label>
-              <input style={input} placeholder="#section-id" value={config.anchor ?? ''} onChange={e => setConfig({ anchor: e.target.value })} />
-            </div>
-          )}
-          {pageType === 'external_url' && (
-            <div style={field}>
-              <label style={label}>URL</label>
-              <input style={input} placeholder="https://…" value={config.url ?? ''} onChange={e => setConfig({ url: e.target.value })} />
-            </div>
-          )}
-
-          <div style={sectionTitle}>SEO Settings</div>
-          <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, padding: 12, marginBottom: 14 }}>
-            <div style={{ fontSize: 15, color: '#1a0dab', marginBottom: 2 }}>{seoTitle || pageName}</div>
-            <div style={{ fontSize: 12, color: '#006621', marginBottom: 4 }}>{STRATUM_ORIGIN}/{page.page_slug}</div>
-            <div style={{ fontSize: 12.5, color: '#545454' }}>{seoDesc || 'Add a description to help search engines understand your page content.'}</div>
-          </div>
-
-          <div style={field}>
-            <label style={label}>SEO Title <CharCounter value={seoTitle} max={60} /></label>
-            <input style={input} value={seoTitle} onChange={e => setSeoTitle(e.target.value)} maxLength={60} />
-          </div>
-          <div style={field}>
-            <label style={label}>SEO Description <CharCounter value={seoDesc} max={160} /></label>
-            <textarea style={{ ...input, minHeight: 64, resize: 'vertical' }} value={seoDesc} onChange={e => setSeoDesc(e.target.value)} maxLength={160} />
-          </div>
-          <p style={{ fontSize: 11.5, color: '#94a3b8', margin: '-8px 0 16px' }}>
-            These may be automatically updated later by the AI SEO Manager.
-          </p>
-
-          <div style={field}>
-            <label style={label}>Social Sharing Image</label>
-            <ImageUploadField value={ogImage} onChange={setOgImage} />
-          </div>
         </div>
       </div>
     </div>

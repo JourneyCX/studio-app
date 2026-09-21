@@ -173,6 +173,20 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     applyChanges(changes, next)
   }
 
+  // Adds a *link* to `page` inside an existing footer column, without moving
+  // `page` itself — unlike addToFooterColumn() above, which relocates a page
+  // out of wherever it currently is. Backed by a real new page_link row
+  // (Store_builder_model::add_footer_link()), so it shows up immediately as
+  // its own row nested under that column, same as any other footer link.
+  const mirrorToFooterColumn = async (page: StorePage, columnPageId: number) => {
+    try {
+      const result = await stratumApi.addFooterLink(tenantId, page.id, columnPageId, token)
+      setPages(prev => [...prev, result.page])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add footer link')
+    }
+  }
+
   // Nests `page` as the last child of the top-level row immediately before it
   // in the same section ("⇥ Indent"). Disallowed (button hidden) if `page`
   // already has children of its own — one level of nesting only.
@@ -295,6 +309,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
             </div>
           )}
           <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {page.page_type === 'page_link' && <span title="Mirrors another page — see its Page Settings">🔗 </span>}
             {page.page_name}
           </span>
         </span>
@@ -318,6 +333,15 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           // orphan them / create a disallowed 2-level tree).
           const canAddToColumn = page.menu_location !== 'footer' && !pages.some(p => p.menu_parent_id === page.id)
           const footerColumns = canAddToColumn ? groupSection(pages, 'footer') : []
+          // "Mirror to..." — unlike the "Add link to..." options above (which
+          // relocate the page out of wherever it currently is), this creates a
+          // page_link row alongside it: the page keeps its existing placement
+          // (e.g. stays in Main Menu) *and* also appears as a link inside the
+          // chosen footer column. Excludes columns the page already headlines
+          // itself, mirror rows (no mirror-of-a-mirror chains), and pages with
+          // children of their own — same nesting rule addToFooterColumn() uses.
+          const canMirror = page.page_type !== 'page_link' && !pages.some(p => p.menu_parent_id === page.id)
+          const mirrorableColumns = canMirror ? groupSection(pages, 'footer').filter(col => col.page.id !== page.id) : []
           return (
             <select
               value={page.menu_location}
@@ -325,6 +349,8 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
                 const v = e.target.value
                 if (v.startsWith('footer:')) {
                   addToFooterColumn(page, Number(v.slice(7)))
+                } else if (v.startsWith('mirror:')) {
+                  mirrorToFooterColumn(page, Number(v.slice(7)))
                 } else {
                   moveLocation(page, v as MenuLocation)
                 }
@@ -339,6 +365,11 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
               {footerColumns.map(col => (
                 <option key={col.page.id} value={`footer:${col.page.id}`}>
                   ↳ Add link to "{col.page.page_name}"
+                </option>
+              ))}
+              {mirrorableColumns.map(col => (
+                <option key={`mirror-${col.page.id}`} value={`mirror:${col.page.id}`}>
+                  🔗 Also list in "{col.page.page_name}" (keep here too)
                 </option>
               ))}
             </select>

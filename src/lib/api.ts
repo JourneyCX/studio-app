@@ -226,6 +226,13 @@ export const stratumApi = {
     return request('PUT', `/admin/store_builder_api/reorder_pages/${tenantId}`, token, { changes })
   },
 
+  // Creates a page_link mirror of sourcePageId inside an existing footer
+  // column (columnPageId) — the source page's own menu placement is
+  // untouched. See Store_builder_model::add_footer_link().
+  addFooterLink(tenantId: number, sourcePageId: number, columnPageId: number, token: string): Promise<{ success: boolean; page: StorePage }> {
+    return request('POST', `/admin/store_builder_api/add_footer_link/${tenantId}`, token, { sourcePageId, columnPageId })
+  },
+
   saveDraft(tenantId: number, pageSlug: string, puckJson: unknown, pageName: string, token: string): Promise<{ success: boolean }> {
     return request('PUT', `/admin/store_builder_api/save_draft/${tenantId}/${pageSlug}`, token, { puckJson, name: pageName })
   },

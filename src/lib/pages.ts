@@ -9,16 +9,20 @@ export type PageType =
   | 'single_product_category'
   | 'anchor_link'
   | 'external_url'
+  | 'page_link'
 
 export type MenuLocation = 'none' | 'main' | 'footer'
 
 // anchor_link -> { anchor: '#section' }, external_url -> { url: 'https://...' },
-// single_product_category -> { categoryId: number }. Empty/absent for every
-// other type.
+// single_product_category -> { categoryId: number }, page_link -> resolves
+// live to whatever page mirrorPageId currently points at (see
+// Store_builder_model::add_footer_link()/_page_nav_url()). Empty/absent for
+// every other type.
 export interface PageTypeConfig {
   anchor?: string
   url?: string
   categoryId?: number
+  mirrorPageId?: number
 }
 
 export interface StorePage {
@@ -40,7 +44,7 @@ export interface StorePage {
 
 // page_type values that are pure nav-menu link targets, never opened in the
 // Puck editor — the Pages panel's "Edit" action is hidden/disabled for these.
-export const LINK_ONLY_PAGE_TYPES: PageType[] = ['anchor_link', 'external_url']
+export const LINK_ONLY_PAGE_TYPES: PageType[] = ['anchor_link', 'external_url', 'page_link']
 
 export const PAGE_TYPE_LABELS: Record<PageType, string> = {
   static_content: 'Static content',
@@ -50,4 +54,5 @@ export const PAGE_TYPE_LABELS: Record<PageType, string> = {
   single_product_category: 'Single product category',
   anchor_link: 'Anchor link',
   external_url: 'External URL',
+  page_link: 'Footer link (mirrors another page)',
 }
