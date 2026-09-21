@@ -53,10 +53,19 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
           const hasChildren = (link.children?.length ?? 0) > 0
           return (
             <div key={i} style={{ position: 'relative' }} className="sb-nav-item">
-              <a href={link.url} style={{ color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily, display: 'flex', alignItems: 'center', gap: 4 }}>
-                {link.label}
-                {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
-              </a>
+              {link.url ? (
+                <a href={link.url} style={{ color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {link.label}
+                  {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
+                </a>
+              ) : (
+                // menu_group — a dropdown label with no page of its own; render
+                // as plain text instead of a link (see SiteHeader.vue's own copy).
+                <span style={{ color: fg, fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily, display: 'flex', alignItems: 'center', gap: 4, cursor: 'default' }}>
+                  {link.label}
+                  {hasChildren && <span style={{ fontSize: 10 }}>▾</span>}
+                </span>
+              )}
               {hasChildren && (
                 // Outer wrapper starts flush at top:100% (no gap) and uses padding-top
                 // instead of margin-top for the visual offset, so the hoverable area is
@@ -166,13 +175,19 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
             return (
               <div key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <a
-                    href={link.url}
-                    onClick={() => setMobileOpen(false)}
-                    style={{ flex: 1, padding: '14px 24px', color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily }}
-                  >
-                    {link.label}
-                  </a>
+                  {link.url ? (
+                    <a
+                      href={link.url}
+                      onClick={() => setMobileOpen(false)}
+                      style={{ flex: 1, padding: '14px 24px', color: fg, textDecoration: 'none', fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily }}
+                    >
+                      {link.label}
+                    </a>
+                  ) : (
+                    <span style={{ flex: 1, padding: '14px 24px', color: fg, fontSize: navFontSize, fontWeight: 500, fontFamily: navFontFamily }}>
+                      {link.label}
+                    </span>
+                  )}
                   {hasChildren && (
                     <button
                       type="button"

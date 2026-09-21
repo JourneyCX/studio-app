@@ -10,6 +10,7 @@ export type PageType =
   | 'anchor_link'
   | 'external_url'
   | 'page_link'
+  | 'menu_group'
 
 export type MenuLocation = 'none' | 'main' | 'footer'
 
@@ -42,9 +43,11 @@ export interface StorePage {
   og_image_url: string | null
 }
 
-// page_type values that are pure nav-menu link targets, never opened in the
-// Puck editor — the Pages panel's "Edit" action is hidden/disabled for these.
-export const LINK_ONLY_PAGE_TYPES: PageType[] = ['anchor_link', 'external_url', 'page_link']
+// page_type values with no real Puck content, never opened in the Puck editor
+// — the Pages panel's "Edit" action is hidden/disabled for these. Covers both
+// pure nav-menu link targets (anchor_link/external_url/page_link) and
+// menu_group, which isn't a link at all — see PAGE_TYPE_LABELS below.
+export const LINK_ONLY_PAGE_TYPES: PageType[] = ['anchor_link', 'external_url', 'page_link', 'menu_group']
 
 export const PAGE_TYPE_LABELS: Record<PageType, string> = {
   static_content: 'Static content',
@@ -55,4 +58,5 @@ export const PAGE_TYPE_LABELS: Record<PageType, string> = {
   anchor_link: 'Anchor link',
   external_url: 'External URL',
   page_link: 'Footer link (mirrors another page)',
+  menu_group: 'Menu label (no link)',
 }

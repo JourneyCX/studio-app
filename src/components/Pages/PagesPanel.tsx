@@ -331,7 +331,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           // way. Only offered for a page not already a footer column itself,
           // and only when it has no children of its own (nesting it would
           // orphan them / create a disallowed 2-level tree).
-          const canAddToColumn = page.menu_location !== 'footer' && !pages.some(p => p.menu_parent_id === page.id)
+          const canAddToColumn = page.menu_location !== 'footer' && page.page_type !== 'menu_group' && !pages.some(p => p.menu_parent_id === page.id)
           const footerColumns = canAddToColumn ? groupSection(pages, 'footer') : []
           // "Mirror to..." — unlike the "Add link to..." options above (which
           // relocate the page out of wherever it currently is), this creates a
@@ -340,7 +340,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           // chosen footer column. Excludes columns the page already headlines
           // itself, mirror rows (no mirror-of-a-mirror chains), and pages with
           // children of their own — same nesting rule addToFooterColumn() uses.
-          const canMirror = page.page_type !== 'page_link' && !pages.some(p => p.menu_parent_id === page.id)
+          const canMirror = page.page_type !== 'page_link' && page.page_type !== 'menu_group' && !pages.some(p => p.menu_parent_id === page.id)
           const mirrorableColumns = canMirror ? groupSection(pages, 'footer').filter(col => col.page.id !== page.id) : []
           return (
             <select
@@ -422,7 +422,9 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           <p style={{ fontSize: 12, color: '#64748b', margin: '0 0 8px' }}>
             Nest a page under another (⇥) to turn the page above it into a Menu
             Group — it becomes a hover dropdown on the live site instead of a
-            plain link, and the nested page appears inside it.
+            plain link, and the nested page appears inside it. Don't want the
+            group's own label to be clickable? Give it the "Menu label (no
+            link)" page type in its ⚙️ Page Settings.
           </p>
         )}
         {rows.length === 0 && <p style={{ fontSize: 12.5, color: '#94a3b8', margin: '0 0 8px' }}>No pages here yet.</p>}
@@ -435,7 +437,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           const groupLabel = isFooter
             ? `Column ${i + 1} · ${row.children.length || 1} link${(row.children.length || 1) === 1 ? '' : 's'}`
             : isMain && hasChildren
-              ? `Menu Group · ${row.children.length} page${row.children.length === 1 ? '' : 's'}`
+              ? `Menu Group · ${row.children.length} page${row.children.length === 1 ? '' : 's'}${row.page.page_type === 'menu_group' ? ' · no link' : ''}`
               : undefined
           return (
             <div key={row.page.id}>

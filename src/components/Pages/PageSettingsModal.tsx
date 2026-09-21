@@ -115,6 +115,7 @@ export function PageSettingsModal({ tenantId, token, page, onClose, onSaved }: P
                   <optgroup label="Other">
                     <option value="anchor_link">Anchor link</option>
                     <option value="external_url">External URL</option>
+                    <option value="menu_group">Menu label (no link)</option>
                   </optgroup>
                 </select>
               </div>
@@ -142,6 +143,13 @@ export function PageSettingsModal({ tenantId, token, page, onClose, onSaved }: P
                   <label style={label}>URL</label>
                   <input style={input} placeholder="https://…" value={config.url ?? ''} onChange={e => setConfig({ url: e.target.value })} />
                 </div>
+              )}
+              {pageType === 'menu_group' && (
+                <p style={{ fontSize: 12.5, color: '#64748b', margin: '-8px 0 16px' }}>
+                  📁 This page won't be clickable in the Main Menu — it's just a label for its
+                  dropdown. Nest other pages under it (⇥ Indent in the Pages panel) to fill the
+                  dropdown.
+                </p>
               )}
 
               <div style={sectionTitle}>SEO Settings</div>
