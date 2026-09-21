@@ -1,4 +1,5 @@
-import { useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 import { stratumApi, type PixabayPhoto } from '../../lib/api'
 
 function tabButtonStyle(active: boolean): CSSProperties {
@@ -24,6 +25,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
   const [searching, setSearching]   = useState(false)
   const [applyingId, setApplyingId] = useState<number | null>(null)
   const [pixabayError, setPixabayError] = useState('')
+  const [galleryOpen, setGalleryOpen] = useState(false)
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -53,6 +55,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
       const result = await stratumApi.searchActiveStockPhotos(query.trim())
       if (result.photos) {
         setPhotos(result.photos)
+        setGalleryOpen(result.photos.length > 0)
       } else {
         setPixabayError(result.error ?? 'Search failed')
       }
@@ -78,6 +81,7 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
       const result = await stratumApi.applyActiveStockPhoto(photo.id)
       if (result.url) {
         onChange(result.url)
+        setGalleryOpen(false)
       } else {
         setPixabayError(result.error ?? 'Could not apply this photo')
       }
@@ -167,34 +171,18 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
           </div>
 
           {photos.length > 0 && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 6, maxHeight: 280, overflowY: 'auto' }}>
-              {photos.map(photo => (
-                <button
-                  key={photo.id}
-                  type="button"
-                  onClick={() => handleApply(photo)}
-                  disabled={applyingId !== null}
-                  title={photo.tags}
-                  style={{
-                    padding: 0, position: 'relative', overflow: 'hidden', aspectRatio: '1', borderRadius: 4,
-                    background: '#f7fafc', cursor: applyingId !== null ? 'default' : 'pointer',
-                    border: value === photo.webformatURL ? '2px solid #2b6cb0' : '1px solid #e2e8f0',
-                  }}
-                >
-                  {photo.previewURL && (
-                    <img
-                      src={photo.previewURL}
-                      alt={photo.tags}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: applyingId === photo.id ? 0.5 : 1 }}
-                    />
-                  )}
-                  {applyingId === photo.id && (
-                    <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 }}>
-                      ⏳
-                    </span>
-                  )}
-                </button>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setGalleryOpen(true)}
+                style={{
+                  fontSize: 12, padding: '5px 12px', borderRadius: 4,
+                  background: '#ebf4ff', color: '#2b6cb0', border: '1px solid #bee3f8', cursor: 'pointer',
+                }}
+              >
+                🖼️ Browse {photos.length} result{photos.length === 1 ? '' : 's'}
+              </button>
+              <span style={{ fontSize: 11, color: '#a0aec0' }}>Opens a bigger, scrollable view</span>
             </div>
           )}
 
@@ -205,6 +193,140 @@ export function ImageUploadField({ value, onChange }: { value: string; onChange:
 
       {error && <span style={{ fontSize: 11, color: '#e53e3e' }}>{error}</span>}
       {tab === 'upload' && <span style={{ fontSize: 11, color: '#a0aec0' }}>Max 10 MB · jpg, png, webp, gif</span>}
+
+      {galleryOpen && (
+        <PixabayGalleryModal
+          photos={photos}
+          query={query}
+          selectedUrl={value}
+          applyingId={applyingId}
+          error={pixabayError}
+          onSelect={handleApply}
+          onClose={() => setGalleryOpen(false)}
+        />
+      )}
     </div>
+  )
+}
+
+// Full-screen lightbox for browsing Pixabay results at a readable size — the
+// inline sidebar grid is too narrow (~260px) to tell similar thumbnails
+// apart. Rendered via a portal so it escapes Puck's sidebar overflow/scroll
+// container instead of being clipped inside it.
+function PixabayGalleryModal({
+  photos,
+  query,
+  selectedUrl,
+  applyingId,
+  error,
+  onSelect,
+  onClose,
+}: {
+  photos: PixabayPhoto[]
+  query: string
+  selectedUrl: string
+  applyingId: number | null
+  error: string
+  onSelect: (photo: PixabayPhoto) => void
+  onClose: () => void
+}) {
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 100000,
+        background: 'rgba(15, 23, 42, 0.6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 24,
+      }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: '#fff', borderRadius: 8, width: '100%', maxWidth: 900, maxHeight: '85vh',
+          display: 'flex', flexDirection: 'column', overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.35)',
+        }}
+      >
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '12px 16px', borderBottom: '1px solid #e2e8f0',
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: '#2d3748' }}>
+            Pixabay results{query ? ` for "${query}"` : ''}
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              fontSize: 14, width: 28, height: 28, borderRadius: 4, cursor: 'pointer',
+              background: 'transparent', color: '#718096', border: '1px solid #e2e8f0',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        <div style={{ padding: 16, overflowY: 'auto' }}>
+          {error && <div style={{ fontSize: 12, color: '#e53e3e', marginBottom: 10 }}>{error}</div>}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12,
+          }}>
+            {photos.map(photo => (
+              <button
+                key={photo.id}
+                type="button"
+                onClick={() => onSelect(photo)}
+                disabled={applyingId !== null}
+                title={photo.tags}
+                style={{
+                  padding: 0, position: 'relative', overflow: 'hidden', aspectRatio: '1', borderRadius: 6,
+                  background: '#f7fafc', cursor: applyingId !== null ? 'default' : 'pointer',
+                  border: selectedUrl === photo.webformatURL ? '3px solid #2b6cb0' : '1px solid #e2e8f0',
+                }}
+              >
+                {(photo.webformatURL || photo.previewURL) && (
+                  <img
+                    src={photo.webformatURL ?? photo.previewURL ?? undefined}
+                    alt={photo.tags}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: applyingId === photo.id ? 0.5 : 1 }}
+                  />
+                )}
+                {photo.tags && (
+                  <span style={{
+                    position: 'absolute', left: 0, right: 0, bottom: 0,
+                    padding: '4px 6px', fontSize: 11, color: '#fff', textAlign: 'left',
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.65), transparent)',
+                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                  }}>
+                    {photo.tags}
+                  </span>
+                )}
+                {applyingId === photo.id && (
+                  <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22 }}>
+                    ⏳
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ padding: '8px 16px', borderTop: '1px solid #e2e8f0', fontSize: 11, color: '#a0aec0' }}>
+          Click a photo to use it · Free stock photos via Pixabay — no attribution required
+        </div>
+      </div>
+    </div>,
+    document.body,
   )
 }
