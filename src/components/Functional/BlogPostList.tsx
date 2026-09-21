@@ -41,7 +41,14 @@ export type BlogPostListProps = {
   // were authored against; restored as additive optional fields.
   ctaText?: string
   ctaUrl?: string
+  // Legacy raw count from an earlier schema — no longer editable in the panel (superseded
+  // by rowsToShow below), but still honored as a fallback for any page saved while it was
+  // the only control, so those pages don't silently change behaviour.
   postCount?: number
+  // Number of grid rows to display (each row holding `columns` posts), or 0 for "All".
+  // Additive field — absent (undefined) on any page saved before this existed, which
+  // falls back to postCount, then to showing everything (see render() below).
+  rowsToShow?: number
   // Additive field — absent on any page saved before this existed, which must keep
   // rendering its hand-typed `posts` array exactly as before (see ?? 'manual' below).
   postsSource?: 'manual' | 'auto'
@@ -126,7 +133,16 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
         { label: 'Manual — pick posts below', value: 'manual' },
       ],
     },
-    postCount:    { type: 'number',  label: 'Max Posts to Show (leave blank for all)' },
+    rowsToShow: {
+      type: 'select', label: 'Rows to Show',
+      options: [
+        { label: '1 Row', value: 1 },
+        { label: '2 Rows', value: 2 },
+        { label: '3 Rows', value: 3 },
+        { label: '4 Rows', value: 4 },
+        { label: 'All', value: 0 },
+      ],
+    },
     accentColor:  { type: 'custom',  label: 'Accent Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardColor:    { type: 'custom',  label: 'Card Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
@@ -147,6 +163,16 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       getItemSummary: (p: BlogPost) => p.title || 'Post',
     },
   },
+  // Auto mode ignores the hand-typed `posts` array entirely (see render() below) — hide
+  // its field so the panel can't show unrelated placeholder posts next to a live preview.
+  resolveFields(data, { fields }) {
+    const isAuto = (data.props.postsSource ?? 'manual') === 'auto'
+    if (!isAuto) return fields
+    // Puck's Fields<Props> type requires every prop key, including required ones like
+    // `posts` — but omitting a key here is exactly how you hide a field in the panel.
+    const { posts: _posts, ...rest } = fields
+    return rest as typeof fields
+  },
   defaultProps: {
     headline:     'From the Blog',
     subheadline:  'Tips, stories, and news from our team.',
@@ -159,6 +185,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     readMoreText: 'Read more',
     ctaText:      '',
     ctaUrl:       '',
+    rowsToShow:   0,
     postsSource:  'auto',
     accentColor:  '#2563eb',
     backgroundColor: '#f8fafc',
@@ -171,13 +198,16 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       { title: 'Sustainable Packaging: Why It Matters', excerpt: 'How we\'re rethinking our packaging to reduce waste without compromising on quality or presentation.', thumbnail: '', date: '2 May 2025', author: 'Jordan L.', category: 'Sustainability', url: '/blog/packaging' },
     ],
   },
-  render({ headline, subheadline, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, postsSource, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
+  render({ headline, subheadline, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, rowsToShow, postsSource, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
     const cardProps = { layout, showAuthor, showDate, showCategory, showExcerpt, readMoreText, accentColor, cardColor, textColor, borderRadius }
     // ?? 'manual' (not 'auto'): a page saved before this field existed has no
     // postsSource key at all and must keep rendering its hand-typed posts
     // array exactly as before — only NEW blocks default to 'auto'.
     const isAuto = (postsSource ?? 'manual') === 'auto'
-    const { status, posts: livePosts } = useTenantBlogPosts(postCount, isAuto)
+    // rowsToShow (0 = "All") drives the count as `rows * columns`; a page saved before
+    // rowsToShow existed falls back to its own postCount, then to showing everything.
+    const effectiveCount = rowsToShow ? rowsToShow * columns : (typeof postCount === 'number' ? postCount : undefined)
+    const { status, posts: livePosts } = useTenantBlogPosts(effectiveCount, isAuto)
 
     let posts: BlogPost[]
     let loadError = false
@@ -185,7 +215,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       if (status === 'success') posts = livePosts.map(toCardPost)
       else { posts = []; loadError = status === 'error' }
     } else {
-      posts = typeof postCount === 'number' ? manualPosts.slice(0, postCount) : manualPosts
+      posts = typeof effectiveCount === 'number' ? manualPosts.slice(0, effectiveCount) : manualPosts
     }
 
     let grid: React.ReactNode
