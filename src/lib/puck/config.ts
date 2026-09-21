@@ -21,6 +21,7 @@ import { ProductGrid }      from '@/components/Commerce/ProductGrid'
 import { ProductCard }      from '@/components/Commerce/ProductCard'
 import { ProductDetail }    from '@/components/Commerce/ProductDetail'
 import { ProductTabs }      from '@/components/Commerce/ProductTabs'
+import { RelatedProducts }  from '@/components/Commerce/RelatedProducts'
 import { CollectionList }   from '@/components/Commerce/CollectionList'
 import { CollectionDetail } from '@/components/Commerce/CollectionDetail'
 import { ProductShowcase }  from '@/components/Commerce/ProductShowcase'
@@ -69,6 +70,7 @@ export const puckConfig: Config = {
     ProductCard,
     ProductDetail,
     ProductTabs,
+    RelatedProducts,
     CollectionList,
     CollectionDetail,
     ProductShowcase,
@@ -123,7 +125,7 @@ export const puckConfig: Config = {
     },
     commerce: {
       title: 'E-commerce',
-      components: ['HeroSlider', 'HeroBanner', 'PromoBannerGrid', 'LogoStrip', 'ProductGrid', 'ProductCard', 'ProductDetail', 'ProductTabs', 'CollectionList', 'CollectionDetail', 'ProductShowcase', 'ProductCarousel', 'CartWidget', 'ProductFilter'],
+      components: ['HeroSlider', 'HeroBanner', 'PromoBannerGrid', 'LogoStrip', 'ProductGrid', 'ProductCard', 'ProductDetail', 'ProductTabs', 'RelatedProducts', 'CollectionList', 'CollectionDetail', 'ProductShowcase', 'ProductCarousel', 'CartWidget', 'ProductFilter'],
     },
     marketing: {
       title: 'Marketing',
