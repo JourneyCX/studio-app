@@ -173,6 +173,16 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     const { posts: _posts, ...rest } = fields
     return rest as typeof fields
   },
+  // Backfill rowsToShow on any block placed before this field existed. Without this, its
+  // stored value stays undefined while Puck's native <select> still visually displays its
+  // first option ("1 Row") — since that display already matches what a merchant clicks,
+  // the browser never fires a change event, so nothing is ever actually saved and the
+  // dropdown silently has no effect. Seeding a real value keeps what's shown and what's
+  // stored in sync from the first render.
+  resolveData(data) {
+    if (typeof data.props.rowsToShow === 'number') return {}
+    return { props: { rowsToShow: 0 } }
+  },
   defaultProps: {
     headline:     'From the Blog',
     subheadline:  'Tips, stories, and news from our team.',
