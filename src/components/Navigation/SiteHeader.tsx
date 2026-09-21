@@ -103,18 +103,24 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
         zoom: 1.25,
       }}
     >
-      {/* CSS Grid, not flex space-between — space-between only guarantees equal
-          GAPS around the middle item, not a middle item that's actually centered
-          in the row, once the two flanking items have unequal widths (nav vs. the
-          much narrower icon cluster). minmax(0,1fr) on the two flanking columns
-          caps their content-driven minimum at 0, forcing them to split the
-          remaining space exactly evenly regardless of what's in them — that's
-          what makes the auto (middle) column's content genuinely centered. */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center', columnGap: 16 }}>
-        <div style={{ justifySelf: 'start', minWidth: 0 }}>{navLeft ? navEl : logoEl}</div>
-        <div style={{ justifySelf: 'center', minWidth: 0 }}>{navLeft ? logoEl : navEl}</div>
+      {/* Not CSS Grid with minmax(0,1fr) flanking columns — tried that, but capping
+          the nav column's minimum at 0 meant a nav too wide for its "fair share"
+          got squeezed hard enough to visually break onto its own line instead of
+          just centering imperfectly. Absolute-positioning the centered element
+          instead sidesteps the whole problem: the flow element (nav or logo,
+          whichever isn't centered) and the icon cluster stay simple two-item
+          flex space-between at their natural, unconstrained widths, while the
+          centered element floats independently at the row's true midpoint,
+          unaffected by how wide its neighbors are. Same pattern real storefront
+          themes use for a centered-logo header. */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative' }}>
+        {navLeft ? navEl : logoEl}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifySelf: 'end' }}>
+        <div style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+          {navLeft ? logoEl : navEl}
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           {settings.headerCtaText && (
             <a
               href={settings.headerCtaUrl || '#'}
