@@ -103,10 +103,18 @@ export function SiteHeader({ settings }: { settings: SiteSettings }) {
         zoom: 1.25,
       }}
     >
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        {navLeft ? <>{navEl}{logoEl}</> : <>{logoEl}{navEl}</>}
+      {/* CSS Grid, not flex space-between — space-between only guarantees equal
+          GAPS around the middle item, not a middle item that's actually centered
+          in the row, once the two flanking items have unequal widths (nav vs. the
+          much narrower icon cluster). minmax(0,1fr) on the two flanking columns
+          caps their content-driven minimum at 0, forcing them to split the
+          remaining space exactly evenly regardless of what's in them — that's
+          what makes the auto (middle) column's content genuinely centered. */}
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px', height: 64, display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) auto minmax(0, 1fr)', alignItems: 'center', columnGap: 16 }}>
+        <div style={{ justifySelf: 'start', minWidth: 0 }}>{navLeft ? navEl : logoEl}</div>
+        <div style={{ justifySelf: 'center', minWidth: 0 }}>{navLeft ? logoEl : navEl}</div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, justifySelf: 'end' }}>
           {settings.headerCtaText && (
             <a
               href={settings.headerCtaUrl || '#'}
