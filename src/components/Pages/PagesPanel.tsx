@@ -355,7 +355,16 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
                   moveLocation(page, v as MenuLocation)
                 }
               }}
-              style={{ fontSize: 11.5, padding: '4px 6px', borderRadius: 5, border: '1px solid #e2e8f0', color: '#475569' }}
+              // Fixed width — without one, a <select> with no explicit size sizes
+              // itself to fit its widest <option> (confirmed live in Chrome/Edge),
+              // and the "Add link to.../Mirror to..." options below embed the
+              // target column's own page_name, which can be arbitrarily long
+              // (e.g. "Crafted Ellegance"). That blew this select's intrinsic
+              // width out, squeezing the sibling flex:1 name span down to a
+              // single visible character. A constrained width lets the browser's
+              // own native truncation handle the *displayed* (selected) value
+              // instead, same as any other overflowing <select>.
+              style={{ fontSize: 11.5, padding: '4px 6px', borderRadius: 5, border: '1px solid #e2e8f0', color: '#475569', width: 150, flexShrink: 0 }}
             >
               <option value="none">Not in menu</option>
               <option value="main">Main Menu</option>
@@ -369,7 +378,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
               ))}
               {mirrorableColumns.map(col => (
                 <option key={`mirror-${col.page.id}`} value={`mirror:${col.page.id}`}>
-                  🔗 Also list in "{col.page.page_name}" (keep here too)
+                  🔗 Mirror to "{col.page.page_name}"
                 </option>
               ))}
             </select>
