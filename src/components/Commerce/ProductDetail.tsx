@@ -11,6 +11,8 @@ import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
 // (the tenant's first available one) purely for WYSIWYG purposes.
 export type ProductDetailProps = {
   layout: 'gallery-left' | 'gallery-right'
+  showRelated?: boolean
+  relatedHeading?: string
 }
 
 export const ProductDetail: ComponentConfig<ProductDetailProps> = {
@@ -24,13 +26,27 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
         { label: 'Gallery Right', value: 'gallery-right' },
       ],
     },
+    showRelated: {
+      type: 'radio',
+      label: 'Show "You May Also Like"',
+      options: [
+        { label: 'Yes', value: true },
+        { label: 'No', value: false },
+      ],
+    },
+    relatedHeading: { type: 'text', label: 'Related Products Heading' },
   },
   defaultProps: {
     layout: 'gallery-left',
+    showRelated: true,
+    relatedHeading: 'You May Also Like',
   },
-  render({ layout }) {
-    const { status, products } = useTenantProducts('', 1)
+  render({ layout, showRelated, relatedHeading }) {
+    // Fetches a handful extra so the preview row below has something to show
+    // that isn't just the one sample product used as the "current" item.
+    const { status, products } = useTenantProducts('', 5)
     const sample = status === 'success' ? products[0] : undefined
+    const related = status === 'success' ? products.slice(1, 5) : []
 
     const name  = sample?.name ?? 'Sample Product'
     const price = sample ? `${sample.currency_symbol ?? '$'} ${sample.price}` : '$0.00'
@@ -58,9 +74,38 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
       </div>
     )
 
+    const showRelatedResolved = showRelated ?? true
+
     return (
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40, padding: 24, maxWidth: 1100, margin: '0 auto' }}>
-        {layout === 'gallery-right' ? <>{info}{gallery}</> : <>{gallery}{info}</>}
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 40 }}>
+          {layout === 'gallery-right' ? <>{info}{gallery}</> : <>{gallery}{info}</>}
+        </div>
+
+        {showRelatedResolved && (
+          <div style={{ marginTop: 48, borderTop: '1px solid #e2e8f0', paddingTop: 32 }}>
+            <h3 style={{ margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: '#1a202c' }}>{relatedHeading || 'You May Also Like'}</h3>
+            {related.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+                {related.map(p => (
+                  <div key={p.id} style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
+                    <div style={{ aspectRatio: '1/1', background: '#f7f8fa' }}>
+                      {p.image_url && <img src={p.image_url} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />}
+                    </div>
+                    <div style={{ padding: 10 }}>
+                      <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 600, color: '#1a202c' }}>{p.name}</p>
+                      <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#1a202c' }}>{p.currency_symbol ?? '$'} {p.price}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ padding: 24, textAlign: 'center', color: '#a0aec0', fontSize: 12, border: '1px dashed #cbd5e0', borderRadius: 8 }}>
+                Products related to the one being viewed render here automatically — picked from the same category, live on the storefront.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     )
   },
