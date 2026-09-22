@@ -4,6 +4,11 @@ import { CollectionEditModal } from './CollectionEditModal'
 
 interface CollectionsPanelProps {
   onClose: () => void
+  // Same unsaved-changes-guarded navigation PagesPanel already uses for its
+  // own "Edit in Studio" action — see App.tsx's onNavigateToPage. Only
+  // callable once a collection has been published at least once (page_slug
+  // is null until _sb_provision_collection_page() runs on first publish).
+  onNavigateToPage: (slug: string) => void
 }
 
 const overlay: React.CSSProperties = {
@@ -19,7 +24,7 @@ const iconBtn: React.CSSProperties = {
   backgroundColor: '#fff', color: '#475569', cursor: 'pointer', lineHeight: 1,
 }
 
-export function CollectionsPanel({ onClose }: CollectionsPanelProps) {
+export function CollectionsPanel({ onClose, onNavigateToPage }: CollectionsPanelProps) {
   const [collections, setCollections] = useState<StoreCollection[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
@@ -112,6 +117,11 @@ export function CollectionsPanel({ onClose }: CollectionsPanelProps) {
                 >
                   {publishingId === c.id ? '…' : c.is_published ? 'Unpublish' : 'Publish'}
                 </button>
+                {c.page_slug && (
+                  <button style={iconBtn} title="Open this collection's page in the editor" onClick={() => onNavigateToPage(c.page_slug!)}>
+                    Open in Editor
+                  </button>
+                )}
                 <button style={iconBtn} title="Edit" onClick={() => setEditing(c)}>✏️ Edit</button>
                 <button style={{ ...iconBtn, color: '#dc2626', borderColor: '#fecaca' }} title="Delete" onClick={() => handleDelete(c)}>🗑</button>
               </div>

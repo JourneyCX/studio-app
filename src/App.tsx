@@ -753,7 +753,7 @@ export default function App() {
 
       {/* Collections panel (📦 Collections, top of the Blocks panel) */}
       {collectionsOpen && session && (
-        <CollectionsPanel onClose={() => setCollectionsOpen(false)} />
+        <CollectionsPanel onClose={() => setCollectionsOpen(false)} onNavigateToPage={handleNavigateToPage} />
       )}
 
       {/* Site Settings overlay (gear icon, top of the Blocks panel) */}
