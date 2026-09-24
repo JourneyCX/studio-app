@@ -18,6 +18,7 @@ export type CountdownTimerProps = {
   backgroundImage: string
   overlayOpacity: number
   cardColor: string
+  headingColor: string
   textColor: string
   labelColor: string
   primaryButtonText: string
@@ -124,7 +125,7 @@ interface BarTimerProps extends CountdownTimerProps { time: TimeLeft; done: bool
 // TimeUnit/Separator (those are sized for the 52px stacked-card styles),
 // so it stays narrow enough to sit inside a Columns dropzone instead of a
 // full-width hero section.
-function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, showSeconds, accentColor, backgroundColor, textColor, primaryButtonUrl, time, done }: BarTimerProps) {
+function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, showSeconds, accentColor, backgroundColor, headingColor, textColor, primaryButtonUrl, time, done }: BarTimerProps) {
   const units: { key: keyof TimeLeft; show: boolean }[] = [
     { key: 'days',    show: showDays },
     { key: 'hours',   show: showHours },
@@ -134,9 +135,9 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
   const visibleUnits = units.filter((u) => u.show)
 
   const bar = (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, backgroundColor, color: textColor, padding: '14px 24px' }}>
-      {headline && <span style={{ fontSize: 15, fontWeight: 600 }}>{headline}</span>}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, backgroundColor, padding: '14px 24px' }}>
+      {headline && <span style={{ fontSize: 15, fontWeight: 600, color: headingColor }}>{headline}</span>}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, color: textColor }}>
         {done && endMessage ? (
           <span style={{ fontSize: 14, fontWeight: 700, color: accentColor }}>{endMessage}</span>
         ) : (
@@ -158,7 +159,7 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
 }
 
 function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, textColor, labelColor, primaryButtonText, primaryButtonUrl } = props
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, primaryButtonText, primaryButtonUrl } = props
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
   const done = time.days === 0 && time.hours === 0 && time.minutes === 0 && time.seconds === 0
@@ -211,8 +212,8 @@ function TimerInner(props: CountdownTimerProps) {
             narrow screens instead of staying fixed at 36px — the countdown
             digits/separator below stay fixed, they're short and narrow
             regardless of viewport width. */}
-        {headline && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 14px' }}>{headline}</h2>}
-        {subheadline && <p style={{ color: textColor, opacity: 0.65, fontSize: 18, margin: '0 0 48px', lineHeight: 1.65 }}>{subheadline}</p>}
+        {headline && <h2 className="sb-text-fluid-md" style={{ color: headingColor, fontWeight: 800, margin: '0 0 14px' }}>{headline}</h2>}
+        {subheadline && <p style={{ color: headingColor, opacity: 0.65, fontSize: 18, margin: '0 0 48px', lineHeight: 1.65 }}>{subheadline}</p>}
 
         {done && endMessage ? (
           <div style={{ padding: '32px 48px', backgroundColor: accentColor, borderRadius: 16, display: 'inline-block' }}>
@@ -258,7 +259,8 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     backgroundImage:   { type: 'custom', label: 'Background Image (optional, overrides colour)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:    { type: 'number', label: 'Dark Overlay (0–100, used with image)' },
     cardColor:         { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
-    textColor:         { type: 'custom',  label: 'Number Colour (hex)', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
+    headingColor:      { type: 'custom',  label: 'Heading Text Colour (hex) — headline & subheadline', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
+    textColor:         { type: 'custom',  label: 'Number Colour (hex) — the countdown digits', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
     labelColor:        { type: 'custom',  label: 'Label Colour (hex)', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
     primaryButtonText: { type: 'text',    label: 'CTA Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',    label: 'CTA Button URL' },
@@ -278,6 +280,7 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     backgroundImage:   '',
     overlayOpacity:    55,
     cardColor:         '#ffffff',
+    headingColor:      '#1e293b',
     textColor:         '#1e293b',
     labelColor:        '#64748b',
     primaryButtonText: 'Shop the Sale',
