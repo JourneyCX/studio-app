@@ -8,6 +8,7 @@ import { ShippingSummary } from '@/components/Checkout/ShippingSummary'
 import { DeliveryAddressForm } from '@/components/Checkout/DeliveryAddressForm'
 import { Container }     from '@/components/Layout/Container'
 import { Columns }       from '@/components/Layout/Columns'
+import { ParallaxSection } from '@/components/Layout/ParallaxSection'
 import { TextBlock }     from '@/components/Content/TextBlock'
 import { ImageBlock }    from '@/components/Content/ImageBlock'
 import { IconBox }       from '@/components/Content/IconBox'
@@ -57,6 +58,7 @@ export const puckConfig: Config = {
   components: {
     Container,
     Columns,
+    ParallaxSection,
     TextBlock,
     ImageBlock,
     IconBox,
@@ -117,7 +119,7 @@ export const puckConfig: Config = {
     // from the Site Settings panel (Store Builder → Domain) instead.
     layout: {
       title: 'Layout',
-      components: ['Container', 'Columns'],
+      components: ['Container', 'Columns', 'ParallaxSection'],
     },
     content: {
       title: 'Content',
