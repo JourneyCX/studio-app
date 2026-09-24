@@ -21,6 +21,8 @@ export type CountdownTimerProps = {
   headingColor: string
   textColor: string
   labelColor: string
+  digitScale: number
+  digitsOffsetY: number
   primaryButtonText: string
   primaryButtonUrl: string
 }
@@ -40,9 +42,9 @@ function getTimeLeft(target: string): TimeLeft {
 
 function pad(n: number) { return String(n).padStart(2, '0') }
 
-interface UnitProps { value: number; label: string; cardStyle: 'card' | 'minimal' | 'neon'; accentColor: string; cardColor: string; textColor: string; labelColor: string }
+interface UnitProps { value: number; label: string; cardStyle: 'card' | 'minimal' | 'neon'; accentColor: string; cardColor: string; textColor: string; labelColor: string; scale: number }
 
-function TimeUnit({ value, label, cardStyle, accentColor, cardColor, textColor, labelColor }: UnitProps) {
+function TimeUnit({ value, label, cardStyle, accentColor, cardColor, textColor, labelColor, scale }: UnitProps) {
   const prevRef = useRef(value)
   const [flip, setFlip] = useState(false)
 
@@ -56,37 +58,38 @@ function TimeUnit({ value, label, cardStyle, accentColor, cardColor, textColor, 
   }, [value])
 
   const numStr = pad(value)
+  const px = (base: number) => Math.round(base * scale)
 
   const cardStyles: React.CSSProperties = {
     card: {
       backgroundColor: cardColor,
       borderRadius: 12,
-      padding: '20px 28px',
-      minWidth: 90,
+      padding: `${px(20)}px ${px(28)}px`,
+      minWidth: px(90),
       boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
       border: `2px solid ${accentColor}22`,
     },
     minimal: {
-      padding: '10px 20px',
-      minWidth: 80,
+      padding: `${px(10)}px ${px(20)}px`,
+      minWidth: px(80),
     },
     neon: {
       backgroundColor: '#000',
       borderRadius: 10,
-      padding: '18px 24px',
-      minWidth: 90,
+      padding: `${px(18)}px ${px(24)}px`,
+      minWidth: px(90),
       boxShadow: `0 0 20px ${accentColor}55, 0 0 40px ${accentColor}22, inset 0 0 20px rgba(0,0,0,0.5)`,
       border: `1px solid ${accentColor}66`,
     },
   }[cardStyle]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: px(8) }}>
       <div style={cardStyles}>
         <div
           key={`${numStr}-${flip}`}
           style={{
-            fontSize: 52,
+            fontSize: px(52),
             fontWeight: 800,
             lineHeight: 1,
             color: cardStyle === 'neon' ? accentColor : textColor,
@@ -99,16 +102,17 @@ function TimeUnit({ value, label, cardStyle, accentColor, cardColor, textColor, 
           {numStr}
         </div>
       </div>
-      <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: labelColor }}>
+      <span style={{ fontSize: px(12), fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: labelColor }}>
         {label}
       </span>
     </div>
   )
 }
 
-function Separator({ textColor }: { textColor: string }) {
+function Separator({ textColor, scale }: { textColor: string; scale: number }) {
+  const px = (base: number) => Math.round(base * scale)
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 28, color: textColor, opacity: 0.5, fontSize: 32, fontWeight: 800 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: px(12), paddingBottom: px(28), color: textColor, opacity: 0.5, fontSize: px(32), fontWeight: 800 }}>
       <span>:</span>
     </div>
   )
@@ -159,7 +163,8 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
 }
 
 function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, primaryButtonText, primaryButtonUrl } = props
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl } = props
+  const scale = (digitScale || 100) / 100
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
   const done = time.days === 0 && time.hours === 0 && time.minutes === 0 && time.seconds === 0
@@ -215,20 +220,22 @@ function TimerInner(props: CountdownTimerProps) {
         {headline && <h2 className="sb-text-fluid-md" style={{ color: headingColor, fontWeight: 800, margin: '0 0 14px' }}>{headline}</h2>}
         {subheadline && <p style={{ color: headingColor, opacity: 0.65, fontSize: 18, margin: '0 0 48px', lineHeight: 1.65 }}>{subheadline}</p>}
 
-        {done && endMessage ? (
-          <div style={{ padding: '32px 48px', backgroundColor: accentColor, borderRadius: 16, display: 'inline-block' }}>
-            <p style={{ color: '#fff', fontSize: 26, fontWeight: 800, margin: 0 }}>{endMessage}</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap', perspective: 600 }}>
-            {visibleUnits.map((u, i) => (
-              <>
-                <TimeUnit key={u.key} value={time[u.key]} label={u.label} cardStyle={cardStyle} accentColor={accentColor} cardColor={cardColor} textColor={textColor} labelColor={labelColor} />
-                {i < visibleUnits.length - 1 && <Separator textColor={textColor} />}
-              </>
-            ))}
-          </div>
-        )}
+        <div style={{ marginTop: digitsOffsetY || 0 }}>
+          {done && endMessage ? (
+            <div style={{ padding: '32px 48px', backgroundColor: accentColor, borderRadius: 16, display: 'inline-block' }}>
+              <p style={{ color: '#fff', fontSize: 26, fontWeight: 800, margin: 0 }}>{endMessage}</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: Math.round(12 * scale), flexWrap: 'wrap', perspective: 600 }}>
+              {visibleUnits.map((u, i) => (
+                <>
+                  <TimeUnit key={u.key} value={time[u.key]} label={u.label} cardStyle={cardStyle} accentColor={accentColor} cardColor={cardColor} textColor={textColor} labelColor={labelColor} scale={scale} />
+                  {i < visibleUnits.length - 1 && <Separator textColor={textColor} scale={scale} />}
+                </>
+              ))}
+            </div>
+          )}
+        </div>
 
         {primaryButtonText && (
           <div style={{ marginTop: 48 }}>
@@ -262,6 +269,8 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     headingColor:      { type: 'custom',  label: 'Heading Text Colour (hex) — headline & subheadline', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
     textColor:         { type: 'custom',  label: 'Number Colour (hex) — the countdown digits', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
     labelColor:        { type: 'custom',  label: 'Label Colour (hex)', render: ({ value, onChange, field }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} label={field.label} /> },
+    digitScale:        { type: 'number',  label: 'Digit Box Size (% of default, e.g. 70 = smaller)' },
+    digitsOffsetY:     { type: 'number',  label: 'Digit Row Vertical Offset (px, + moves down / − moves up)' },
     primaryButtonText: { type: 'text',    label: 'CTA Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',    label: 'CTA Button URL' },
   },
@@ -283,6 +292,8 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     headingColor:      '#1e293b',
     textColor:         '#1e293b',
     labelColor:        '#64748b',
+    digitScale:        100,
+    digitsOffsetY:     0,
     primaryButtonText: 'Shop the Sale',
     primaryButtonUrl:  '/sale',
   },
