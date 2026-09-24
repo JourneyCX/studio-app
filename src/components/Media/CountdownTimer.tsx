@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { ImageUploadField } from '../shared/ImageUploadField'
 
 export type CountdownTimerProps = {
   targetDate: string
@@ -14,6 +15,8 @@ export type CountdownTimerProps = {
   cardStyle: 'card' | 'minimal' | 'neon' | 'bar'
   accentColor: string
   backgroundColor: string
+  backgroundImage: string
+  overlayOpacity: number
   cardColor: string
   textColor: string
   labelColor: string
@@ -155,7 +158,7 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
 }
 
 function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, cardColor, textColor, labelColor, primaryButtonText, primaryButtonUrl } = props
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, textColor, labelColor, primaryButtonText, primaryButtonUrl } = props
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
   const done = time.days === 0 && time.hours === 0 && time.minutes === 0 && time.seconds === 0
@@ -177,9 +180,20 @@ function TimerInner(props: CountdownTimerProps) {
     { key: 'seconds', label: 'Seconds', show: showSeconds },
   ]
   const visibleUnits = units.filter((u) => u.show)
+  const hasImage = !!backgroundImage
 
   return (
-    <section style={{ backgroundColor, padding: '72px 24px', textAlign: 'center' }}>
+    <section
+      style={{
+        position: 'relative',
+        backgroundColor: hasImage ? undefined : backgroundColor,
+        backgroundImage: hasImage ? `url(${backgroundImage})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: '72px 24px',
+        textAlign: 'center',
+      }}
+    >
       <style>{`
         @keyframes cd-flip {
           0%   { transform: rotateX(-90deg) scale(0.8); opacity: 0; }
@@ -188,7 +202,11 @@ function TimerInner(props: CountdownTimerProps) {
         }
       `}</style>
 
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
+      {hasImage && (
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
+      )}
+
+      <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, margin: '0 auto' }}>
         {/* sb-text-fluid-md (styles/responsive.css) scales this down on
             narrow screens instead of staying fixed at 36px — the countdown
             digits/separator below stay fixed, they're short and narrow
@@ -237,6 +255,8 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     cardStyle:         { type: 'select',  label: 'Card Style', options: [{ label: 'Card (classic)', value: 'card' }, { label: 'Minimal (borderless)', value: 'minimal' }, { label: 'Neon (dark glow)', value: 'neon' }, { label: 'Bar (slim announcement — fits columns)', value: 'bar' }] },
     accentColor:       { type: 'custom',  label: 'Accent / Glow Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundColor:   { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundImage:   { type: 'custom', label: 'Background Image (optional, overrides colour)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    overlayOpacity:    { type: 'number', label: 'Dark Overlay (0–100, used with image)' },
     cardColor:         { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     textColor:         { type: 'custom',  label: 'Number Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     labelColor:        { type: 'custom',  label: 'Label Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
@@ -255,6 +275,8 @@ export const CountdownTimer: ComponentConfig<CountdownTimerProps> = {
     cardStyle:         'card',
     accentColor:       '#2563eb',
     backgroundColor:   '#f8fafc',
+    backgroundImage:   '',
+    overlayOpacity:    55,
     cardColor:         '#ffffff',
     textColor:         '#1e293b',
     labelColor:        '#64748b',
