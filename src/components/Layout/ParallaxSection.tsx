@@ -3,7 +3,7 @@ import { DropZone, type ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { ColorField } from '../shared/ColorField'
 
-type MidgroundPosition = 'center' | 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+type MidgroundPosition = 'center' | 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'
 
 export type ParallaxSectionProps = {
   backgroundImage: string
@@ -62,21 +62,29 @@ function backgroundLayerStyle(image: string): CSSProperties {
 function midgroundAnchorStyle(position: MidgroundPosition): CSSProperties {
   const base: CSSProperties = { position: 'absolute', willChange: 'transform', pointerEvents: 'none' }
   switch (position) {
-    case 'top-left':     return { ...base, top: 24, left: 24 }
-    case 'top-right':    return { ...base, top: 24, right: 24 }
-    case 'bottom-left':  return { ...base, bottom: 24, left: 24 }
-    case 'bottom-right': return { ...base, bottom: 24, right: 24 }
+    case 'top-left':      return { ...base, top: 24, left: 24 }
+    case 'top-center':    return { ...base, top: 24, left: '50%' }
+    case 'top-right':     return { ...base, top: 24, right: 24 }
+    case 'bottom-left':   return { ...base, bottom: 24, left: 24 }
+    case 'bottom-center': return { ...base, bottom: 24, left: '50%' }
+    case 'bottom-right':  return { ...base, bottom: 24, right: 24 }
     case 'center':
-    default:              return { ...base, top: '50%', left: '50%' }
+    default:               return { ...base, top: '50%', left: '50%' }
   }
 }
 
-// 'center' is anchored via top:50%/left:50%, so its own centring transform
-// has to be composed with the scroll-driven translateY rather than
-// overwritten by it — translateY() after translate(-50%,-50%) simply adds to
-// the same axis, so this composes correctly with no extra math needed.
+// Anchors placed at left:50% (center, top-center, bottom-center) need their
+// own horizontal-centring transform composed with the scroll-driven
+// translateY rather than overwritten by it — translateX/Y() after
+// translate(-50%, ...) simply adds to its own axis, so this composes
+// correctly with no extra math needed.
 function midgroundBaseTransform(position: MidgroundPosition): string {
-  return position === 'center' ? 'translate(-50%, -50%) ' : ''
+  switch (position) {
+    case 'center':        return 'translate(-50%, -50%) '
+    case 'top-center':
+    case 'bottom-center': return 'translateX(-50%) '
+    default:               return ''
+  }
 }
 
 // Reads getBoundingClientRect() on scroll (already viewport-relative, so no
@@ -174,7 +182,7 @@ export const ParallaxSection: ComponentConfig<ParallaxSectionProps> = {
     midgroundImage:    { type: 'custom', label: 'Midground Image (optional — a decorative element shown at its own size/aspect ratio, e.g. a logo or graphic; use a transparent PNG so the Background layer stays visible around it)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     midgroundSpeed:    { type: 'number', label: 'Midground Speed (0 = none, 100 = strongest)' },
     midgroundWidth:    { type: 'number', label: 'Midground Width (px — height scales automatically)' },
-    midgroundPosition: { type: 'select', label: 'Midground Position', options: [{ label: 'Centre', value: 'center' }, { label: 'Top Left', value: 'top-left' }, { label: 'Top Right', value: 'top-right' }, { label: 'Bottom Left', value: 'bottom-left' }, { label: 'Bottom Right', value: 'bottom-right' }] },
+    midgroundPosition: { type: 'select', label: 'Midground Position', options: [{ label: 'Centre', value: 'center' }, { label: 'Top Left', value: 'top-left' }, { label: 'Top Centre', value: 'top-center' }, { label: 'Top Right', value: 'top-right' }, { label: 'Bottom Left', value: 'bottom-left' }, { label: 'Bottom Centre', value: 'bottom-center' }, { label: 'Bottom Right', value: 'bottom-right' }] },
     overlayColor:      { type: 'custom', label: 'Overlay Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:    { type: 'number', label: 'Overlay Opacity (0–100)' },
     minHeight:         { type: 'number', label: 'Min Height (px)' },
