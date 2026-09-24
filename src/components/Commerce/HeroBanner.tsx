@@ -15,6 +15,7 @@ export type HeroBannerProps = {
   overlayOpacity: number
   textAlign: 'left' | 'center' | 'right'
   minHeight: number
+  borderRadius: number
   // 0 (default) keeps the headline on the responsive sb-text-fluid-lg clamp
   // (28px–52px across viewport widths) instead of a fixed size.
   headlineFontSize: number
@@ -36,6 +37,7 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
     overlayOpacity:    { type: 'number',  label: 'Dark Overlay (0–100)' },
     textAlign:         { type: 'select',  label: 'Text Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
     minHeight:         { type: 'number',  label: 'Min Height (px)' },
+    borderRadius:      { type: 'number',  label: 'Border Radius (px)' },
     headlineFontSize:    { type: 'number', label: 'Headline Font Size (px, 0 = auto)' },
     subheadlineFontSize: { type: 'number', label: 'Subheadline Font Size (px, 0 = auto)' },
   },
@@ -52,10 +54,11 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
     overlayOpacity:    40,
     textAlign:         'center',
     minHeight:         480,
+    borderRadius:      0,
     headlineFontSize:    0,
     subheadlineFontSize: 0,
   },
-  render({ headline, subheadline, buttonText, buttonUrl, buttonColor, buttonTextColor, buttonBorderColor, buttonBorderWidth, backgroundImage, overlayOpacity, textAlign, minHeight, headlineFontSize, subheadlineFontSize }) {
+  render({ headline, subheadline, buttonText, buttonUrl, buttonColor, buttonTextColor, buttonBorderColor, buttonBorderWidth, backgroundImage, overlayOpacity, textAlign, minHeight, borderRadius, headlineFontSize, subheadlineFontSize }) {
     return (
       <div
         style={{
@@ -70,6 +73,8 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
           backgroundPosition: 'center',
           padding: '40px 24px',
           textAlign,
+          borderRadius,
+          overflow: 'hidden',
         }}
       >
         {backgroundImage && (
