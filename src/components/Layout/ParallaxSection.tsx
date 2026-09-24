@@ -120,7 +120,7 @@ export const ParallaxSection: ComponentConfig<ParallaxSectionProps> = {
   fields: {
     backgroundImage: { type: 'custom', label: 'Background Image', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     backgroundSpeed: { type: 'number', label: 'Background Speed (0 = none, 100 = strongest)' },
-    midgroundImage:  { type: 'custom', label: 'Midground Image (optional — adds a second depth layer)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    midgroundImage:  { type: 'custom', label: 'Midground Image (optional — use a transparent PNG so the Background layer shows through; an opaque photo the same size will hide it completely)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     midgroundSpeed:  { type: 'number', label: 'Midground Speed (0 = none, 100 = strongest)' },
     overlayColor:    { type: 'custom', label: 'Overlay Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     overlayOpacity:  { type: 'number', label: 'Overlay Opacity (0–100)' },
