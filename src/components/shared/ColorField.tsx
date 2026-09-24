@@ -1,3 +1,5 @@
+import { FieldLabel } from '@measured/puck'
+
 const HEX_RE = /^#[0-9a-fA-F]{6}$/
 
 // <input type="color"> only accepts strict #rrggbb — falls back to a neutral grey
@@ -9,8 +11,13 @@ function toColorInputValue(v: string): string {
   return HEX_RE.test(v) ? v : '#cccccc'
 }
 
-export function ColorField({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder?: string }) {
-  return (
+// Puck's `type: 'custom'` fields render with zero label wrapper (unlike text/
+// select/etc, which get one automatically) — without this, every colour swatch
+// in a panel with several of them looks identical and unlabelled. `label` is
+// optional so the ~100 existing call sites that don't pass one keep rendering
+// exactly as before.
+export function ColorField({ value, onChange, placeholder, label }: { value: string; onChange: (v: string) => void; placeholder?: string; label?: string }) {
+  const swatch = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <label
         style={{
@@ -38,4 +45,8 @@ export function ColorField({ value, onChange, placeholder }: { value: string; on
       />
     </div>
   )
+
+  // el="div" — FieldLabel defaults to wrapping in a <label>, which would nest
+  // inside the swatch's own <label> above and produce invalid, flaky-to-click HTML.
+  return label ? <FieldLabel label={label} el="div">{swatch}</FieldLabel> : swatch
 }
