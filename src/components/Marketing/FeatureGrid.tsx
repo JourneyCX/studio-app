@@ -1,5 +1,8 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { ImageUploadField } from '../shared/ImageUploadField'
+
+const ICON_IMAGE_PATTERN = /^(https?:\/\/|\/|data:image)/
 
 type FeatureItem = {
   icon: string
@@ -32,7 +35,7 @@ export const FeatureGrid: ComponentConfig<FeatureGridProps> = {
       type: 'array',
       label: 'Features',
       arrayFields: {
-        icon:        { type: 'text',    label: 'Icon (emoji or symbol, e.g. 🚀)' },
+        icon:        { type: 'custom',  label: 'Icon (emoji, symbol, or uploaded image)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
         title:       { type: 'text',    label: 'Feature Title' },
         description: { type: 'textarea', label: 'Feature Description' },
       },
@@ -86,7 +89,9 @@ export const FeatureGrid: ComponentConfig<FeatureGridProps> = {
                 }}
               >
                 {item.icon && (
-                  <div style={{ fontSize: 36, marginBottom: 16, color: accentColor }}>{item.icon}</div>
+                  ICON_IMAGE_PATTERN.test(item.icon)
+                    ? <img src={item.icon} alt="" style={{ width: 36, height: 36, marginBottom: 16, objectFit: 'contain' }} />
+                    : <div style={{ fontSize: 36, marginBottom: 16, color: accentColor }}>{item.icon}</div>
                 )}
                 <h3 style={{ color: textColor, fontSize: 20, fontWeight: 700, margin: '0 0 10px' }}>{item.title}</h3>
                 <p style={{ color: textColor, opacity: 0.7, fontSize: 15, margin: 0, lineHeight: 1.65 }}>{item.description}</p>
