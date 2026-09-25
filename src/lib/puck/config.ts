@@ -28,6 +28,7 @@ import { CollectionDetail } from '@/components/Commerce/CollectionDetail'
 import { ProductShowcase }  from '@/components/Commerce/ProductShowcase'
 import { ProductCarousel }  from '@/components/Commerce/ProductCarousel'
 import { CollectionCarousel } from '@/components/Commerce/CollectionCarousel'
+import { CollectionsCarousel } from '@/components/Commerce/CollectionsCarousel'
 import { CartWidget }       from '@/components/Commerce/CartWidget'
 import { ProductFilter }    from '@/components/Commerce/ProductFilter'
 import { AnimatedTimeline }  from '@/components/Advanced/AnimatedTimeline'
@@ -79,6 +80,7 @@ export const puckConfig: Config = {
     ProductShowcase,
     ProductCarousel,
     CollectionCarousel,
+    CollectionsCarousel,
     CartWidget,
     ProductFilter,
     AnimatedTimeline,
@@ -129,7 +131,7 @@ export const puckConfig: Config = {
     },
     commerce: {
       title: 'E-commerce',
-      components: ['HeroSlider', 'HeroBanner', 'PromoBannerGrid', 'LogoStrip', 'ProductGrid', 'ProductCard', 'ProductDetail', 'ProductTabs', 'RelatedProducts', 'CollectionList', 'CollectionDetail', 'ProductShowcase', 'ProductCarousel', 'CollectionCarousel', 'CartWidget', 'ProductFilter'],
+      components: ['HeroSlider', 'HeroBanner', 'PromoBannerGrid', 'LogoStrip', 'ProductGrid', 'ProductCard', 'ProductDetail', 'ProductTabs', 'RelatedProducts', 'CollectionList', 'CollectionDetail', 'ProductShowcase', 'ProductCarousel', 'CollectionCarousel', 'CollectionsCarousel', 'CartWidget', 'ProductFilter'],
     },
     marketing: {
       title: 'Marketing',
