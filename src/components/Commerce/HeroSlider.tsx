@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { ColorField } from '../shared/ColorField'
+import { FONT_OPTIONS } from '../SiteSettings/FontsSection'
 
 type ButtonPosition = 'inline' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'top-left' | 'top-center' | 'top-right'
 type ButtonStyle = 'solid' | 'outline'
@@ -25,6 +26,10 @@ type Slide = {
   // convention as HeroBanner's headlineFontSize/subheadlineFontSize.
   headlineFontSize: number
   subheadlineFontSize: number
+  // Empty string keeps the theme's default body font (inherited from the
+  // page). Any other value is a literal CSS font-family string, same
+  // convention as FONT_OPTIONS in Site Settings > Fonts.
+  fontFamily: string
   // Distance (px) between the text block and the button. Applies whether the
   // button sits inline below the text or is anchored to one of the
   // top/bottom-* positions — those now anchor to the text block's own edge
@@ -131,12 +136,12 @@ function SliderInner({ slides, minHeight, autoPlay, autoPlayInterval, showDots, 
           {slide.headline && (
             /* sb-text-fluid-lg (styles/responsive.css) scales this down on
                narrow screens instead of staying fixed at 52px. */
-            <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 18px', lineHeight: 1.12, textShadow: '0 2px 8px rgba(0,0,0,0.4)', ...(slide.headlineFontSize ? { fontSize: slide.headlineFontSize } : {}) }}>
+            <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 18px', lineHeight: 1.12, textShadow: '0 2px 8px rgba(0,0,0,0.4)', ...(slide.fontFamily ? { fontFamily: slide.fontFamily } : {}), ...(slide.headlineFontSize ? { fontSize: slide.headlineFontSize } : {}) }}>
               {slide.headline}
             </h1>
           )}
           {slide.subheadline && (
-            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : `0 0 ${slide.buttonGap ?? 20}px`, lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)' }}>
+            <p style={{ color: 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : `0 0 ${slide.buttonGap ?? 20}px`, lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)', ...(slide.fontFamily ? { fontFamily: slide.fontFamily } : {}) }}>
               {slide.subheadline}
             </p>
           )}
@@ -185,6 +190,10 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         image:           { type: 'custom',   label: 'Background Image', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
         headline:        { type: 'text',     label: 'Headline' },
         subheadline:     { type: 'textarea', label: 'Subheadline' },
+        fontFamily:      { type: 'select',   label: 'Text Font', options: [
+          { label: 'Theme default', value: '' },
+          ...FONT_OPTIONS,
+        ]},
         textAlign:       { type: 'select',   label: 'Text Align', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
         overlayOpacity:  { type: 'number',   label: 'Overlay Darkness (0–100)' },
         slideClickable:  { type: 'radio',    label: 'Whole slide is link', options: [{ label: 'Yes', value: true }, { label: 'No — use button', value: false }] },
@@ -227,7 +236,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         backgroundSize: 'cover', backgroundPosition: 'center',
         buttonText: 'Shop Now', buttonUrl: '/shop',
         buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left',
-        headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20,
+        headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '',
       },
       getItemSummary: (item: Slide) => item.headline || 'Slide',
     },
@@ -235,8 +244,8 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
   defaultProps: {
     minHeight: 520, autoPlay: true, autoPlayInterval: 5000, showDots: true, showArrows: true,
     slides: [
-      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20 },
-      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20 },
+      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '' },
+      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '' },
     ],
   },
   render(props) { return <SliderInner {...props} /> },
