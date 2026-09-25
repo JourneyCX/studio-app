@@ -397,15 +397,33 @@ export const stratumApi = {
   },
 
   // Real published posts for BlogPostList's "Auto" mode live-preview render
-  // inside the Puck editor — see Store_builder_api::blog_posts().
-  getBlogPosts(tenantId: number, token: string, limit?: number): Promise<{ data: StoreBlogPost[] }> {
-    const qs = limit ? `&limit=${limit}` : ''
-    return request('GET', `/admin/store_builder_api/blog_posts?tenantId=${tenantId}${qs}`, token)
+  // inside the Puck editor — see Store_builder_api::blog_posts(). categorySlug
+  // restricts to one Store Blog category (see blog_categories() below) —
+  // singular, unlike ProductGrid's comma-separated categorySlug, since the
+  // backend filter only supports one category per request.
+  getBlogPosts(tenantId: number, token: string, limit?: number, categorySlug?: string): Promise<{ data: StoreBlogPost[] }> {
+    const params = new URLSearchParams({ tenantId: String(tenantId) })
+    if (limit) params.set('limit', String(limit))
+    if (categorySlug) params.set('category', categorySlug)
+    return request('GET', `/admin/store_builder_api/blog_posts?${params.toString()}`, token)
   },
 
   // Convenience wrapper — uses the module-level active token/tenant (set after login).
-  getActiveBlogPosts(limit?: number): Promise<{ data: StoreBlogPost[] }> {
-    return stratumApi.getBlogPosts(_activeTenantId, _activeToken, limit)
+  getActiveBlogPosts(limit?: number, categorySlug?: string): Promise<{ data: StoreBlogPost[] }> {
+    return stratumApi.getBlogPosts(_activeTenantId, _activeToken, limit, categorySlug)
+  },
+
+  // Blog category dropdown for BlogPostList's "Filter by Category" field —
+  // same {name, slug} shape as getCategories() above, but reads the tenant's
+  // own Store Blog categories rather than WooCommerce. See
+  // Store_builder_api::blog_categories().
+  getBlogCategories(tenantId: number, token: string): Promise<{ categories: Array<{ name: string; slug: string }> }> {
+    return request('GET', `/admin/store_builder_api/blog_categories?tenantId=${tenantId}`, token)
+  },
+
+  // Convenience wrapper — uses the module-level active token/tenant (set after login).
+  getActiveBlogCategories(): Promise<{ categories: Array<{ name: string; slug: string }> }> {
+    return stratumApi.getBlogCategories(_activeTenantId, _activeToken)
   },
 
   // AITool block's resolveData() — this tenant's Storefront AI Block proxy

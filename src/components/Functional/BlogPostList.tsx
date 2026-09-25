@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { BlogCategorySelectField } from '../shared/BlogCategorySelectField'
 import { useTenantBlogPosts } from '../../lib/hooks/useTenantBlogPosts'
 import type { StoreBlogPost } from '../../lib/api'
 
@@ -52,6 +53,10 @@ export type BlogPostListProps = {
   // Additive field — absent on any page saved before this existed, which must keep
   // rendering its hand-typed `posts` array exactly as before (see ?? 'manual' below).
   postsSource?: 'manual' | 'auto'
+  // Restricts Auto mode to one Store Blog category. '' (or absent, on any page
+  // saved before this field existed) means "all categories" — only meaningful
+  // when postsSource === 'auto' (see resolveFields below).
+  categorySlug?: string
   accentColor: string
   backgroundColor: string
   cardColor: string
@@ -133,6 +138,10 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
         { label: 'Manual — pick posts below', value: 'manual' },
       ],
     },
+    categorySlug: {
+      type: 'custom', label: 'Filter by Category',
+      render: ({ value, onChange }) => <BlogCategorySelectField value={(value as string) ?? ''} onChange={onChange as (v: string) => void} blankLabel="All Categories" />,
+    },
     rowsToShow: {
       type: 'select', label: 'Rows to Show',
       options: [
@@ -165,12 +174,17 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
   },
   // Auto mode ignores the hand-typed `posts` array entirely (see render() below) — hide
   // its field so the panel can't show unrelated placeholder posts next to a live preview.
+  // Manual mode has no category to filter by (categorySlug only affects the live fetch),
+  // so hide that field there instead.
   resolveFields(data, { fields }) {
     const isAuto = (data.props.postsSource ?? 'manual') === 'auto'
-    if (!isAuto) return fields
     // Puck's Fields<Props> type requires every prop key, including required ones like
     // `posts` — but omitting a key here is exactly how you hide a field in the panel.
-    const { posts: _posts, ...rest } = fields
+    if (isAuto) {
+      const { posts: _posts, ...rest } = fields
+      return rest as typeof fields
+    }
+    const { categorySlug: _categorySlug, ...rest } = fields
     return rest as typeof fields
   },
   // Backfill rowsToShow on any block placed before this field existed. Without this, its
@@ -197,6 +211,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     ctaUrl:       '',
     rowsToShow:   0,
     postsSource:  'auto',
+    categorySlug: '',
     accentColor:  '#2563eb',
     backgroundColor: '#f8fafc',
     cardColor:    '#ffffff',
@@ -208,7 +223,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       { title: 'Sustainable Packaging: Why It Matters', excerpt: 'How we\'re rethinking our packaging to reduce waste without compromising on quality or presentation.', thumbnail: '', date: '2 May 2025', author: 'Jordan L.', category: 'Sustainability', url: '/blog/packaging' },
     ],
   },
-  render({ headline, subheadline, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, rowsToShow, postsSource, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
+  render({ headline, subheadline, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, rowsToShow, postsSource, categorySlug, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
     const cardProps = { layout, showAuthor, showDate, showCategory, showExcerpt, readMoreText, accentColor, cardColor, textColor, borderRadius }
     // ?? 'manual' (not 'auto'): a page saved before this field existed has no
     // postsSource key at all and must keep rendering its hand-typed posts
@@ -217,7 +232,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     // rowsToShow (0 = "All") drives the count as `rows * columns`; a page saved before
     // rowsToShow existed falls back to its own postCount, then to showing everything.
     const effectiveCount = rowsToShow ? rowsToShow * columns : (typeof postCount === 'number' ? postCount : undefined)
-    const { status, posts: livePosts } = useTenantBlogPosts(effectiveCount, isAuto)
+    const { status, posts: livePosts } = useTenantBlogPosts(effectiveCount, isAuto, categorySlug)
 
     let posts: BlogPost[]
     let loadError = false
