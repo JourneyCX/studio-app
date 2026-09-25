@@ -17,7 +17,7 @@ export type VideoBackgroundProps = {
   primaryButtonColor: string
   secondaryButtonText: string
   secondaryButtonUrl: string
-  textAlign: 'left' | 'center'
+  textAlign: 'left' | 'center' | 'left-bottom' | 'center-bottom'
   showMuteToggle: boolean
 }
 
@@ -42,7 +42,7 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
     primaryButtonColor:  { type: 'custom',   label: 'Primary Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     secondaryButtonText: { type: 'text',     label: 'Secondary Button Text' },
     secondaryButtonUrl:  { type: 'text',     label: 'Secondary Button URL' },
-    textAlign:           { type: 'select',   label: 'Content Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }] },
+    textAlign:           { type: 'select',   label: 'Content Alignment', options: [{ label: 'Centre', value: 'center' }, { label: 'Left', value: 'left' }, { label: 'Centre Bottom', value: 'center-bottom' }, { label: 'Left Bottom', value: 'left-bottom' }] },
     showMuteToggle:      { type: 'radio',    label: 'Show Mute Toggle (MP4 only)', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
   },
   defaultProps: {
@@ -73,6 +73,12 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
     const hasMp4    = videoType === 'mp4' && !!videoUrl
     const hasFallback = !!fallbackImage
 
+    // textAlign carries both horizontal ('left'/'center') and vertical ('-bottom' suffix)
+    // positioning, so it isn't a valid raw CSS text-align value on its own — derive both axes.
+    const isBottom  = textAlign === 'left-bottom' || textAlign === 'center-bottom'
+    const isLeft    = textAlign === 'left' || textAlign === 'left-bottom'
+    const hAlign: 'left' | 'center' = isLeft ? 'left' : 'center'
+
     const hexToRgb = (hex: string) => {
       const r = parseInt(hex.slice(1, 3), 16)
       const g = parseInt(hex.slice(3, 5), 16)
@@ -87,8 +93,8 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
           minHeight,
           overflow: 'hidden',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: textAlign === 'center' ? 'center' : 'flex-start',
+          alignItems: isBottom ? 'flex-end' : 'center',
+          justifyContent: isLeft ? 'flex-start' : 'center',
           backgroundColor: '#0f172a',
         }}
       >
@@ -134,7 +140,7 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
         )}
 
         {/* Content */}
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: textAlign === 'center' ? 700 : 580, padding: '64px 40px', textAlign }}>
+        <div style={{ position: 'relative', zIndex: 2, maxWidth: isLeft ? 580 : 700, padding: '64px 40px', textAlign: hAlign }}>
           {/* sb-text-fluid-lg (styles/responsive.css) scales this down on
               narrow screens instead of staying fixed at 52px. */}
           {headline && (
@@ -147,7 +153,7 @@ export const VideoBackground: ComponentConfig<VideoBackgroundProps> = {
               {subheadline}
             </p>
           )}
-          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: textAlign === 'center' ? 'center' : 'flex-start' }}>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: isLeft ? 'flex-start' : 'center' }}>
             {primaryButtonText && (
               <a href={primaryButtonUrl} style={{ display: 'inline-block', backgroundColor: primaryButtonColor, color: primaryButtonColor === '#ffffff' || primaryButtonColor === '#fff' ? '#1e293b' : '#fff', padding: '14px 36px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>
                 {primaryButtonText}
