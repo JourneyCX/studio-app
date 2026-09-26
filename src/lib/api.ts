@@ -148,8 +148,22 @@ export interface StoreCollection {
   image_url: string | null
   is_published: boolean
   page_slug: string | null
+  // "Belongs to a theme" protection — non-null theme_id means
+  // Store_builder_api::collection_delete() refuses to delete this
+  // collection until it's explicitly unlinked first. theme_name is a
+  // convenience denormalization for display only, never sent back.
+  theme_id: number | null
+  theme_name: string | null
   item_count?: number
   product_ids?: number[]
+}
+
+// A published theme, as returned by Store_builder_api::collection_themes() —
+// the "Belongs to a theme" picker's option list.
+export interface StoreThemeOption {
+  id: number
+  name: string
+  slug: string
 }
 
 // Real published post, as returned by Store_builder_api::blog_posts(). url is
@@ -394,6 +408,30 @@ export const stratumApi = {
 
   setActiveCollectionPublished(id: number, published: boolean): Promise<{ success: boolean; page_slug: string | null }> {
     return stratumApi.setCollectionPublished(_activeTenantId, _activeToken, id, published)
+  },
+
+  getCollectionThemes(tenantId: number, token: string): Promise<{ themes: StoreThemeOption[] }> {
+    return request('GET', `/admin/store_builder_api/collection_themes/${tenantId}`, token)
+  },
+
+  getActiveCollectionThemes(): Promise<{ themes: StoreThemeOption[] }> {
+    return stratumApi.getCollectionThemes(_activeTenantId, _activeToken)
+  },
+
+  linkCollectionTheme(tenantId: number, token: string, id: number, themeId: number): Promise<{ success: boolean; theme_id: number; theme_name: string }> {
+    return request('POST', `/admin/store_builder_api/collection_link_theme/${tenantId}`, token, { id, theme_id: themeId })
+  },
+
+  linkActiveCollectionTheme(id: number, themeId: number): Promise<{ success: boolean; theme_id: number; theme_name: string }> {
+    return stratumApi.linkCollectionTheme(_activeTenantId, _activeToken, id, themeId)
+  },
+
+  unlinkCollectionTheme(tenantId: number, token: string, id: number): Promise<{ success: boolean }> {
+    return request('POST', `/admin/store_builder_api/collection_unlink_theme/${tenantId}`, token, { id })
+  },
+
+  unlinkActiveCollectionTheme(id: number): Promise<{ success: boolean }> {
+    return stratumApi.unlinkCollectionTheme(_activeTenantId, _activeToken, id)
   },
 
   // Real published posts for BlogPostList's "Auto" mode live-preview render
