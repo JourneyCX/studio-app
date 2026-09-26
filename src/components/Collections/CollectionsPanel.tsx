@@ -31,9 +31,6 @@ export function CollectionsPanel({ onClose, onNavigateToPage }: CollectionsPanel
   const [error, setError]     = useState('')
   const [editing, setEditing] = useState<StoreCollection | null | 'new'>(null)
   const [publishingId, setPublishingId] = useState<number | null>(null)
-  // Which collection's inline theme-picker <select> is currently open — at
-  // most one at a time, closed again on pick/cancel/blur.
-  const [pickingThemeId, setPickingThemeId] = useState<number | null>(null)
   const [linkBusyId, setLinkBusyId] = useState<number | null>(null)
 
   const load = () => {
@@ -60,27 +57,34 @@ export function CollectionsPanel({ onClose, onNavigateToPage }: CollectionsPanel
     }
   }
 
-  const handleLinkTheme = async (c: StoreCollection, themeId: number) => {
+  // Single control for both directions — a plain <select> whose value IS the
+  // link state, rather than a button that reveals a picker. Replaces an
+  // earlier two-step button-then-dropdown version that a merchant reported
+  // as "clicking does nothing" (most likely the native <select> replacing a
+  // similar-looking button in place, an easy-to-miss DOM swap — this
+  // collapses it to one always-visible, unambiguous control instead of
+  // fixing that theory blind).
+  const handleThemeChange = async (c: StoreCollection, value: string) => {
+    if (value === String(c.theme_id ?? '')) return // no actual change
+    if (value === '') {
+      if (!confirm(`Unlink "${c.name}" from "${c.theme_name}"? It will no longer be protected from deletion.`)) return
+      setLinkBusyId(c.id)
+      try {
+        await stratumApi.unlinkActiveCollectionTheme(c.id)
+        setCollections(prev => prev.map(x => x.id === c.id ? { ...x, theme_id: null, theme_name: null } : x))
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to unlink theme')
+      } finally {
+        setLinkBusyId(null)
+      }
+      return
+    }
     setLinkBusyId(c.id)
-    setPickingThemeId(null)
     try {
-      const result = await stratumApi.linkActiveCollectionTheme(c.id, themeId)
+      const result = await stratumApi.linkActiveCollectionTheme(c.id, Number(value))
       setCollections(prev => prev.map(x => x.id === c.id ? { ...x, theme_id: result.theme_id, theme_name: result.theme_name } : x))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to link theme')
-    } finally {
-      setLinkBusyId(null)
-    }
-  }
-
-  const handleUnlinkTheme = async (c: StoreCollection) => {
-    if (!confirm(`Unlink "${c.name}" from "${c.theme_name}"? It will no longer be protected from deletion.`)) return
-    setLinkBusyId(c.id)
-    try {
-      await stratumApi.unlinkActiveCollectionTheme(c.id)
-      setCollections(prev => prev.map(x => x.id === c.id ? { ...x, theme_id: null, theme_name: null } : x))
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to unlink theme')
     } finally {
       setLinkBusyId(null)
     }
@@ -172,46 +176,22 @@ export function CollectionsPanel({ onClose, onNavigateToPage }: CollectionsPanel
                 {/* "Belongs to a theme" protection — separate row so it reads as a
                     distinct, deliberate status rather than crowding the action bar
                     above. Linking is the actual delete-protection mechanism (see
-                    collection_delete()'s 409 guard); this is just its UI. */}
+                    collection_delete()'s 409 guard); this is just its UI. One
+                    always-visible <select> whose value IS the link state (rather
+                    than a button that reveals a picker) so there's no separate
+                    "did my click register" step to miss. */}
                 <div style={{ marginTop: 6, paddingTop: 6, borderTop: '1px dashed #f1f5f9', display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {c.theme_id ? (
-                    <>
-                      <span style={{ fontSize: 11.5, color: '#0f172a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        🔒 Protected by <em style={{ fontStyle: 'normal', color: '#2563eb' }}>{c.theme_name}</em>
-                      </span>
-                      <button
-                        onClick={() => handleUnlinkTheme(c)}
-                        disabled={linkBusyId === c.id}
-                        style={{ ...iconBtn, fontSize: 11, padding: '3px 7px', color: '#64748b' }}
-                      >
-                        {linkBusyId === c.id ? '…' : 'Unlink'}
-                      </button>
-                    </>
-                  ) : pickingThemeId === c.id ? (
-                    <>
-                      <select
-                        autoFocus
-                        defaultValue=""
-                        disabled={linkBusyId === c.id}
-                        onChange={e => { const v = Number(e.target.value); if (v) handleLinkTheme(c, v) }}
-                        onBlur={() => setPickingThemeId(null)}
-                        style={{ fontSize: 11.5, padding: '3px 6px', borderRadius: 5, border: '1px solid #e2e8f0' }}
-                      >
-                        <option value="" disabled>Choose a theme…</option>
-                        {themes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                      </select>
-                      <button onClick={() => setPickingThemeId(null)} style={{ ...iconBtn, fontSize: 11, padding: '3px 7px' }}>Cancel</button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => setPickingThemeId(c.id)}
-                      disabled={themes.length === 0}
-                      title={themes.length === 0 ? 'No published themes yet' : 'Link this collection to a theme so it can\'t be deleted by accident'}
-                      style={{ ...iconBtn, fontSize: 11, padding: '3px 7px', color: '#64748b' }}
-                    >
-                      🔗 Belongs to a theme…
-                    </button>
-                  )}
+                  {c.theme_id && <span style={{ fontSize: 13 }} title={`Protected by "${c.theme_name}" — can't be deleted while linked`}>🔒</span>}
+                  <select
+                    value={c.theme_id ?? ''}
+                    disabled={linkBusyId === c.id}
+                    onChange={e => handleThemeChange(c, e.target.value)}
+                    style={{ fontSize: 11.5, padding: '3px 6px', borderRadius: 5, border: '1px solid #e2e8f0', color: c.theme_id ? '#0f172a' : '#64748b', maxWidth: 220 }}
+                  >
+                    <option value="">Belongs to a theme…</option>
+                    {themes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                  {linkBusyId === c.id && <span style={{ fontSize: 11, color: '#94a3b8' }}>Saving…</span>}
                 </div>
               </div>
             ))
