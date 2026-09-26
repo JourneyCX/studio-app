@@ -66,6 +66,14 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
   const [pages, setPages]     = useState<StorePage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
+  // A tenant like Demo easily accumulates 30+ pages across many themes'
+  // worth of building — with no search, finding one specific page in the
+  // "Not in Menu" list meant scrolling and eyeballing an unsorted list
+  // (confirmed a real problem live 2026-09-26: Dana reported several real,
+  // published, correctly-listed pages as "not visible anywhere" when they
+  // were just further down than she scrolled). Matches page_name or
+  // page_slug, case-insensitive substring.
+  const [search, setSearch]   = useState('')
   const [settingsPage, setSettingsPage] = useState<StorePage | null>(null)
   const [newName, setNewName] = useState('')
   const [creating, setCreating] = useState(false)
@@ -394,8 +402,21 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     )
   }
 
+  // Search matches by name/slug against the full list, then each section is
+  // grouped from that filtered set. Known, accepted gap: groupSection()
+  // only ever surfaces a child row via its parent's own top-level entry, so
+  // a matching CHILD page whose parent doesn't also match search won't
+  // render at all while searching (it's not promoted to top-level). Not
+  // worth the extra complexity to handle — the actual case this exists for
+  // (finding an unattached top-level page in a long "Not in Menu" list) has
+  // no parent to begin with.
+  const searchTerm = search.trim().toLowerCase()
+  const filteredPages = searchTerm
+    ? pages.filter(p => p.page_name.toLowerCase().includes(searchTerm) || p.page_slug.toLowerCase().includes(searchTerm))
+    : pages
+
   const renderSection = (title: string, location: MenuLocation) => {
-    const rows = groupSection(pages, location)
+    const rows = groupSection(filteredPages, location)
     const isFooter = location === 'footer'
     const isMain   = location === 'main'
     return (
@@ -463,6 +484,17 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           </div>
         </div>
 
+        {!loading && pages.length > 8 && (
+          <div style={{ padding: '10px 24px 0', flexShrink: 0 }}>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search pages by name…"
+              style={{ width: '100%', fontSize: 13, padding: '7px 10px', border: '1px solid #e2e8f0', borderRadius: 6, boxSizing: 'border-box' }}
+            />
+          </div>
+        )}
+
         <div style={{ flex: 1, overflowY: 'auto', padding: '4px 24px 24px' }}>
           {loading ? (
             <p style={{ fontSize: 13, color: '#64748b' }}>Loading…</p>
@@ -471,6 +503,9 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
               {renderSection('Main Menu', 'main')}
               {renderSection('Footer Menu', 'footer')}
               {renderSection('Not in Menu', 'none')}
+              {searchTerm && filteredPages.length === 0 && (
+                <p style={{ fontSize: 12.5, color: '#94a3b8', margin: '12px 0 0' }}>No pages match "{search.trim()}".</p>
+              )}
             </>
           )}
         </div>
