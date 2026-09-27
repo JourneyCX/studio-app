@@ -21,6 +21,10 @@ export const DISPLAY_FONT_OPTIONS: { label: string; value: string }[] = [
 export type ScrollingTextProps = {
   items: { text: string }[]
   separator: string
+  // Optional uploaded icon/image used instead of the text separator. Sized in
+  // em (percent of the text height) so it scales with the responsive font.
+  separatorImage: string
+  separatorImageSize: number
   fontFamily: string
   fontSize: number
   fontWeight: string
@@ -31,7 +35,10 @@ export type ScrollingTextProps = {
   direction: 'left' | 'right'
   speed: number
   pauseOnHover: boolean
-  backgroundType: 'color' | 'image'
+  // Legacy — no longer shown or read. The image now shows whenever one is
+  // uploaded (an "Image mode" radio defaulting to colour hid freshly
+  // uploaded images). Kept so pages saved with it still type-check.
+  backgroundType?: 'color' | 'image'
   backgroundColor: string
   backgroundImage: string
   backgroundPosition: string
@@ -76,8 +83,8 @@ const MARQUEE_CSS = `
 
 export function ScrollingTextView(props: ScrollingTextProps) {
   const {
-    items, separator, fontFamily, fontSize, fontWeight, uppercase, letterSpacing, textStyle, textColor,
-    direction, speed, pauseOnHover, backgroundType, backgroundColor, backgroundImage, backgroundPosition,
+    items, separator, separatorImage, separatorImageSize, fontFamily, fontSize, fontWeight, uppercase, letterSpacing, textStyle, textColor,
+    direction, speed, pauseOnHover, backgroundColor, backgroundImage, backgroundPosition,
     overlayColor, overlayOpacity, minHeight, paddingY, verticalAlign,
     buttonText, buttonUrl, buttonBgColor, buttonTextColor,
   } = props
@@ -114,7 +121,7 @@ export function ScrollingTextView(props: ScrollingTextProps) {
     ro?.observe(outer)
     outer.ownerDocument.fonts?.ready.then(measure).catch(() => {})
     return () => ro?.disconnect()
-  }, [list.join('\u0000'), separator, fontFamily, fontSize, fontWeight, uppercase, letterSpacing])
+  }, [list.join('\u0000'), separator, separatorImage, separatorImageSize, fontFamily, fontSize, fontWeight, uppercase, letterSpacing])
 
   const pxPerSec = speed > 0 ? speed : 80
   const duration = seqWidth > 0 ? seqWidth / pxPerSec : 30
@@ -138,13 +145,15 @@ export function ScrollingTextView(props: ScrollingTextProps) {
       {list.map((t, i) => (
         <span key={i} style={{ display: 'inline-flex', alignItems: 'center' }}>
           <span style={{ paddingRight: gap }}>{t}</span>
-          {separator ? <span style={{ paddingRight: gap }}>{separator}</span> : null}
+          {separatorImage
+            ? <img src={separatorImage} alt="" style={{ height: `${(separatorImageSize > 0 ? separatorImageSize : 70) / 100}em`, width: 'auto', marginRight: gap, display: 'block', flexShrink: 0 }} />
+            : separator ? <span style={{ paddingRight: gap }}>{separator}</span> : null}
         </span>
       ))}
     </div>
   )
 
-  const isImage = backgroundType === 'image'
+  const isImage = !!backgroundImage
 
   return (
     <div
@@ -160,7 +169,7 @@ export function ScrollingTextView(props: ScrollingTextProps) {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: verticalAlign === 'top' ? 'flex-start' : verticalAlign === 'bottom' ? 'flex-end' : 'center',
-        backgroundColor: isImage ? '#1e293b' : (backgroundColor || 'transparent'),
+        backgroundColor: backgroundColor || (isImage ? '#1e293b' : 'transparent'),
       }}
     >
       <style>{MARQUEE_CSS}</style>
@@ -206,6 +215,8 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
       getItemSummary: (item) => item.text || 'Phrase',
     },
     separator:       { type: 'text', label: 'Separator between phrases (e.g. ✦ • — or leave blank)' },
+    separatorImage:  { type: 'custom', label: 'Separator Image / Icon (optional — replaces the text separator; a transparent PNG or SVG works best)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    separatorImageSize: { type: 'number', label: 'Separator Image Size (% of text height, e.g. 70)' },
     fontFamily:      { type: 'select', label: 'Font', options: [{ label: 'Theme default', value: '' }, ...DISPLAY_FONT_OPTIONS, ...FONT_OPTIONS] },
     fontSize:        { type: 'number', label: 'Font Size (px, desktop — scales down on smaller screens; try 80–200)' },
     fontWeight:      { type: 'select', label: 'Font Weight', options: [{ label: 'Regular', value: '400' }, { label: 'Semi-bold', value: '600' }, { label: 'Bold', value: '700' }, { label: 'Extra bold', value: '800' }, { label: 'Black', value: '900' }] },
@@ -216,12 +227,11 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
     direction:       { type: 'radio', label: 'Scroll Direction', options: [{ label: 'Right to left', value: 'left' }, { label: 'Left to right', value: 'right' }] },
     speed:           { type: 'number', label: 'Speed (pixels per second — 40 slow, 80 medium, 150 fast)' },
     pauseOnHover:    { type: 'radio', label: 'Pause on Hover', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
-    backgroundType:  { type: 'radio', label: 'Background', options: [{ label: 'Solid colour', value: 'color' }, { label: 'Image (text scrolls in front)', value: 'image' }] },
-    backgroundColor: { type: 'custom', label: 'Background Colour — Solid colour mode', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
-    backgroundImage: { type: 'custom', label: 'Background Image — Image mode', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
-    backgroundPosition: { type: 'select', label: 'Image Focus — Image mode', options: [{ label: 'Centre', value: 'center' }, { label: 'Top', value: 'top center' }, { label: 'Bottom', value: 'bottom center' }, { label: 'Left', value: 'center left' }, { label: 'Right', value: 'center right' }] },
-    overlayColor:    { type: 'custom', label: 'Image Overlay Colour — Image mode', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
-    overlayOpacity:  { type: 'number', label: 'Image Overlay Opacity (0–100) — Image mode' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (used when no image is set)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundImage: { type: 'custom', label: 'Background Image (optional — text scrolls in front of it; remove it to use the colour)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundPosition: { type: 'select', label: 'Image Focus', options: [{ label: 'Centre', value: 'center' }, { label: 'Top', value: 'top center' }, { label: 'Bottom', value: 'bottom center' }, { label: 'Left', value: 'center left' }, { label: 'Right', value: 'center right' }] },
+    overlayColor:    { type: 'custom', label: 'Image Overlay Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    overlayOpacity:  { type: 'number', label: 'Image Overlay Opacity (0–100 — darken the image so text stands out)' },
     minHeight:       { type: 'number', label: 'Section Height (px — 0 = fit the text; try 600+ with an image)' },
     paddingY:        { type: 'number', label: 'Top/Bottom Padding (px)' },
     verticalAlign:   { type: 'select', label: 'Text Vertical Position', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
@@ -233,6 +243,8 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
   defaultProps: {
     items: [{ text: 'Your wellness, our priority!' }],
     separator: '',
+    separatorImage: '',
+    separatorImageSize: 70,
     fontFamily: "'Unbounded', sans-serif",
     fontSize: 140,
     fontWeight: '800',
@@ -243,7 +255,6 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
     direction: 'left',
     speed: 80,
     pauseOnHover: false,
-    backgroundType: 'color',
     backgroundColor: '#f5f5f5',
     backgroundImage: '',
     backgroundPosition: 'center',
