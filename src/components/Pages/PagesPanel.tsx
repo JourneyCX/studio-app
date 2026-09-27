@@ -430,6 +430,21 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           )
         })()}
 
+        {/* Child rows never get the full location <select> above (it's
+            !isChild-gated — relocating/renesting a child through it would be
+            ambiguous, since "location" here really means "which top-level
+            group"). But "mirror to Main Menu" is a plain additive action
+            with no such ambiguity, so it gets its own small button instead —
+            confirmed missing live 2026-09-27: FAQ (nested under Footer's
+            "Information" group) had no way to reach the mirror option at
+            all, since it's a child row. Same canMirror rule as the
+            top-level version. */}
+        {isChild && page.page_type !== 'page_link' && page.page_type !== 'menu_group' && !pages.some(p => p.menu_parent_id === page.id) && (
+          <button style={iconBtn} title="Also show this page as a plain Main Menu item — keeps it nested here too" onClick={() => mirrorToMainMenu(page)}>
+            🔗 Mirror to Main
+          </button>
+        )}
+
         <button style={iconBtn} title="Page settings" onClick={() => setSettingsPage(page)}>⚙️</button>
         {!isLinkOnly && (
           <button style={iconBtn} title="Edit in Studio" onClick={() => onNavigateToPage(page.page_slug)}>✏️ Edit</button>
