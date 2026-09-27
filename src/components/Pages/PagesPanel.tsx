@@ -25,18 +25,33 @@ const FOOTER_COLUMN_CAP = 4
 
 type TopLevelRow = { page: StorePage; children: StorePage[] }
 
+// idsInSection: a page whose menu_parent_id points at something NOT in
+// THIS section (either the parent's own menu_location differs, or the
+// parent id doesn't exist at all) is treated as top-level here rather than
+// silently dropped. Without this guard, such a page is excluded from the
+// top-level list (it has a menu_parent_id) but never surfaces as anyone's
+// child either (byParent is only ever read via a top-level row's own id,
+// and that row isn't in this section) -- it just vanishes from every
+// section with no error. Confirmed live 2026-09-27: four real, published
+// pages (Detox/Cleanse/Fat Burner/Peptides) had menu_parent_id pointing at
+// a page that had since moved to a different section (Main Menu), leaving
+// them completely unreachable in the panel — not a rendering choice, a
+// silent data-loss-looking bug. A parent+child normally always share a
+// section (the UI's own indent/nest actions keep them that way), so this
+// only ever engages for exactly that kind of leftover mismatch.
 function groupSection(pages: StorePage[], location: MenuLocation): TopLevelRow[] {
-  const inSection = pages.filter(p => p.menu_location === location)
-  const byParent  = new Map<number, StorePage[]>()
+  const inSection    = pages.filter(p => p.menu_location === location)
+  const idsInSection = new Set(inSection.map(p => p.id))
+  const byParent      = new Map<number, StorePage[]>()
   for (const p of inSection) {
-    if (p.menu_parent_id) {
+    if (p.menu_parent_id && idsInSection.has(p.menu_parent_id)) {
       const list = byParent.get(p.menu_parent_id) ?? []
       list.push(p)
       byParent.set(p.menu_parent_id, list)
     }
   }
   return inSection
-    .filter(p => !p.menu_parent_id)
+    .filter(p => !p.menu_parent_id || !idsInSection.has(p.menu_parent_id))
     .sort((a, b) => a.menu_order - b.menu_order)
     .map(page => ({
       page,
