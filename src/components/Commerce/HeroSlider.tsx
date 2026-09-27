@@ -38,6 +38,11 @@ type Slide = {
   // new line instead of running out over an image positioned to one side.
   // 0 (default) keeps the original fixed 700px.
   textMaxWidth: number
+  // Narrows just the subheadline's wrap width, independent of textMaxWidth
+  // above (which also governs the headline and button). 0 (default) lets it
+  // wrap at the same width as the rest of the text column — set this lower
+  // to force an earlier wrap without having to shrink the font size.
+  subheadlineMaxWidth: number
   // Distance (px) between the text block and the button. Applies whether the
   // button sits inline below the text or is anchored to one of the
   // top/bottom-* positions — those now anchor to the text block's own edge
@@ -152,7 +157,7 @@ function SliderInner({ slides, minHeight, autoPlay, autoPlayInterval, showDots, 
             </h1>
           )}
           {slide.subheadline && (
-            <p style={{ color: slide.subheadlineColor || 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : `0 0 ${slide.buttonGap ?? 20}px`, lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)', ...(slide.fontFamily ? { fontFamily: slide.fontFamily } : {}) }}>
+            <p style={{ color: slide.subheadlineColor || 'rgba(255,255,255,0.88)', fontSize: slide.subheadlineFontSize || 20, margin: isPositioned ? 0 : `0 0 ${slide.buttonGap ?? 20}px`, lineHeight: 1.6, textShadow: '0 1px 4px rgba(0,0,0,0.35)', ...(slide.fontFamily ? { fontFamily: slide.fontFamily } : {}), ...(slide.subheadlineMaxWidth ? { maxWidth: slide.subheadlineMaxWidth } : {}) }}>
               {slide.subheadline}
             </p>
           )}
@@ -241,6 +246,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         headlineColor:       { type: 'custom', label: 'Headline Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} placeholder="#ffffff" /> },
         subheadlineColor:    { type: 'custom', label: 'Subheadline Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} placeholder="rgba(255,255,255,0.88)" /> },
         textMaxWidth:        { type: 'number', label: 'Text Max Width (px, 0 = 700 default — lower to wrap sooner, e.g. off a busy image)' },
+        subheadlineMaxWidth: { type: 'number', label: 'Subheadline Max Width (px, 0 = match Text Max Width — narrow this to wrap the subheadline sooner without shrinking its font)' },
         buttonGap:           { type: 'number', label: 'Button Gap From Text (px)' },
       },
       defaultItemProps: {
@@ -251,7 +257,7 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
         buttonText: 'Shop Now', buttonUrl: '/shop',
         buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left',
         headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '',
-        headlineColor: '', subheadlineColor: '', textMaxWidth: 0,
+        headlineColor: '', subheadlineColor: '', textMaxWidth: 0, subheadlineMaxWidth: 0,
       },
       getItemSummary: (item: Slide) => item.headline || 'Slide',
     },
@@ -259,8 +265,8 @@ export const HeroSlider: ComponentConfig<HeroSliderProps> = {
   defaultProps: {
     minHeight: 520, autoPlay: true, autoPlayInterval: 5000, showDots: true, showArrows: true,
     slides: [
-      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '', headlineColor: '', subheadlineColor: '', textMaxWidth: 0 },
-      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '', headlineColor: '', subheadlineColor: '', textMaxWidth: 0 },
+      { image: '', headline: 'Discover Our Collection', subheadline: 'Timeless pieces for every occasion.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'Shop Now', buttonUrl: '/shop', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '', headlineColor: '', subheadlineColor: '', textMaxWidth: 0, subheadlineMaxWidth: 0 },
+      { image: '', headline: 'New Arrivals', subheadline: 'Fresh styles just landed.', textAlign: 'left', overlayOpacity: 45, slideClickable: false, backgroundSize: 'cover', backgroundPosition: 'center', buttonText: 'View New In', buttonUrl: '/shop/new', buttonStyle: 'outline', buttonColor: '#ffffff', buttonPosition: 'bottom-left', headlineFontSize: 0, subheadlineFontSize: 0, buttonGap: 20, fontFamily: '', headlineColor: '', subheadlineColor: '', textMaxWidth: 0, subheadlineMaxWidth: 0 },
     ],
   },
   render(props) { return <SliderInner {...props} /> },

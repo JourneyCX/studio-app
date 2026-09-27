@@ -120,7 +120,7 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
             Left aligned
           </label>
         </div>
-        <p style={hint}>
+        <p style={{ fontSize: 12, color: '#64748b', margin: '4px 0 0' }}>
           Only affects the Description paragraph shown in the footer's brand column.
           Justified can look uneven for short text or narrow columns.
         </p>
