@@ -100,6 +100,30 @@ export function StoreSettingsSection({ settings, onChange }: SectionProps) {
           value={settings.description ?? ''}
           onChange={e => onChange({ description: e.target.value })}
         />
+        <div style={{ ...row, marginTop: 10 }}>
+          <label style={{ ...toggleRow, flex: 1 }}>
+            <input
+              type="radio"
+              name="description-align"
+              checked={(settings.descriptionAlign ?? 'justify') === 'justify'}
+              onChange={() => onChange({ descriptionAlign: 'justify' })}
+            />
+            Justified
+          </label>
+          <label style={{ ...toggleRow, flex: 1 }}>
+            <input
+              type="radio"
+              name="description-align"
+              checked={settings.descriptionAlign === 'left'}
+              onChange={() => onChange({ descriptionAlign: 'left' })}
+            />
+            Left aligned
+          </label>
+        </div>
+        <p style={hint}>
+          Only affects the Description paragraph shown in the footer's brand column.
+          Justified can look uneven for short text or narrow columns.
+        </p>
       </Field>
       <Field>
         <label style={label}>Shipping &amp; Returns Policy</label>

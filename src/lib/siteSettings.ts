@@ -19,6 +19,11 @@ export interface SiteSettings {
   businessName: string | null
   tagline: string | null
   description: string | null
+  // Text alignment for the footer brand block's Description paragraph only —
+  // 'justify' (default, matches every existing tenant's rendering before this
+  // setting existed) or 'left'. Justify can look uneven on short descriptions
+  // or narrow columns (stretched word spacing on the ragged last line).
+  descriptionAlign: 'justify' | 'left'
   // Free-text merchant policy copy — not rendered on the storefront by this phase,
   // consumed server-side by the Storefront AI Assistant chat endpoint
   // (Ai_assistant_storefront::_store_context()) so it can quote real shipping/
@@ -119,7 +124,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   logoUrl: null, logoAlt: null, logoText: null,
   headerLogoHeight: 40, footerLogoHeight: 32, footerShowLogo: true,
   faviconUrl: null,
-  businessName: 'Your Store', tagline: null, description: null,
+  businessName: 'Your Store', tagline: null, description: null, descriptionAlign: 'justify',
   shippingReturnsPolicy: null,
   contactPhone: null, contactEmail: null, contactAddress: null,
   socialLinks: [], navLinks: [],
