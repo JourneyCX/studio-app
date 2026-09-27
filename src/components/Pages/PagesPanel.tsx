@@ -210,6 +210,18 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     }
   }
 
+  // Main Menu's counterpart to mirrorToFooterColumn() above — no column to
+  // pick (Main Menu is flat), so this is a one-click action rather than a
+  // second dropdown level, unlike the footer version.
+  const mirrorToMainMenu = async (page: StorePage) => {
+    try {
+      const result = await stratumApi.addMainMenuLink(tenantId, page.id, token)
+      setPages(prev => [...prev, result.page])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add Main Menu link')
+    }
+  }
+
   // Nests `page` as the last child of the top-level row immediately before it
   // in the same section ("⇥ Indent"). Disallowed (button hidden) if `page`
   // already has children of its own — one level of nesting only.
@@ -359,10 +371,15 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           // "Mirror to..." — unlike the "Add link to..." options above (which
           // relocate the page out of wherever it currently is), this creates a
           // page_link row alongside it: the page keeps its existing placement
-          // (e.g. stays in Main Menu) *and* also appears as a link inside the
-          // chosen footer column. Excludes columns the page already headlines
-          // itself, mirror rows (no mirror-of-a-mirror chains), and pages with
-          // children of their own — same nesting rule addToFooterColumn() uses.
+          // (e.g. stays in Footer Menu) *and* also appears as a link elsewhere
+          // too — either inside a chosen footer column, or (mirror:main) as a
+          // plain top-level Main Menu item. Excludes columns the page already
+          // headlines itself, mirror rows (no mirror-of-a-mirror chains), and
+          // pages with children of their own — same nesting rule
+          // addToFooterColumn() uses. mirror:main has no "already itself"
+          // case to exclude (Main Menu is flat, not a specific target page),
+          // so it's offered whenever canMirror holds, regardless of the
+          // page's current location.
           const canMirror = page.page_type !== 'page_link' && page.page_type !== 'menu_group' && !pages.some(p => p.menu_parent_id === page.id)
           const mirrorableColumns = canMirror ? groupSection(pages, 'footer').filter(col => col.page.id !== page.id) : []
           return (
@@ -372,6 +389,8 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
                 const v = e.target.value
                 if (v.startsWith('footer:')) {
                   addToFooterColumn(page, Number(v.slice(7)))
+                } else if (v === 'mirror:main') {
+                  mirrorToMainMenu(page)
                 } else if (v.startsWith('mirror:')) {
                   mirrorToFooterColumn(page, Number(v.slice(7)))
                 } else {
@@ -404,6 +423,9 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
                   🔗 Mirror to "{col.page.page_name}"
                 </option>
               ))}
+              {canMirror && (
+                <option value="mirror:main">🔗 Mirror to Main Menu</option>
+              )}
             </select>
           )
         })()}

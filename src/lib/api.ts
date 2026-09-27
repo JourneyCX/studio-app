@@ -247,6 +247,10 @@ export const stratumApi = {
     return request('POST', `/admin/store_builder_api/add_footer_link/${tenantId}`, token, { sourcePageId, columnPageId })
   },
 
+  addMainMenuLink(tenantId: number, sourcePageId: number, token: string): Promise<{ success: boolean; page: StorePage }> {
+    return request('POST', `/admin/store_builder_api/add_main_menu_link/${tenantId}`, token, { sourcePageId })
+  },
+
   saveDraft(tenantId: number, pageSlug: string, puckJson: unknown, pageName: string, token: string): Promise<{ success: boolean }> {
     return request('PUT', `/admin/store_builder_api/save_draft/${tenantId}/${pageSlug}`, token, { puckJson, name: pageName })
   },
