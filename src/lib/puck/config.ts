@@ -49,6 +49,7 @@ import { VideoBackground }    from '@/components/Media/VideoBackground'
 import { BeforeAfterSlider }  from '@/components/Media/BeforeAfterSlider'
 import { ParticleBackground } from '@/components/Media/ParticleBackground'
 import { CountdownTimer }     from '@/components/Media/CountdownTimer'
+import { ParallaxCountdown }  from '@/components/Media/ParallaxCountdown'
 import { ScrollingText }      from '@/components/Media/ScrollingText'
 import { HeroSection }   from '@/components/Marketing/HeroSection'
 import { FeatureGrid }   from '@/components/Marketing/FeatureGrid'
@@ -103,6 +104,7 @@ export const puckConfig: Config = {
     BeforeAfterSlider,
     ParticleBackground,
     CountdownTimer,
+    ParallaxCountdown,
     ScrollingText,
     HeroSection,
     FeatureGrid,
@@ -151,7 +153,7 @@ export const puckConfig: Config = {
     },
     media: {
       title: 'Media & Interactivity',
-      components: ['ImageGallery', 'VideoBackground', 'BeforeAfterSlider', 'ParticleBackground', 'CountdownTimer', 'ScrollingText'],
+      components: ['ImageGallery', 'VideoBackground', 'BeforeAfterSlider', 'ParticleBackground', 'CountdownTimer', 'ParallaxCountdown', 'ScrollingText'],
     },
     checkout: {
       title: 'Checkout',

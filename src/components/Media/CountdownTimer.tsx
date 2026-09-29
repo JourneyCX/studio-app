@@ -25,6 +25,9 @@ export type CountdownTimerProps = {
   digitsOffsetY: number
   primaryButtonText: string
   primaryButtonUrl: string
+  // Internal only (not a Puck field): set by ParallaxCountdown, which supplies
+  // its own section padding/background, so the timer drops its 72px padding.
+  embedded?: boolean
 }
 
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number }
@@ -162,8 +165,8 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
   return primaryButtonUrl ? <a href={primaryButtonUrl} style={{ textDecoration: 'none', display: 'block' }}>{bar}</a> : bar
 }
 
-function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl } = props
+export function TimerInner(props: CountdownTimerProps) {
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded } = props
   const scale = (digitScale || 100) / 100
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
@@ -196,7 +199,7 @@ function TimerInner(props: CountdownTimerProps) {
         backgroundImage: hasImage ? `url(${backgroundImage})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        padding: '72px 24px',
+        padding: embedded ? 0 : '72px 24px',
         textAlign: 'center',
       }}
     >

@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
 import { DropZone, type ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { ColorField } from '../shared/ColorField'
@@ -106,7 +106,10 @@ function midgroundBaseTransform(position: MidgroundPosition): string {
 // parent page and never fire while scrolling the iframe's own canvas.
 // Resolving the window via the DOM node's own document works correctly in
 // both that iframe context and the live storefront's plain top-level page.
-function DriftInner(props: ParallaxSectionProps) {
+// Exported (with StickyRevealInner) so fixed-content blocks like
+// ParallaxCountdown can reuse the layers with their own children —
+// ParallaxSection itself passes its "content" DropZone as the children.
+export function DriftInner({ children, ...props }: ParallaxSectionProps & { children: ReactNode }) {
   const { backgroundImage, backgroundSpeed, midgroundImage, midgroundSpeed, midgroundWidth, midgroundPosition, overlayColor, overlayOpacity, minHeight, contentAlign, contentMaxWidth, forceAnimation } = props
   const hasMidground = !!midgroundImage
   const containerRef = useRef<HTMLDivElement>(null)
@@ -176,7 +179,7 @@ function DriftInner(props: ParallaxSectionProps) {
       )}
       <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(${hexToRgb(overlayColor)},${overlayOpacity / 100})` }} />
       <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: contentMaxWidth, margin: '0 auto', padding: '64px 24px' }}>
-        <DropZone zone="content" />
+        {children}
       </div>
     </div>
   )
@@ -191,7 +194,7 @@ function DriftInner(props: ParallaxSectionProps) {
 // of ordinary page scrolling. This is the same technique behind a sticky
 // header, so browsers/accessibility tooling don't treat it as animation —
 // it plays for every visitor regardless of prefers-reduced-motion.
-function StickyRevealInner(props: ParallaxSectionProps) {
+export function StickyRevealInner({ children, ...props }: ParallaxSectionProps & { children: ReactNode }) {
   const { backgroundImage, midgroundImage, midgroundWidth, overlayColor, overlayOpacity, contentAlign, contentMaxWidth, stickyScrollLength } = props
   return (
     <div style={{ position: 'relative', height: `${stickyScrollLength}vh` }}>
@@ -209,7 +212,7 @@ function StickyRevealInner(props: ParallaxSectionProps) {
         <div style={{ position: 'absolute', inset: 0, ...backgroundFillStyle(backgroundImage) }} />
         <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(${hexToRgb(overlayColor)},${overlayOpacity / 100})` }} />
         <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: contentMaxWidth, margin: '0 auto', padding: '64px 24px' }}>
-          <DropZone zone="content" />
+          {children}
         </div>
       </div>
       {midgroundImage && (
@@ -265,6 +268,7 @@ export const ParallaxSection: ComponentConfig<ParallaxSectionProps> = {
     forceAnimation: false,
   },
   render(props) {
-    return props.scrollMode === 'sticky' ? <StickyRevealInner {...props} /> : <DriftInner {...props} />
+    const content = <DropZone zone="content" />
+    return props.scrollMode === 'sticky' ? <StickyRevealInner {...props}>{content}</StickyRevealInner> : <DriftInner {...props}>{content}</DriftInner>
   },
 }
