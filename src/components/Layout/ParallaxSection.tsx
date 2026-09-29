@@ -55,10 +55,40 @@ function hexToRgb(hex: string): string {
   return isNaN(r) ? '0,0,0' : `${r},${g},${b}`
 }
 
-function backgroundFillStyle(image: string): CSSProperties {
+export type ContentHorizontalAlign = 'left' | 'center' | 'right' | 'split'
+
+// Content column placement. Centre keeps the original centred column; left/
+// right push it to that side (split stays centred but spans the full max
+// width) with a wider, viewport-scaled gutter so it doesn't hug the edge on
+// large screens. Not a ParallaxSection field (its DropZone content is
+// centred) — used by ParallaxCountdown's position option.
+function contentBoxStyle(maxWidth: number, align: ContentHorizontalAlign = 'center'): CSSProperties {
   return {
-    backgroundImage: image ? `url(${image})` : 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)',
-    backgroundSize: 'cover',
+    position: 'relative',
+    zIndex: 2,
+    width: '100%',
+    maxWidth,
+    margin: align === 'left' ? '0 auto 0 0' : align === 'right' ? '0 0 0 auto' : '0 auto',
+    padding: align === 'center' ? '64px 24px' : '64px clamp(24px, 6vw, 96px)',
+  }
+}
+
+// Extra layer options not exposed as ParallaxSection fields (defaults keep its
+// behaviour identical) — used by ParallaxCountdown. 'contain' shows a shaped
+// image (e.g. a scalloped banner PNG) whole on top of the section colour
+// instead of cropping it to fill the section.
+export type LayerOptions = {
+  contentHorizontalAlign?: ContentHorizontalAlign
+  backgroundFit?: 'cover' | 'contain'
+  sectionBackgroundColor?: string
+}
+
+function backgroundFillStyle(image: string, fit: 'cover' | 'contain' = 'cover', color?: string): CSSProperties {
+  return {
+    backgroundColor: color || undefined,
+    backgroundImage: image ? `url(${image})` : color ? undefined : 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)',
+    backgroundSize: fit,
+    backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
   }
 }
@@ -109,7 +139,7 @@ function midgroundBaseTransform(position: MidgroundPosition): string {
 // Exported (with StickyRevealInner) so fixed-content blocks like
 // ParallaxCountdown can reuse the layers with their own children —
 // ParallaxSection itself passes its "content" DropZone as the children.
-export function DriftInner({ children, ...props }: ParallaxSectionProps & { children: ReactNode }) {
+export function DriftInner({ children, contentHorizontalAlign, backgroundFit, sectionBackgroundColor, ...props }: ParallaxSectionProps & LayerOptions & { children: ReactNode }) {
   const { backgroundImage, backgroundSpeed, midgroundImage, midgroundSpeed, midgroundWidth, midgroundPosition, overlayColor, overlayOpacity, minHeight, contentAlign, contentMaxWidth, forceAnimation } = props
   const hasMidground = !!midgroundImage
   const containerRef = useRef<HTMLDivElement>(null)
@@ -168,7 +198,7 @@ export function DriftInner({ children, ...props }: ParallaxSectionProps & { chil
         justifyContent: 'center',
       }}
     >
-      <div ref={bgLayerRef} style={{ position: 'absolute', top: -MAX_SHIFT_PX, bottom: -MAX_SHIFT_PX, left: 0, right: 0, willChange: 'transform', ...backgroundFillStyle(backgroundImage) }} />
+      <div ref={bgLayerRef} style={{ position: 'absolute', top: -MAX_SHIFT_PX, bottom: -MAX_SHIFT_PX, left: 0, right: 0, willChange: 'transform', ...backgroundFillStyle(backgroundImage, backgroundFit, sectionBackgroundColor) }} />
       {hasMidground && (
         <img
           ref={midLayerRef}
@@ -178,7 +208,7 @@ export function DriftInner({ children, ...props }: ParallaxSectionProps & { chil
         />
       )}
       <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(${hexToRgb(overlayColor)},${overlayOpacity / 100})` }} />
-      <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: contentMaxWidth, margin: '0 auto', padding: '64px 24px' }}>
+      <div style={contentBoxStyle(contentMaxWidth, contentHorizontalAlign)}>
         {children}
       </div>
     </div>
@@ -194,7 +224,7 @@ export function DriftInner({ children, ...props }: ParallaxSectionProps & { chil
 // of ordinary page scrolling. This is the same technique behind a sticky
 // header, so browsers/accessibility tooling don't treat it as animation —
 // it plays for every visitor regardless of prefers-reduced-motion.
-export function StickyRevealInner({ children, ...props }: ParallaxSectionProps & { children: ReactNode }) {
+export function StickyRevealInner({ children, contentHorizontalAlign, backgroundFit, sectionBackgroundColor, ...props }: ParallaxSectionProps & LayerOptions & { children: ReactNode }) {
   const { backgroundImage, midgroundImage, midgroundWidth, overlayColor, overlayOpacity, contentAlign, contentMaxWidth, stickyScrollLength } = props
   return (
     <div style={{ position: 'relative', height: `${stickyScrollLength}vh` }}>
@@ -209,9 +239,9 @@ export function StickyRevealInner({ children, ...props }: ParallaxSectionProps &
           justifyContent: 'center',
         }}
       >
-        <div style={{ position: 'absolute', inset: 0, ...backgroundFillStyle(backgroundImage) }} />
+        <div style={{ position: 'absolute', inset: 0, ...backgroundFillStyle(backgroundImage, backgroundFit, sectionBackgroundColor) }} />
         <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(${hexToRgb(overlayColor)},${overlayOpacity / 100})` }} />
-        <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: contentMaxWidth, margin: '0 auto', padding: '64px 24px' }}>
+        <div style={contentBoxStyle(contentMaxWidth, contentHorizontalAlign)}>
           {children}
         </div>
       </div>

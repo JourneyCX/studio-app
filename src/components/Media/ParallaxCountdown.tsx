@@ -2,7 +2,7 @@ import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { TimerInner, type CountdownTimerProps } from './CountdownTimer'
-import { DriftInner, StickyRevealInner, type ParallaxSectionProps } from '../Layout/ParallaxSection'
+import { DriftInner, StickyRevealInner, type ParallaxSectionProps, type LayerOptions } from '../Layout/ParallaxSection'
 
 // Countdown Timer rendered as the fixed content of a Parallax Section — the
 // parallax layers (Background/Midground/overlay, Depth Drift or Sticky Reveal)
@@ -11,11 +11,18 @@ import { DriftInner, StickyRevealInner, type ParallaxSectionProps } from '../Lay
 // background image/colour/overlay are dropped (the parallax layers replace
 // them) and the slim 'bar' style is excluded — it's a full-width hero block.
 // Mirrored in nuxt-storefront's ParallaxCountdown.vue.
-type TimerFields = Omit<CountdownTimerProps, 'backgroundColor' | 'backgroundImage' | 'overlayOpacity' | 'embedded' | 'cardStyle'> & {
+type TimerFields = Omit<CountdownTimerProps, 'backgroundColor' | 'backgroundImage' | 'overlayOpacity' | 'embedded' | 'cardStyle' | 'align' | 'showSeparators'> & {
   cardStyle: 'card' | 'minimal' | 'neon'
 }
 
-export type ParallaxCountdownProps = TimerFields & ParallaxSectionProps
+export type ParallaxCountdownProps = TimerFields & ParallaxSectionProps & {
+  // 'split' = headline/button on the left, digits on the right — leaves the
+  // middle clear for a Midground image to scroll through.
+  countdownPosition: 'left' | 'center' | 'right' | 'split'
+  showSeparators: boolean
+  backgroundFit: 'cover' | 'contain'
+  sectionBackgroundColor: string
+}
 
 const color = (label: string) => ({
   type: 'custom' as const,
@@ -57,6 +64,8 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     digitsOffsetY:     { type: 'number', label: 'Digit Row Vertical Offset (px, + moves down / − moves up)' },
     primaryButtonText: { type: 'text',   label: 'CTA Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',   label: 'CTA Button URL' },
+    countdownPosition: { type: 'radio', label: 'Countdown Position', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }, { label: 'Split — text left, timer right (midground image passes between)', value: 'split' }] },
+    showSeparators:    yesNo('Show ":" Between Digit Boxes'),
     // ── Parallax ──
     scrollMode: {
       type: 'radio',
@@ -67,7 +76,9 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
       ],
     },
     stickyScrollLength: { type: 'number', label: 'Scroll Length in vh — Sticky Reveal mode only (try 200–300)' },
-    backgroundImage:   image('Background Image (fills the section)'),
+    backgroundImage:   image('Background Image'),
+    backgroundFit:     { type: 'radio', label: 'Background Image Fit', options: [{ label: 'Cover — fill the section (may crop)', value: 'cover' }, { label: 'Contain — show whole image, e.g. a shaped banner PNG over the section colour', value: 'contain' }] },
+    sectionBackgroundColor: color('Section Background Colour (hex) — shows around a "Contain" image, or when no image'),
     backgroundSpeed:   { type: 'number', label: 'Background Speed — Depth Drift mode only (0 = none, 100 = strongest)' },
     midgroundImage:    image('Midground Image (optional — decorative element or product shot; transparent PNG works best)'),
     midgroundSpeed:    { type: 'number', label: 'Midground Speed — Depth Drift mode only (0 = none, 100 = strongest)' },
@@ -101,9 +112,13 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     digitsOffsetY:     0,
     primaryButtonText: 'Shop the Sale',
     primaryButtonUrl:  '/sale',
+    countdownPosition: 'center',
+    showSeparators:    true,
     scrollMode:        'drift',
     stickyScrollLength: 200,
     backgroundImage:   '',
+    backgroundFit:     'cover',
+    sectionBackgroundColor: '',
     backgroundSpeed:   30,
     midgroundImage:    '',
     midgroundSpeed:    60,
@@ -117,9 +132,17 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     forceAnimation:    false,
   },
   render(props) {
-    const timer = <TimerInner {...props} backgroundColor="transparent" backgroundImage="" overlayOpacity={0} embedded />
+    // Blocks saved before these options existed have no value for them —
+    // fall back to the original look (centred, separators, cover).
+    const position = props.countdownPosition || 'center'
+    const layer: LayerOptions = {
+      contentHorizontalAlign: position,
+      backgroundFit: props.backgroundFit || 'cover',
+      sectionBackgroundColor: props.sectionBackgroundColor,
+    }
+    const timer = <TimerInner {...props} backgroundColor="transparent" backgroundImage="" overlayOpacity={0} embedded align={position} showSeparators={props.showSeparators !== false} />
     return props.scrollMode === 'sticky'
-      ? <StickyRevealInner {...props}>{timer}</StickyRevealInner>
-      : <DriftInner {...props}>{timer}</DriftInner>
+      ? <StickyRevealInner {...props} {...layer}>{timer}</StickyRevealInner>
+      : <DriftInner {...props} {...layer}>{timer}</DriftInner>
   },
 }

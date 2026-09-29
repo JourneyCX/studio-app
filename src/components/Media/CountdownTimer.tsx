@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, Fragment, type CSSProperties } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
 import { ImageUploadField } from '../shared/ImageUploadField'
@@ -28,6 +28,13 @@ export type CountdownTimerProps = {
   // Internal only (not a Puck field): set by ParallaxCountdown, which supplies
   // its own section padding/background, so the timer drops its 72px padding.
   embedded?: boolean
+  // Internal only: ParallaxCountdown's Countdown Position — aligns headline,
+  // digits and button left/right instead of centring them; 'split' puts the
+  // text on the left and the digits on the right of one row.
+  align?: 'left' | 'center' | 'right' | 'split'
+  // Internal only (ParallaxCountdown): hide the ":" between digit boxes.
+  // Undefined = shown, so the plain Countdown Timer is unchanged.
+  showSeparators?: boolean
 }
 
 interface TimeLeft { days: number; hours: number; minutes: number; seconds: number }
@@ -166,7 +173,7 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
 }
 
 export function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded } = props
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded, align = 'center', showSeparators = true } = props
   const scale = (digitScale || 100) / 100
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
@@ -191,6 +198,40 @@ export function TimerInner(props: CountdownTimerProps) {
   const visibleUnits = units.filter((u) => u.show)
   const hasImage = !!backgroundImage
 
+  // sb-text-fluid-md (styles/responsive.css) scales the headline down on
+  // narrow screens instead of staying fixed at 36px — the countdown
+  // digits/separator stay fixed, they're short and narrow regardless of
+  // viewport width.
+  const textBlock = (subMarginBottom: number) => (
+    <>
+      {headline && <h2 className="sb-text-fluid-md" style={{ color: headingColor, fontWeight: 800, margin: '0 0 14px' }}>{headline}</h2>}
+      {subheadline && <p style={{ color: headingColor, opacity: 0.65, fontSize: 18, margin: `0 0 ${subMarginBottom}px`, lineHeight: 1.65 }}>{subheadline}</p>}
+    </>
+  )
+
+  const digitsBlock = (justify: CSSProperties['justifyContent']) => done && endMessage ? (
+    <div style={{ padding: '32px 48px', backgroundColor: accentColor, borderRadius: 16, display: 'inline-block' }}>
+      <p style={{ color: '#fff', fontSize: 26, fontWeight: 800, margin: 0 }}>{endMessage}</p>
+    </div>
+  ) : (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: justify, gap: Math.round(12 * scale), flexWrap: 'wrap', perspective: 600 }}>
+      {visibleUnits.map((u, i) => (
+        <Fragment key={u.key}>
+          <TimeUnit value={time[u.key]} label={u.label} cardStyle={cardStyle} accentColor={accentColor} cardColor={cardColor} textColor={textColor} labelColor={labelColor} scale={scale} />
+          {showSeparators && i < visibleUnits.length - 1 && <Separator textColor={textColor} scale={scale} />}
+        </Fragment>
+      ))}
+    </div>
+  )
+
+  const buttonBlock = (marginTop: number) => primaryButtonText ? (
+    <div style={{ marginTop }}>
+      <a href={primaryButtonUrl} style={{ display: 'inline-block', backgroundColor: accentColor, color: '#fff', padding: '14px 40px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>
+        {primaryButtonText}
+      </a>
+    </div>
+  ) : null
+
   return (
     <section
       style={{
@@ -200,7 +241,7 @@ export function TimerInner(props: CountdownTimerProps) {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         padding: embedded ? 0 : '72px 24px',
-        textAlign: 'center',
+        textAlign: align === 'split' ? 'left' : align,
       }}
     >
       <style>{`
@@ -215,39 +256,25 @@ export function TimerInner(props: CountdownTimerProps) {
         <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
       )}
 
-      <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, margin: '0 auto' }}>
-        {/* sb-text-fluid-md (styles/responsive.css) scales this down on
-            narrow screens instead of staying fixed at 36px — the countdown
-            digits/separator below stay fixed, they're short and narrow
-            regardless of viewport width. */}
-        {headline && <h2 className="sb-text-fluid-md" style={{ color: headingColor, fontWeight: 800, margin: '0 0 14px' }}>{headline}</h2>}
-        {subheadline && <p style={{ color: headingColor, opacity: 0.65, fontSize: 18, margin: '0 0 48px', lineHeight: 1.65 }}>{subheadline}</p>}
-
-        <div style={{ marginTop: digitsOffsetY || 0 }}>
-          {done && endMessage ? (
-            <div style={{ padding: '32px 48px', backgroundColor: accentColor, borderRadius: 16, display: 'inline-block' }}>
-              <p style={{ color: '#fff', fontSize: 26, fontWeight: 800, margin: 0 }}>{endMessage}</p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: Math.round(12 * scale), flexWrap: 'wrap', perspective: 600 }}>
-              {visibleUnits.map((u, i) => (
-                <>
-                  <TimeUnit key={u.key} value={time[u.key]} label={u.label} cardStyle={cardStyle} accentColor={accentColor} cardColor={cardColor} textColor={textColor} labelColor={labelColor} scale={scale} />
-                  {i < visibleUnits.length - 1 && <Separator textColor={textColor} scale={scale} />}
-                </>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {primaryButtonText && (
-          <div style={{ marginTop: 48 }}>
-            <a href={primaryButtonUrl} style={{ display: 'inline-block', backgroundColor: accentColor, color: '#fff', padding: '14px 40px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>
-              {primaryButtonText}
-            </a>
+      {align === 'split' ? (
+        // Split row: text left, digits right, space between for a midground
+        // image to pass through. Wraps to a stacked column on narrow screens.
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
+          <div style={{ flex: '0 1 auto', maxWidth: 520 }}>
+            {textBlock(0)}
+            {buttonBlock(24)}
           </div>
-        )}
-      </div>
+          <div style={{ flex: '0 0 auto', marginTop: digitsOffsetY || 0 }}>{digitsBlock('flex-end')}</div>
+        </div>
+      ) : (
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, margin: align === 'left' ? '0 auto 0 0' : align === 'right' ? '0 0 0 auto' : '0 auto' }}>
+          {textBlock(48)}
+          <div style={{ marginTop: digitsOffsetY || 0 }}>
+            {digitsBlock(align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center')}
+          </div>
+          {buttonBlock(48)}
+        </div>
+      )}
     </section>
   )
 }
