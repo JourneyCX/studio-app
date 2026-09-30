@@ -58,16 +58,17 @@ function hexToRgb(hex: string): string {
 export type ContentHorizontalAlign = 'left' | 'center' | 'right' | 'split'
 
 // Content column placement. Centre keeps the original centred column; left/
-// right push it to that side (split stays centred but spans the full max
-// width) with a wider, viewport-scaled gutter so it doesn't hug the edge on
-// large screens. Not a ParallaxSection field (its DropZone content is
+// right push it to that side; split (headline and timer on different sides)
+// ignores maxWidth and spans the full section so the two actually reach the
+// edges — capped at maxWidth they huddled in the middle. Non-centre modes use
+// a wider, viewport-scaled gutter so content doesn't hug the edge. Not a ParallaxSection field (its DropZone content is
 // centred) — used by ParallaxCountdown's position option.
 function contentBoxStyle(maxWidth: number, align: ContentHorizontalAlign = 'center'): CSSProperties {
   return {
     position: 'relative',
     zIndex: 2,
     width: '100%',
-    maxWidth,
+    maxWidth: align === 'split' ? 'none' : maxWidth,
     margin: align === 'left' ? '0 auto 0 0' : align === 'right' ? '0 0 0 auto' : '0 auto',
     padding: align === 'center' ? '64px 24px' : '64px clamp(24px, 6vw, 96px)',
   }

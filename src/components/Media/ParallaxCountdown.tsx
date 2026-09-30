@@ -95,7 +95,7 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     overlayOpacity:    { type: 'number', label: 'Overlay Opacity (0–100)' },
     minHeight:         { type: 'number', label: 'Min Height (px) — Depth Drift mode only' },
     contentAlign:      { type: 'select', label: 'Countdown Vertical Align', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
-    contentMaxWidth:   { type: 'number', label: 'Content Max Width (px)' },
+    contentMaxWidth:   { type: 'number', label: 'Content Max Width (px) — when headline and timer share a side (on different sides they span the full width)' },
     forceAnimation:    { type: 'radio', label: 'Force Scroll Effect — Depth Drift mode only (ignores visitors’ "reduce motion" setting)', options: [{ label: 'No (recommended — respect visitor preference)', value: false }, { label: 'Yes — always animate', value: true }] },
   },
   defaultProps: {
