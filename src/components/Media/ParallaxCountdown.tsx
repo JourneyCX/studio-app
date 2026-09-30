@@ -11,7 +11,7 @@ import { DriftInner, StickyRevealInner, type ParallaxSectionProps, type LayerOpt
 // background image/colour/overlay are dropped (the parallax layers replace
 // them) and the slim 'bar' style is excluded — it's a full-width hero block.
 // Mirrored in nuxt-storefront's ParallaxCountdown.vue.
-type TimerFields = Omit<CountdownTimerProps, 'backgroundColor' | 'backgroundImage' | 'overlayOpacity' | 'embedded' | 'cardStyle' | 'align' | 'headlineAlign' | 'showSeparators'> & {
+type TimerFields = Omit<CountdownTimerProps, 'backgroundColor' | 'backgroundImage' | 'overlayOpacity' | 'embedded' | 'cardStyle' | 'align' | 'headlineAlign' | 'headlineVAlign' | 'timerVAlign' | 'showSeparators'> & {
   cardStyle: 'card' | 'minimal' | 'neon'
 }
 
@@ -25,6 +25,10 @@ export type ParallaxCountdownProps = TimerFields & ParallaxSectionProps & {
   // the middle clear for a Midground image. Undefined (older blocks) =
   // follow the timer.
   headlinePosition?: 'left' | 'center' | 'right'
+  // Vertical positions. Undefined (older blocks) = the section-wide
+  // contentAlign, which is what positioned them before these existed.
+  headlineVertical?: 'top' | 'center' | 'bottom'
+  timerVertical?: 'top' | 'center' | 'bottom'
   showSeparators: boolean
   backgroundFit: 'cover' | 'contain'
   sectionBackgroundColor: string
@@ -71,7 +75,9 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     primaryButtonText: { type: 'text',   label: 'CTA Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',   label: 'CTA Button URL' },
     headlinePosition:  { type: 'radio', label: 'Headline Position (headline, subheadline & button)', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
-    countdownPosition: { type: 'radio', label: 'Timer Position (the digits) — set different sides from the headline to put them in one row', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
+    headlineVertical:  { type: 'radio', label: 'Headline Vertical Position', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
+    countdownPosition: { type: 'radio', label: 'Timer Position (the digits)', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
+    timerVertical:     { type: 'radio', label: 'Timer Vertical Position', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
     showSeparators:    yesNo('Show ":" Between Digit Boxes'),
     // ── Parallax ──
     scrollMode: {
@@ -94,7 +100,7 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     overlayColor:      color('Overlay Colour (hex)'),
     overlayOpacity:    { type: 'number', label: 'Overlay Opacity (0–100)' },
     minHeight:         { type: 'number', label: 'Min Height (px) — Depth Drift mode only' },
-    contentAlign:      { type: 'select', label: 'Countdown Vertical Align', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
+    contentAlign:      { type: 'select', label: 'Vertical Align — only when headline and timer share the exact same position', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
     contentMaxWidth:   { type: 'number', label: 'Content Max Width (px) — when headline and timer share a side (on different sides they span the full width)' },
     forceAnimation:    { type: 'radio', label: 'Force Scroll Effect — Depth Drift mode only (ignores visitors’ "reduce motion" setting)', options: [{ label: 'No (recommended — respect visitor preference)', value: false }, { label: 'Yes — always animate', value: true }] },
   },
@@ -120,6 +126,8 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     primaryButtonText: 'Shop the Sale',
     primaryButtonUrl:  '/sale',
     headlinePosition:  'center',
+    headlineVertical:  'center',
+    timerVertical:     'center',
     countdownPosition: 'center',
     showSeparators:    true,
     scrollMode:        'drift',
@@ -145,13 +153,17 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     const position = props.countdownPosition || 'center'
     const headlinePos = props.headlinePosition ?? (position === 'split' ? 'left' : position)
     const timerPos = position === 'split' ? 'right' : position
+    const headlineV = props.headlineVertical ?? props.contentAlign ?? 'center'
+    const timerV = props.timerVertical ?? props.contentAlign ?? 'center'
+    const gridMode = headlinePos !== timerPos || headlineV !== timerV
     const layer: LayerOptions = {
       // Different sides → full-width row; same side → push the column there.
-      contentHorizontalAlign: headlinePos === timerPos ? timerPos : 'split',
+      // Grid → full-width, full-height box; else push the column to its side.
+      contentHorizontalAlign: gridMode ? 'split' : timerPos,
       backgroundFit: props.backgroundFit || 'cover',
       sectionBackgroundColor: props.sectionBackgroundColor,
     }
-    const timer = <TimerInner {...props} backgroundColor="transparent" backgroundImage="" overlayOpacity={0} embedded align={timerPos} headlineAlign={headlinePos} showSeparators={props.showSeparators !== false} />
+    const timer = <TimerInner {...props} backgroundColor="transparent" backgroundImage="" overlayOpacity={0} embedded align={timerPos} headlineAlign={headlinePos} headlineVAlign={headlineV} timerVAlign={timerV} showSeparators={props.showSeparators !== false} />
     return props.scrollMode === 'sticky'
       ? <StickyRevealInner {...props} {...layer}>{timer}</StickyRevealInner>
       : <DriftInner {...props} {...layer}>{timer}</DriftInner>

@@ -36,6 +36,11 @@ export type CountdownTimerProps = {
   // Internal only: ParallaxCountdown's Headline Position (headline,
   // subheadline and button). Undefined = follow the digits.
   headlineAlign?: 'left' | 'center' | 'right'
+  // Internal only: ParallaxCountdown's vertical positions. Undefined = centre.
+  // Any difference from the timer (horizontal or vertical) switches to the
+  // 3×3 grid layout that fills the whole section.
+  headlineVAlign?: VAlign
+  timerVAlign?: VAlign
   // Internal only (ParallaxCountdown): hide the ":" between digit boxes.
   // Undefined = shown, so the plain Countdown Timer is unchanged.
   showSeparators?: boolean
@@ -179,9 +184,12 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
 type HAlign = 'left' | 'center' | 'right'
 const H_COLUMN: Record<HAlign, number> = { left: 1, center: 2, right: 3 }
 const H_SELF: Record<HAlign, 'flex-start' | 'center' | 'flex-end'> = { left: 'flex-start', center: 'center', right: 'flex-end' }
+type VAlign = 'top' | 'center' | 'bottom'
+const V_ROW: Record<VAlign, number> = { top: 1, center: 2, bottom: 3 }
+const V_SELF: Record<VAlign, 'start' | 'center' | 'end'> = { top: 'start', center: 'center', bottom: 'end' }
 
 export function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded, align = 'center', headlineAlign, showSeparators = true } = props
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded, align = 'center', headlineAlign, headlineVAlign = 'center', timerVAlign = 'center', showSeparators = true } = props
   const scale = (digitScale || 100) / 100
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
@@ -207,6 +215,7 @@ export function TimerInner(props: CountdownTimerProps) {
   const hasImage = !!backgroundImage
   const digitsPos: HAlign = align === 'split' ? 'right' : align
   const textPos: HAlign = headlineAlign ?? (align === 'split' ? 'left' : align)
+  const gridMode = textPos !== digitsPos || headlineVAlign !== timerVAlign
 
   // sb-text-fluid-md (styles/responsive.css) scales the headline down on
   // narrow screens instead of staying fixed at 36px — the countdown
@@ -252,6 +261,9 @@ export function TimerInner(props: CountdownTimerProps) {
         backgroundPosition: 'center',
         padding: embedded ? 0 : '72px 24px',
         textAlign: textPos,
+        // Grid mode fills the height of ParallaxSection's content box (which
+        // stretches to the full section) so top/bottom actually reach them.
+        ...(gridMode ? { display: 'flex', flexDirection: 'column', flex: '1 1 auto' } : {}),
       }}
     >
       <style>{`
@@ -261,7 +273,7 @@ export function TimerInner(props: CountdownTimerProps) {
           100% { transform: rotateX(0deg) scale(1);  opacity: 1; }
         }
         @media (max-width: 767px) {
-          .cd-row { grid-template-columns: 1fr !important; }
+          .cd-row { grid-template-columns: 1fr !important; grid-template-rows: auto !important; flex: none !important; }
           .cd-row > * { grid-column: 1 !important; grid-row: auto !important; }
         }
       `}</style>
@@ -270,17 +282,18 @@ export function TimerInner(props: CountdownTimerProps) {
         <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
       )}
 
-      {textPos !== digitsPos ? (
-        // Headline and digits on different sides: one row, three columns
-        // (left / centre / right) so each sits in its own column and the
-        // unused middle stays clear for a midground image. Stacks on narrow
-        // screens (.cd-row media query above), each keeping its alignment.
-        <div className="cd-row" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: '24px 32px' }}>
-          <div style={{ gridColumn: H_COLUMN[textPos], gridRow: 1, justifySelf: H_SELF[textPos], textAlign: textPos, maxWidth: 520 }}>
+      {gridMode ? (
+        // 3×3 grid — columns left/centre/right, rows top/centre/bottom — each
+        // part placed in its own cell, so the unused middle stays clear for a
+        // midground image. The side columns share the width equally and the
+        // centre row takes the spare height. Stacks on narrow screens
+        // (.cd-row media query above), each keeping its alignment.
+        <div className="cd-row" style={{ position: 'relative', zIndex: 1, flex: '1 1 auto', display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', gridTemplateRows: 'auto 1fr auto', gap: '24px 32px' }}>
+          <div style={{ gridColumn: H_COLUMN[textPos], gridRow: V_ROW[headlineVAlign], justifySelf: H_SELF[textPos], alignSelf: V_SELF[headlineVAlign], textAlign: textPos, maxWidth: 520 }}>
             {textBlock(0)}
             {buttonBlock(24)}
           </div>
-          <div style={{ gridColumn: H_COLUMN[digitsPos], gridRow: 1, justifySelf: H_SELF[digitsPos], marginTop: digitsOffsetY || 0 }}>
+          <div style={{ gridColumn: H_COLUMN[digitsPos], gridRow: V_ROW[timerVAlign], justifySelf: H_SELF[digitsPos], alignSelf: V_SELF[timerVAlign], marginTop: digitsOffsetY || 0 }}>
             {digitsBlock(H_SELF[digitsPos])}
           </div>
         </div>
