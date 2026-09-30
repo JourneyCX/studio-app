@@ -11,14 +11,20 @@ import { DriftInner, StickyRevealInner, type ParallaxSectionProps, type LayerOpt
 // background image/colour/overlay are dropped (the parallax layers replace
 // them) and the slim 'bar' style is excluded — it's a full-width hero block.
 // Mirrored in nuxt-storefront's ParallaxCountdown.vue.
-type TimerFields = Omit<CountdownTimerProps, 'backgroundColor' | 'backgroundImage' | 'overlayOpacity' | 'embedded' | 'cardStyle' | 'align' | 'showSeparators'> & {
+type TimerFields = Omit<CountdownTimerProps, 'backgroundColor' | 'backgroundImage' | 'overlayOpacity' | 'embedded' | 'cardStyle' | 'align' | 'headlineAlign' | 'showSeparators'> & {
   cardStyle: 'card' | 'minimal' | 'neon'
 }
 
 export type ParallaxCountdownProps = TimerFields & ParallaxSectionProps & {
-  // 'split' = headline/button on the left, digits on the right — leaves the
-  // middle clear for a Midground image to scroll through.
+  // Timer (digits) position. 'split' is a legacy value from before
+  // headlinePosition existed (= headline left, timer right) — no longer
+  // offered in the field, still rendered for blocks saved with it.
   countdownPosition: 'left' | 'center' | 'right' | 'split'
+  // Headline/subheadline/button position, independent of the timer. When it
+  // differs from the timer they share one row, each on its own side, leaving
+  // the middle clear for a Midground image. Undefined (older blocks) =
+  // follow the timer.
+  headlinePosition?: 'left' | 'center' | 'right'
   showSeparators: boolean
   backgroundFit: 'cover' | 'contain'
   sectionBackgroundColor: string
@@ -64,7 +70,8 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     digitsOffsetY:     { type: 'number', label: 'Digit Row Vertical Offset (px, + moves down / − moves up)' },
     primaryButtonText: { type: 'text',   label: 'CTA Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',   label: 'CTA Button URL' },
-    countdownPosition: { type: 'radio', label: 'Countdown Position', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }, { label: 'Split — text left, timer right (midground image passes between)', value: 'split' }] },
+    headlinePosition:  { type: 'radio', label: 'Headline Position (headline, subheadline & button)', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
+    countdownPosition: { type: 'radio', label: 'Timer Position (the digits) — set different sides from the headline to put them in one row', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
     showSeparators:    yesNo('Show ":" Between Digit Boxes'),
     // ── Parallax ──
     scrollMode: {
@@ -112,6 +119,7 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     digitsOffsetY:     0,
     primaryButtonText: 'Shop the Sale',
     primaryButtonUrl:  '/sale',
+    headlinePosition:  'center',
     countdownPosition: 'center',
     showSeparators:    true,
     scrollMode:        'drift',
@@ -135,12 +143,15 @@ export const ParallaxCountdown: ComponentConfig<ParallaxCountdownProps> = {
     // Blocks saved before these options existed have no value for them —
     // fall back to the original look (centred, separators, cover).
     const position = props.countdownPosition || 'center'
+    const headlinePos = props.headlinePosition ?? (position === 'split' ? 'left' : position)
+    const timerPos = position === 'split' ? 'right' : position
     const layer: LayerOptions = {
-      contentHorizontalAlign: position,
+      // Different sides → full-width row; same side → push the column there.
+      contentHorizontalAlign: headlinePos === timerPos ? timerPos : 'split',
       backgroundFit: props.backgroundFit || 'cover',
       sectionBackgroundColor: props.sectionBackgroundColor,
     }
-    const timer = <TimerInner {...props} backgroundColor="transparent" backgroundImage="" overlayOpacity={0} embedded align={position} showSeparators={props.showSeparators !== false} />
+    const timer = <TimerInner {...props} backgroundColor="transparent" backgroundImage="" overlayOpacity={0} embedded align={timerPos} headlineAlign={headlinePos} showSeparators={props.showSeparators !== false} />
     return props.scrollMode === 'sticky'
       ? <StickyRevealInner {...props} {...layer}>{timer}</StickyRevealInner>
       : <DriftInner {...props} {...layer}>{timer}</DriftInner>

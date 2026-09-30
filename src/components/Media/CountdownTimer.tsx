@@ -28,10 +28,14 @@ export type CountdownTimerProps = {
   // Internal only (not a Puck field): set by ParallaxCountdown, which supplies
   // its own section padding/background, so the timer drops its 72px padding.
   embedded?: boolean
-  // Internal only: ParallaxCountdown's Countdown Position — aligns headline,
-  // digits and button left/right instead of centring them; 'split' puts the
-  // text on the left and the digits on the right of one row.
+  // Internal only: ParallaxCountdown's Timer Position — aligns the digits
+  // (and, unless headlineAlign says otherwise, the headline/button too)
+  // left/right instead of centring them. 'split' is the legacy value from
+  // before headlineAlign existed = headline left, digits right.
   align?: 'left' | 'center' | 'right' | 'split'
+  // Internal only: ParallaxCountdown's Headline Position (headline,
+  // subheadline and button). Undefined = follow the digits.
+  headlineAlign?: 'left' | 'center' | 'right'
   // Internal only (ParallaxCountdown): hide the ":" between digit boxes.
   // Undefined = shown, so the plain Countdown Timer is unchanged.
   showSeparators?: boolean
@@ -172,8 +176,12 @@ function BarTimer({ headline, endMessage, showDays, showHours, showMinutes, show
   return primaryButtonUrl ? <a href={primaryButtonUrl} style={{ textDecoration: 'none', display: 'block' }}>{bar}</a> : bar
 }
 
+type HAlign = 'left' | 'center' | 'right'
+const H_COLUMN: Record<HAlign, number> = { left: 1, center: 2, right: 3 }
+const H_SELF: Record<HAlign, 'flex-start' | 'center' | 'flex-end'> = { left: 'flex-start', center: 'center', right: 'flex-end' }
+
 export function TimerInner(props: CountdownTimerProps) {
-  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded, align = 'center', showSeparators = true } = props
+  const { targetDate, headline, subheadline, endMessage, showDays, showHours, showMinutes, showSeconds, cardStyle, accentColor, backgroundColor, backgroundImage, overlayOpacity, cardColor, headingColor, textColor, labelColor, digitScale, digitsOffsetY, primaryButtonText, primaryButtonUrl, embedded, align = 'center', headlineAlign, showSeparators = true } = props
   const scale = (digitScale || 100) / 100
 
   const [time, setTime] = useState<TimeLeft>(() => getTimeLeft(targetDate))
@@ -197,6 +205,8 @@ export function TimerInner(props: CountdownTimerProps) {
   ]
   const visibleUnits = units.filter((u) => u.show)
   const hasImage = !!backgroundImage
+  const digitsPos: HAlign = align === 'split' ? 'right' : align
+  const textPos: HAlign = headlineAlign ?? (align === 'split' ? 'left' : align)
 
   // sb-text-fluid-md (styles/responsive.css) scales the headline down on
   // narrow screens instead of staying fixed at 36px — the countdown
@@ -241,7 +251,7 @@ export function TimerInner(props: CountdownTimerProps) {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         padding: embedded ? 0 : '72px 24px',
-        textAlign: align === 'split' ? 'left' : align,
+        textAlign: textPos,
       }}
     >
       <style>{`
@@ -250,27 +260,35 @@ export function TimerInner(props: CountdownTimerProps) {
           60%  { transform: rotateX(10deg);  opacity: 1; }
           100% { transform: rotateX(0deg) scale(1);  opacity: 1; }
         }
+        @media (max-width: 767px) {
+          .cd-row { grid-template-columns: 1fr !important; }
+          .cd-row > * { grid-column: 1 !important; grid-row: auto !important; }
+        }
       `}</style>
 
       {hasImage && (
         <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(0,0,0,${overlayOpacity / 100})` }} />
       )}
 
-      {align === 'split' ? (
-        // Split row: text left, digits right, space between for a midground
-        // image to pass through. Wraps to a stacked column on narrow screens.
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 24 }}>
-          <div style={{ flex: '0 1 auto', maxWidth: 520 }}>
+      {textPos !== digitsPos ? (
+        // Headline and digits on different sides: one row, three columns
+        // (left / centre / right) so each sits in its own column and the
+        // unused middle stays clear for a midground image. Stacks on narrow
+        // screens (.cd-row media query above), each keeping its alignment.
+        <div className="cd-row" style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto minmax(0,1fr)', alignItems: 'center', gap: '24px 32px' }}>
+          <div style={{ gridColumn: H_COLUMN[textPos], gridRow: 1, justifySelf: H_SELF[textPos], textAlign: textPos, maxWidth: 520 }}>
             {textBlock(0)}
             {buttonBlock(24)}
           </div>
-          <div style={{ flex: '0 0 auto', marginTop: digitsOffsetY || 0 }}>{digitsBlock('flex-end')}</div>
+          <div style={{ gridColumn: H_COLUMN[digitsPos], gridRow: 1, justifySelf: H_SELF[digitsPos], marginTop: digitsOffsetY || 0 }}>
+            {digitsBlock(H_SELF[digitsPos])}
+          </div>
         </div>
       ) : (
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, margin: align === 'left' ? '0 auto 0 0' : align === 'right' ? '0 0 0 auto' : '0 auto' }}>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, margin: digitsPos === 'left' ? '0 auto 0 0' : digitsPos === 'right' ? '0 0 0 auto' : '0 auto' }}>
           {textBlock(48)}
           <div style={{ marginTop: digitsOffsetY || 0 }}>
-            {digitsBlock(align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center')}
+            {digitsBlock(H_SELF[digitsPos])}
           </div>
           {buttonBlock(48)}
         </div>
