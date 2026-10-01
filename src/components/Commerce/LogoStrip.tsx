@@ -1,6 +1,8 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { ColorField } from '../shared/ColorField'
+import { FONT_OPTIONS } from '../SiteSettings/FontsSection'
+import { DISPLAY_FONT_OPTIONS } from '../Media/ScrollingText'
 
 type LogoItem = {
   imageUrl: string
@@ -10,6 +12,10 @@ type LogoItem = {
 
 export type LogoStripProps = {
   headline: string
+  headlineFont: string
+  headlineColor: string
+  headlineSize: number
+  headlineAlign: 'left' | 'center' | 'right'
   logos: LogoItem[]
   logoHeight: number
   logoSpacing: number
@@ -26,6 +32,10 @@ export const LogoStrip: ComponentConfig<LogoStripProps> = {
   label: 'Logo Strip',
   fields: {
     headline:        { type: 'text',   label: 'Heading (optional)' },
+    headlineFont:    { type: 'select', label: 'Heading Font', options: [{ label: 'Theme default', value: '' }, ...DISPLAY_FONT_OPTIONS, ...FONT_OPTIONS] },
+    headlineColor:   { type: 'custom', label: 'Heading Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    headlineSize:    { type: 'number', label: 'Heading Size (px)' },
+    headlineAlign:   { type: 'radio',  label: 'Heading Position', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
     logoHeight:      { type: 'number', label: 'Logo Height (px)' },
     logoSpacing:     { type: 'number', label: 'Logo Spacing (px)' },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
@@ -57,6 +67,10 @@ export const LogoStrip: ComponentConfig<LogoStripProps> = {
   },
   defaultProps: {
     headline: '',
+    headlineFont: '',
+    headlineColor: '#94a3b8',
+    headlineSize: 13,
+    headlineAlign: 'center',
     logoHeight: 120,
     logoSpacing: 32,
     backgroundColor: '#ffffff',
@@ -74,7 +88,7 @@ export const LogoStrip: ComponentConfig<LogoStripProps> = {
       { imageUrl: '', altText: 'Payjustnow', linkUrl: '' },
     ],
   },
-  render({ headline, logos, logoHeight, logoSpacing, backgroundColor, borderTop, borderBottom, borderColor, paddingVertical, grayscale, justify }) {
+  render({ headline, headlineFont, headlineColor, headlineSize, headlineAlign, logos, logoHeight, logoSpacing, backgroundColor, borderTop, borderBottom, borderColor, paddingVertical, grayscale, justify }) {
     const justifyMap: Record<string, string> = {
       start: 'flex-start', center: 'center', end: 'flex-end', 'space-between': 'space-between',
     }
@@ -90,7 +104,7 @@ export const LogoStrip: ComponentConfig<LogoStripProps> = {
       >
         <div style={{ maxWidth: 1200, margin: '0 auto' }}>
           {headline && (
-            <p style={{ textAlign: 'center', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#94a3b8', marginBottom: 24, margin: '0 0 24px' }}>
+            <p style={{ textAlign: headlineAlign || 'center', fontFamily: headlineFont || undefined, fontSize: headlineSize || 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: headlineColor || '#94a3b8', margin: '0 0 24px' }}>
               {headline}
             </p>
           )}
