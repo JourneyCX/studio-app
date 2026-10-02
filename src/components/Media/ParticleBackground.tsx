@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { FONT_OPTIONS } from '../SiteSettings/FontsSection'
+import { DISPLAY_FONT_OPTIONS } from './ScrollingText'
 
 export type ParticleBackgroundProps = {
   particleCount: number
@@ -18,6 +20,8 @@ export type ParticleBackgroundProps = {
   primaryButtonUrl: string
   primaryButtonColor: string
   textColor: string
+  headlineFont: string
+  textFont: string
 }
 
 interface Particle {
@@ -26,7 +30,7 @@ interface Particle {
   size: number
 }
 
-function Canvas({ particleCount, particleColor, particleSize, speed, connectLines, lineColor, connectDistance, backgroundColor, minHeight }: Omit<ParticleBackgroundProps, 'headline' | 'subheadline' | 'primaryButtonText' | 'primaryButtonUrl' | 'primaryButtonColor' | 'textColor'>) {
+function Canvas({ particleCount, particleColor, particleSize, speed, connectLines, lineColor, connectDistance, backgroundColor, minHeight }: Omit<ParticleBackgroundProps, 'headline' | 'subheadline' | 'primaryButtonText' | 'primaryButtonUrl' | 'primaryButtonColor' | 'textColor' | 'headlineFont' | 'textFont'>) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animRef   = useRef<number>(0)
 
@@ -123,7 +127,9 @@ export const ParticleBackground: ComponentConfig<ParticleBackgroundProps> = {
     backgroundColor:  { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     minHeight:        { type: 'number', label: 'Section Height (px)' },
     headline:         { type: 'text',   label: 'Headline (optional)' },
+    headlineFont:     { type: 'select', label: 'Headline Font', options: [{ label: 'Theme default', value: '' }, ...DISPLAY_FONT_OPTIONS, ...FONT_OPTIONS] },
     subheadline:      { type: 'textarea', label: 'Subheadline (optional)' },
+    textFont:         { type: 'select', label: 'Subheadline & Button Font', options: [{ label: 'Theme default', value: '' }, ...FONT_OPTIONS, ...DISPLAY_FONT_OPTIONS] },
     primaryButtonText: { type: 'text',  label: 'Button Text (optional)' },
     primaryButtonUrl:  { type: 'text',  label: 'Button URL' },
     primaryButtonColor: { type: 'custom', label: 'Button Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
@@ -145,8 +151,10 @@ export const ParticleBackground: ComponentConfig<ParticleBackgroundProps> = {
     primaryButtonUrl:  '/shop',
     primaryButtonColor: '#3b82f6',
     textColor:        '#ffffff',
+    headlineFont:     '',
+    textFont:         '',
   },
-  render({ particleCount, particleColor, particleSize, speed, connectLines, lineColor, connectDistance, backgroundColor, minHeight, headline, subheadline, primaryButtonText, primaryButtonUrl, primaryButtonColor, textColor }) {
+  render({ particleCount, particleColor, particleSize, speed, connectLines, lineColor, connectDistance, backgroundColor, minHeight, headline, subheadline, primaryButtonText, primaryButtonUrl, primaryButtonColor, textColor, headlineFont, textFont }) {
     return (
       <div style={{ position: 'relative', minHeight, backgroundColor, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Canvas
@@ -165,13 +173,13 @@ export const ParticleBackground: ComponentConfig<ParticleBackgroundProps> = {
             {/* sb-text-fluid-lg (styles/responsive.css) scales this down on
                 narrow screens instead of staying fixed at 48px. */}
             {headline && (
-              <h2 className="sb-text-fluid-lg" style={{ color: textColor, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.15 }}>{headline}</h2>
+              <h2 className="sb-text-fluid-lg" style={{ color: textColor, fontFamily: headlineFont || undefined, fontWeight: 800, margin: '0 0 20px', lineHeight: 1.15 }}>{headline}</h2>
             )}
             {subheadline && (
-              <p style={{ color: textColor, opacity: 0.75, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
+              <p style={{ color: textColor, fontFamily: textFont || undefined, opacity: 0.75, fontSize: 19, margin: '0 0 36px', lineHeight: 1.65 }}>{subheadline}</p>
             )}
             {primaryButtonText && (
-              <a href={primaryButtonUrl} style={{ display: 'inline-block', backgroundColor: primaryButtonColor, color: '#fff', padding: '14px 36px', borderRadius: 8, textDecoration: 'none', fontWeight: 700, fontSize: 16 }}>
+              <a href={primaryButtonUrl} style={{ display: 'inline-block', backgroundColor: primaryButtonColor, color: '#fff', padding: '14px 36px', borderRadius: 8, textDecoration: 'none', fontFamily: textFont || undefined, fontWeight: 700, fontSize: 16 }}>
                 {primaryButtonText}
               </a>
             )}
