@@ -41,6 +41,7 @@ export function CollectionEditModal({ collection, onClose, onSaved }: Collection
   useEffect(() => {
     if (!collection) return
     let cancelled = false
+    setLoadingMembers(true)
     stratumApi.getActiveCollection(collection.slug)
       .then(async ({ collection: full }) => {
         const ids = full.product_ids ?? []
@@ -53,12 +54,13 @@ export function CollectionEditModal({ collection, onClose, onSaved }: Collection
         // orderby=include result, but re-sort defensively in case WC ever
         // drops that ordering guarantee for a partial/stale id.
         const byId = new Map(products.map(p => [p.id, p]))
-        if (!cancelled) {
-          setPicked(ids.map(id => byId.get(id)).filter((p): p is StoreProduct => !!p))
-          setLoadingMembers(false)
-        }
+        if (!cancelled) setPicked(ids.map(id => byId.get(id)).filter((p): p is StoreProduct => !!p))
       })
-      .catch(() => { if (!cancelled) setLoadingMembers(false) })
+      .catch(() => {})
+      // finally, not per-branch: an empty collection (no product_ids) used to
+      // return early without clearing this, leaving the picker stuck on
+      // "Loading current products…" forever.
+      .finally(() => { if (!cancelled) setLoadingMembers(false) })
     return () => { cancelled = true }
   }, [collection])
 
