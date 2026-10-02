@@ -111,7 +111,9 @@ export function CollectionsPanel({ onClose, onNavigateToPage }: CollectionsPanel
   }
 
   return (
-    <div onClick={onClose} style={overlay}>
+    // Only a click on this backdrop itself closes the panel — not one bubbling
+    // up from the nested CollectionEditModal's backdrop.
+    <div onClick={e => { if (e.target === e.currentTarget) onClose() }} style={overlay}>
       <div onClick={e => e.stopPropagation()} style={panel}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#0f172a' }}>Collections</h2>
