@@ -105,8 +105,10 @@ export function CollectionEditModal({ collection, onClose, onSaved }: Collection
   }
 
   return (
-    <div onClick={onClose} style={overlay}>
-      <div onClick={e => e.stopPropagation()} style={panel}>
+    // No click-outside-to-close: a stray click on the backdrop threw away the
+    // whole unsaved edit. Cancel is the only way out.
+    <div style={overlay}>
+      <div style={panel}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
           <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#0f172a' }}>
             {collection ? 'Edit Collection' : 'New Collection'}
