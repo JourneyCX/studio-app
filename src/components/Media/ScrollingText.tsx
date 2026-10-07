@@ -32,6 +32,11 @@ export type ScrollingTextProps = {
   letterSpacing: number
   textStyle: 'fill' | 'outline'
   textColor: string
+  // Outline style only: stroke thickness and the colour/opacity painted
+  // inside the letters (opacity 0 = hollow, the original look).
+  outlineWidth?: number
+  outlineFillColor?: string
+  outlineFillOpacity?: number
   direction: 'left' | 'right'
   speed: number
   pauseOnHover: boolean
@@ -84,6 +89,7 @@ const MARQUEE_CSS = `
 export function ScrollingTextView(props: ScrollingTextProps) {
   const {
     items, separator, separatorImage, separatorImageSize, fontFamily, fontSize, fontWeight, uppercase, letterSpacing, textStyle, textColor,
+    outlineWidth, outlineFillColor, outlineFillOpacity,
     direction, speed, pauseOnHover, backgroundColor, backgroundImage, backgroundPosition,
     overlayColor, overlayOpacity, minHeight, paddingY, verticalAlign,
     buttonText, buttonUrl, buttonBgColor, buttonTextColor,
@@ -135,7 +141,10 @@ export function ScrollingTextView(props: ScrollingTextProps) {
     lineHeight: 1.05,
     whiteSpace: 'nowrap',
     ...(textStyle === 'outline'
-      ? { color: 'transparent', WebkitTextStroke: `2px ${textColor || '#000000'}` }
+      ? {
+          color: `rgba(${hexToRgb(outlineFillColor || '#ffffff')},${Math.min(100, Math.max(0, outlineFillOpacity ?? 0)) / 100})`,
+          WebkitTextStroke: `${outlineWidth && outlineWidth > 0 ? outlineWidth : 2}px ${textColor || '#000000'}`,
+        }
       : { color: textColor || '#000000' }),
   }
 
@@ -224,6 +233,9 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
     letterSpacing:   { type: 'number', label: 'Letter Spacing (px, can be negative)' },
     textStyle:       { type: 'radio', label: 'Text Style', options: [{ label: 'Solid', value: 'fill' }, { label: 'Outline only', value: 'outline' }] },
     textColor:       { type: 'custom', label: 'Text Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    outlineWidth:    { type: 'number', label: 'Outline Thickness (px — outline style only, default 2)' },
+    outlineFillColor: { type: 'custom', label: 'Inside Colour (outline style only)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    outlineFillOpacity: { type: 'number', label: 'Inside Opacity (0–100 — 0 = see-through, 30 = tinted glass, 100 = solid; outline style only)' },
     direction:       { type: 'radio', label: 'Scroll Direction', options: [{ label: 'Right to left', value: 'left' }, { label: 'Left to right', value: 'right' }] },
     speed:           { type: 'number', label: 'Speed (pixels per second — 40 slow, 80 medium, 150 fast)' },
     pauseOnHover:    { type: 'radio', label: 'Pause on Hover', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
@@ -252,6 +264,9 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
     letterSpacing: 0,
     textStyle: 'fill',
     textColor: '#111111',
+    outlineWidth: 2,
+    outlineFillColor: '#ffffff',
+    outlineFillOpacity: 0,
     direction: 'left',
     speed: 80,
     pauseOnHover: false,
