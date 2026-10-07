@@ -81,6 +81,22 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
   const [pages, setPages]     = useState<StorePage[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState('')
+  const [notice, setNotice]   = useState('')
+  const [flashId, setFlashId] = useState<number | null>(null)
+
+  // A mirror never changes the source page's own location, so its <select>
+  // snaps back to the current value ("Main Menu") and the new page_link row
+  // appears elsewhere in the list, usually off-screen. Without this the action
+  // looks like it silently reverted.
+  const announceMirror = (newRowId: number, message: string) => {
+    setError('')
+    setNotice(message)
+    setFlashId(newRowId)
+    setTimeout(() => {
+      document.getElementById(`pages-panel-row-${newRowId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 50)
+    setTimeout(() => { setFlashId(null); setNotice('') }, 6000)
+  }
   // A tenant like Demo easily accumulates 30+ pages across many themes'
   // worth of building — with no search, finding one specific page in the
   // "Not in Menu" list meant scrolling and eyeballing an unsorted list
@@ -205,6 +221,8 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     try {
       const result = await stratumApi.addFooterLink(tenantId, page.id, columnPageId, token)
       setPages(prev => [...prev, result.page])
+      const column = pages.find(p => p.id === columnPageId)
+      announceMirror(result.page.id, `"${page.page_name}" is now also linked in Footer → ${column?.page_name ?? 'column'}. The original stays where it was.`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add footer link')
     }
@@ -217,6 +235,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     try {
       const result = await stratumApi.addMainMenuLink(tenantId, page.id, token)
       setPages(prev => [...prev, result.page])
+      announceMirror(result.page.id, `"${page.page_name}" is now also in the Main Menu. The original stays where it was.`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add Main Menu link')
     }
@@ -302,6 +321,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
     return (
       <div
         key={page.id}
+        id={`pages-panel-row-${page.id}`}
         draggable={draggable}
         onDragStart={e => {
           setDragId(page.id)
@@ -332,7 +352,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           borderRadius: 8, border: '1px solid #e2e8f0',
           borderTop: indicator === 'before' ? '2px solid #2563eb' : undefined,
           borderBottom: indicator === 'after' ? '2px solid #2563eb' : undefined,
-          backgroundColor: dragId === page.id ? '#eff6ff' : '#fff',
+          backgroundColor: dragId === page.id || flashId === page.id ? '#eff6ff' : '#fff',
           opacity: dragId === page.id ? 0.6 : 1,
         }}
       >
@@ -530,6 +550,7 @@ export function PagesPanel({ tenantId, token, onClose, onNavigateToPage }: Pages
           <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#0f172a' }}>Pages</h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {error && <span style={{ fontSize: 12, color: '#dc2626' }}>{error}</span>}
+            {!error && notice && <span style={{ fontSize: 12, color: '#15803d', maxWidth: 420 }}>{notice}</span>}
             <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0', backgroundColor: '#fff', color: '#334155', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
               Close
             </button>
