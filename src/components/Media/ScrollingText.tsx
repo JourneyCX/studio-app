@@ -53,6 +53,10 @@ export type ScrollingTextProps = {
   paddingY: number
   verticalAlign: 'top' | 'center' | 'bottom'
   buttonText: string
+  // Where the button sits: just under the text (default), or pinned to the
+  // top / bottom of the section. buttonAlign is its horizontal position.
+  buttonPosition?: 'below' | 'top' | 'bottom'
+  buttonAlign?: 'left' | 'center' | 'right'
   buttonUrl: string
   buttonBgColor: string
   buttonTextColor: string
@@ -92,8 +96,9 @@ export function ScrollingTextView(props: ScrollingTextProps) {
     outlineWidth, outlineFillColor, outlineFillOpacity,
     direction, speed, pauseOnHover, backgroundColor, backgroundImage, backgroundPosition,
     overlayColor, overlayOpacity, minHeight, paddingY, verticalAlign,
-    buttonText, buttonUrl, buttonBgColor, buttonTextColor,
+    buttonText, buttonUrl, buttonBgColor, buttonTextColor, buttonPosition, buttonAlign,
   } = props
+  const btnPos = buttonPosition === 'top' || buttonPosition === 'bottom' ? buttonPosition : 'below'
 
   const outerRef = useRef<HTMLDivElement>(null)
   const seqRef = useRef<HTMLDivElement>(null)
@@ -177,7 +182,7 @@ export function ScrollingTextView(props: ScrollingTextProps) {
         padding: `${paddingY ?? 24}px 0`,
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: verticalAlign === 'top' ? 'flex-start' : verticalAlign === 'bottom' ? 'flex-end' : 'center',
+        justifyContent: btnPos !== 'below' ? 'flex-start' : verticalAlign === 'top' ? 'flex-start' : verticalAlign === 'bottom' ? 'flex-end' : 'center',
         backgroundColor: backgroundColor || (isImage ? '#1e293b' : 'transparent'),
       }}
     >
@@ -188,7 +193,7 @@ export function ScrollingTextView(props: ScrollingTextProps) {
           <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(${hexToRgb(overlayColor)},${(overlayOpacity ?? 0) / 100})` }} />
         </>
       )}
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div style={{ position: 'relative', zIndex: 1, ...(btnPos !== 'below' ? { flex: 1, display: 'flex', flexDirection: 'column', justifyContent: verticalAlign === 'top' ? 'flex-start' : verticalAlign === 'bottom' ? 'flex-end' : 'center' } : {}) }}>
         <div
           className="sb-marquee-track"
           style={{
@@ -201,7 +206,7 @@ export function ScrollingTextView(props: ScrollingTextProps) {
         </div>
       </div>
       {buttonText && (
-        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginTop: 24 }}>
+        <div style={{ position: 'relative', zIndex: 1, textAlign: buttonAlign || 'center', order: btnPos === 'top' ? -1 : 0, ...(btnPos === 'top' ? { marginBottom: 24 } : { marginTop: 24 }) }}>
           <a
             href={buttonUrl || '#'}
             style={{ display: 'inline-block', padding: '14px 28px', borderRadius: 6, backgroundColor: buttonBgColor || '#ffffff', color: buttonTextColor || '#000000', fontSize: 13, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', textDecoration: 'none' }}
@@ -249,6 +254,8 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
     verticalAlign:   { type: 'select', label: 'Text Vertical Position', options: [{ label: 'Top', value: 'top' }, { label: 'Centre', value: 'center' }, { label: 'Bottom', value: 'bottom' }] },
     buttonText:      { type: 'text', label: 'Button Text (optional — leave blank for no button)' },
     buttonUrl:       { type: 'text', label: 'Button Link' },
+    buttonPosition:  { type: 'select', label: 'Button Position', options: [{ label: 'Under the text', value: 'below' }, { label: 'Top of section', value: 'top' }, { label: 'Bottom of section', value: 'bottom' }] },
+    buttonAlign:     { type: 'select', label: 'Button Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
     buttonBgColor:   { type: 'custom', label: 'Button Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     buttonTextColor: { type: 'custom', label: 'Button Text Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
   },
@@ -280,6 +287,8 @@ export const ScrollingText: ComponentConfig<ScrollingTextProps> = {
     verticalAlign: 'center',
     buttonText: '',
     buttonUrl: '',
+    buttonPosition: 'below',
+    buttonAlign: 'center',
     buttonBgColor: '#ffffff',
     buttonTextColor: '#000000',
   },
