@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { stratumApi, type StoreCollection } from '../api'
+import { stratumApi, onWorkingThemeChange, type StoreCollection } from '../api'
 
 // Modeled directly on useTenantProducts.ts — fetch-on-mount + cancelled-flag
 // pattern, used by CollectionList's 'live' mode to show real, published
@@ -13,10 +13,15 @@ export type UseTenantCollectionsResult =
 export function useTenantCollections(): UseTenantCollectionsResult {
   const [state, setState] = useState<UseTenantCollectionsResult>({ status: 'loading', collections: [] })
 
+  // Re-fetches when the designer changes "Working on theme" (api.ts), so the
+  // canvas never keeps showing the previous theme's collections.
+  const [themeTick, setThemeTick] = useState(0)
+  useEffect(() => onWorkingThemeChange(() => setThemeTick(t => t + 1)), [])
+
   useEffect(() => {
     let cancelled = false
     setState({ status: 'loading', collections: [] })
-    stratumApi.getActiveCollections()
+    stratumApi.getWorkingThemeCollections()
       .then(result => {
         if (cancelled) return
         const collections = result.collections ?? []
@@ -26,7 +31,7 @@ export function useTenantCollections(): UseTenantCollectionsResult {
         if (!cancelled) setState({ status: 'error', collections: [] })
       })
     return () => { cancelled = true }
-  }, [])
+  }, [themeTick])
 
   return state
 }

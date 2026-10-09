@@ -14,6 +14,7 @@ import { AnnouncementBar } from './components/Navigation/AnnouncementBar'
 import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
 import { CollectionsPanel } from './components/Collections/CollectionsPanel'
+import { WorkingThemePicker } from './components/Collections/WorkingThemePicker'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -621,6 +622,7 @@ export default function App() {
               <button onClick={() => setCollectionsOpen(true)} title="Collections" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>📦</span> Collections
               </button>
+              <WorkingThemePicker />
               <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
               </button>

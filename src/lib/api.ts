@@ -35,6 +35,28 @@ let _activeTenantId = 0
 export function setActiveTenantId(tenantId: number) { _activeTenantId = tenantId }
 export function getActiveTenantId() { return _activeTenantId }
 
+// "Working on theme" (docs/specs/theme-ownership-isolation.md). The editor edits
+// the Demo tenant's own pages, so it can't know which theme a page is for. The
+// designer says so once; theme-owned lists in the editor (Collection List /
+// Carousel / collection pickers) then show ONLY that theme's items. 0 = no
+// theme chosen (a merchant editing their own live store): unscoped, as before.
+const WORKING_THEME_EVENT = 'studio-working-theme-change'
+const workingThemeKey = () => `studio.workingTheme.${_activeTenantId}`
+export function getWorkingThemeId(): number {
+  try { return Number(window.localStorage.getItem(workingThemeKey())) || 0 } catch { return 0 }
+}
+export function setWorkingThemeId(id: number) {
+  try {
+    if (id > 0) window.localStorage.setItem(workingThemeKey(), String(id))
+    else window.localStorage.removeItem(workingThemeKey())
+  } catch { /* storage blocked — the choice just won't persist */ }
+  window.dispatchEvent(new Event(WORKING_THEME_EVENT))
+}
+export function onWorkingThemeChange(cb: () => void): () => void {
+  window.addEventListener(WORKING_THEME_EVENT, cb)
+  return () => window.removeEventListener(WORKING_THEME_EVENT, cb)
+}
+
 // Thrown specifically for a 401 from the JWT-gated Store Builder API — the
 // token's 1-hour expiry (see store_builder_helper.php) is the only thing that
 // produces this status. Callers use it to show a "reload to continue" prompt
@@ -372,8 +394,18 @@ export const stratumApi = {
     return request('GET', `/admin/store_builder_api/collections/${tenantId}`, token)
   },
 
+  // Unscoped: every collection. Only the Collections manager panel should use this.
   getActiveCollections(): Promise<{ collections: StoreCollection[] }> {
     return stratumApi.getCollections(_activeTenantId, _activeToken)
+  },
+
+  // Scoped to the "Working on theme" choice: only that theme's collections.
+  // Everything that offers collections to put on a page (Collection List /
+  // Carousel / pickers) must use this one.
+  getWorkingThemeCollections(): Promise<{ collections: StoreCollection[] }> {
+    const themeId = getWorkingThemeId()
+    const qs = themeId > 0 ? `?themeId=${themeId}` : ''
+    return request('GET', `/admin/store_builder_api/collections/${_activeTenantId}${qs}`, _activeToken)
   },
 
   getCollection(tenantId: number, token: string, slug: string): Promise<{ collection: StoreCollection }> {

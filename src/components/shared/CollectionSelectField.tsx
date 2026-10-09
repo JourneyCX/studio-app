@@ -16,7 +16,7 @@ export function CollectionSelectField({ value, onChange, blankLabel }: {
 
   useEffect(() => {
     let cancelled = false
-    stratumApi.getActiveCollections()
+    stratumApi.getWorkingThemeCollections() // only the theme being worked on (theme-ownership spec)
       .then(result => {
         if (!cancelled) setCollections(result.collections ?? [])
       })
