@@ -15,6 +15,7 @@ import { SiteSettingsPanel } from './components/SiteSettings/SiteSettingsPanel'
 import { PagesPanel } from './components/Pages/PagesPanel'
 import { CollectionsPanel } from './components/Collections/CollectionsPanel'
 import { WorkingThemePicker } from './components/Collections/WorkingThemePicker'
+import { usePreviewBuyer, setPreviewBuyer, PREVIEW_BUYER_OPTIONS, type PreviewBuyer } from './lib/hooks/usePreviewBuyer'
 import { DEFAULT_SITE_SETTINGS, type SiteSettings } from './lib/siteSettings'
 
 // SiteHeader/SiteFooter used to be page components stored inside puck_json —
@@ -211,6 +212,7 @@ export default function App() {
   const [pageName,   setPageName]   = useState('Page')
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
+  const previewBuyer = usePreviewBuyer() // B2B preview ("Preview as"), header selector below; never saved
   const [pagesOpen, setPagesOpen] = useState(false)
   const [collectionsOpen, setCollectionsOpen] = useState(false)
   // 'blocks' = the add-elements list is the visible left-hand panel;
@@ -623,6 +625,19 @@ export default function App() {
                 <span style={{ fontSize: 15 }}>📦</span> Collections
               </button>
               <WorkingThemePicker />
+              {/* B2B Session 4: preview how prices and buy buttons look to a trade buyer or a shop-window visitor.
+                  Preview only; nothing here is saved to the page. */}
+              <label title="Preview prices and buy buttons as a different kind of visitor" style={{ ...headerIconButtonStyle, cursor: 'default' }}>
+                <span style={{ fontSize: 13 }}>👁</span>
+                <select
+                  aria-label="Preview as"
+                  value={previewBuyer}
+                  onChange={(e) => setPreviewBuyer(e.target.value as PreviewBuyer)}
+                  style={{ border: 'none', background: 'transparent', fontSize: 12, fontWeight: 600, color: 'inherit', cursor: 'pointer' }}
+                >
+                  {PREVIEW_BUYER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+              </label>
               <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
               </button>

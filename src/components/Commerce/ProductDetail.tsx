@@ -1,5 +1,6 @@
 import type { ComponentConfig } from '@measured/puck'
 import { useTenantProducts } from '../../lib/hooks/useTenantProducts'
+import { usePreviewBuyer, previewPriceText, previewBuyOffered, previewBuyNote } from '../../lib/hooks/usePreviewBuyer'
 
 // Renders the tenant's actual product detail page when assigned to a theme's
 // "product" slot (Store_theme_manager) — the live storefront (nuxt-storefront's
@@ -30,10 +31,11 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
   },
   render({ layout }) {
     const { status, products } = useTenantProducts('', 1)
+    const buyer = usePreviewBuyer() // "Preview as" in the editor header; never saved
     const sample = status === 'success' ? products[0] : undefined
 
     const name  = sample?.name ?? 'Sample Product'
-    const price = sample ? `${sample.currency_symbol ?? '$'} ${sample.price}` : '$0.00'
+    const price = previewPriceText(buyer, sample ? `${sample.currency_symbol ?? '$'} ${sample.price}` : '$0.00')
     const image = sample?.image_url ?? null
 
     const gallery = (
@@ -52,9 +54,13 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
         <div style={{ padding: '10px 0', marginBottom: 16, borderTop: '1px solid #e2e8f0', borderBottom: '1px solid #e2e8f0', fontSize: 12, color: '#a0aec0' }}>
           Variant options (colour, size, etc.) render automatically here for real products
         </div>
-        <button style={{ width: '100%', background: '#2b6cb0', color: '#fff', border: 'none', padding: '12px 0', borderRadius: 6, cursor: 'default', fontWeight: 700, fontSize: 15 }}>
-          Add to Cart
-        </button>
+        {previewBuyOffered(buyer) ? (
+          <button style={{ width: '100%', background: '#2b6cb0', color: '#fff', border: 'none', padding: '12px 0', borderRadius: 6, cursor: 'default', fontWeight: 700, fontSize: 15 }}>
+            Add to Cart
+          </button>
+        ) : (
+          <div style={{ background: '#f7fafc', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px', fontSize: 14, color: '#2d3748' }}>{previewBuyNote(buyer)}</div>
+        )}
       </div>
     )
 

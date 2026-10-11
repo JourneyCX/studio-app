@@ -1,3 +1,4 @@
+import { usePreviewBuyer, previewPriceText, previewBuyOffered } from '../../lib/hooks/usePreviewBuyer'
 import { useEffect, useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { CategorySelectField } from '../shared/CategorySelectField'
@@ -49,6 +50,7 @@ export type ProductGridProps = {
 // product card markup for a collection's resolved member products.
 export const Card = ({ index, product, showAddToCart, showPrices }: { index: number; product?: StoreProduct; showAddToCart: boolean; showPrices: boolean }) => {
   const [imgFailed, setImgFailed] = useState(false)
+  const buyer = usePreviewBuyer() // "Preview as" in the editor header; never saved
   const showImage = product ? (product.image_url && !imgFailed) : false
   return (
     <div style={{ border: '1px solid #e2e8f0', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
@@ -70,8 +72,8 @@ export const Card = ({ index, product, showAddToCart, showPrices }: { index: num
         <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: '#2d3748' }}>{product ? product.name : `Product ${index + 1}`}</p>
         {!product && <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13 }}>Short product description</p>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>{product ? `${product.currency_symbol ?? '$'} ${product.price}` : 'R 299.00'}</span>}
-          {showAddToCart && (
+          {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>{previewPriceText(buyer, product ? `${product.currency_symbol ?? '$'} ${product.price}` : 'R 299.00')}</span>}
+          {showAddToCart && previewBuyOffered(buyer) && (
             <button style={{ background: '#3182ce', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: 4, cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>
               Add to Cart
             </button>
