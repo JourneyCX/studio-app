@@ -8,7 +8,7 @@ import { useSyncExternalStore } from 'react'
 //   retail        default: exactly what the editor always showed
 //   window-hidden Shop window mode, price hidden: "Log in for trade prices", no buy button
 //   window-retail Shop window mode, retail price shown labelled "Retail price", no buy button
-//   trade         signed-in trade buyer: a trade price (sample) excl. VAT label, buying note instead of the buy button
+//   trade         signed-in trade buyer: a trade price (sample) excl. VAT label and the buy button (trade ordering, 5a)
 
 export type PreviewBuyer = 'retail' | 'window-hidden' | 'window-retail' | 'trade'
 
@@ -51,15 +51,17 @@ export function previewPriceText(buyer: PreviewBuyer, base: string): string {
   }
 }
 
-/** Whether the preview offers a buy button at all (never for Shop window visitors; not yet for trade buyers). */
+/**
+ * Whether the preview offers a buy button at all: a retail visitor and (from B2B Session 5a) a signed-in trade buyer,
+ * whose cart and checkout are Stratum's trade cart (/trade/cart, /trade/checkout: fixed pages, not editable blocks, so
+ * there is nothing more to stand in for). Never for a Shop window visitor.
+ */
 export function previewBuyOffered(buyer: PreviewBuyer): boolean {
-  return buyer === 'retail'
+  return buyer === 'retail' || buyer === 'trade'
 }
 
-export function previewBuyNote(buyer: PreviewBuyer): string {
-  return buyer === 'trade'
-    ? 'Trade ordering is opening soon.'
-    : 'Buying is for trade accounts. Log in, or apply for a trade account.'
+export function previewBuyNote(_buyer: PreviewBuyer): string {
+  return 'Buying is for trade accounts. Log in, or apply for a trade account.'
 }
 
 export const PREVIEW_BUYER_OPTIONS: { value: PreviewBuyer; label: string }[] = [
