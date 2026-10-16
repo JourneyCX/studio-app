@@ -27,6 +27,7 @@ import { ProductAccordion } from '@/components/Commerce/ProductAccordion'
 import { RelatedProducts }  from '@/components/Commerce/RelatedProducts'
 import { CollectionList }   from '@/components/Commerce/CollectionList'
 import { CollectionDetail } from '@/components/Commerce/CollectionDetail'
+import { CollectionCard }   from '@/components/Commerce/CollectionCard'
 import { ProductShowcase }  from '@/components/Commerce/ProductShowcase'
 import { ProductCarousel }  from '@/components/Commerce/ProductCarousel'
 import { CollectionCarousel } from '@/components/Commerce/CollectionCarousel'
@@ -84,6 +85,7 @@ export const puckConfig: Config = {
     RelatedProducts,
     CollectionList,
     CollectionDetail,
+    CollectionCard,
     ProductShowcase,
     ProductCarousel,
     CollectionCarousel,
@@ -141,7 +143,7 @@ export const puckConfig: Config = {
     },
     commerce: {
       title: 'E-commerce',
-      components: ['HeroSlider', 'HeroBanner', 'PromoBannerGrid', 'LogoStrip', 'CircleCategoryList', 'ProductGrid', 'ProductCard', 'ProductDetail', 'ProductTabs', 'ProductAccordion', 'RelatedProducts', 'CollectionList', 'CollectionDetail', 'ProductShowcase', 'ProductCarousel', 'CollectionCarousel', 'CollectionsCarousel', 'CartWidget', 'ProductFilter'],
+      components: ['HeroSlider', 'HeroBanner', 'PromoBannerGrid', 'LogoStrip', 'CircleCategoryList', 'ProductGrid', 'ProductCard', 'ProductDetail', 'ProductTabs', 'ProductAccordion', 'RelatedProducts', 'CollectionList', 'CollectionDetail', 'CollectionCard', 'ProductShowcase', 'ProductCarousel', 'CollectionCarousel', 'CollectionsCarousel', 'CartWidget', 'ProductFilter'],
     },
     marketing: {
       title: 'Marketing',
