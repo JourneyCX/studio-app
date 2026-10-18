@@ -12,6 +12,7 @@ import { ParallaxSection } from '@/components/Layout/ParallaxSection'
 import { TextBlock }     from '@/components/Content/TextBlock'
 import { ImageBlock }    from '@/components/Content/ImageBlock'
 import { ButtonBlock }   from '@/components/Content/ButtonBlock'
+import { ContactDetails } from '@/components/Content/ContactDetails'
 import { IconBox }       from '@/components/Content/IconBox'
 import { Spacer }        from '@/components/Content/Spacer'
 import { Divider }       from '@/components/Content/Divider'
@@ -73,6 +74,7 @@ export const puckConfig: Config = {
     TextBlock,
     ImageBlock,
     ButtonBlock,
+    ContactDetails,
     IconBox,
     Spacer,
     Divider,
@@ -145,7 +147,7 @@ export const puckConfig: Config = {
     },
     content: {
       title: 'Content',
-      components: ['TextBlock', 'ImageBlock', 'ButtonBlock', 'IconBox', 'Spacer', 'Divider'],
+      components: ['TextBlock', 'ImageBlock', 'ButtonBlock', 'ContactDetails', 'IconBox', 'Spacer', 'Divider'],
     },
     commerce: {
       title: 'E-commerce',
