@@ -119,10 +119,13 @@ export function ScrollingTextView(props: ScrollingTextProps) {
     if (!outer || !seq || !win) return
     const measure = () => {
       const w = seq.getBoundingClientRect().width
-      const vw = outer.getBoundingClientRect().width
+      // Never measure wider than the window: if the banner's own track were ever allowed to
+      // widen its container (e.g. inside a grid column), its width would feed back into this
+      // count, add a copy, widen it again, and grow without end. Also capped for tiny text.
+      const vw = Math.min(outer.getBoundingClientRect().width, win.innerWidth || Infinity)
       if (w > 0) {
         setSeqWidth(w)
-        setCopies(Math.max(2, Math.ceil(vw / w) + 1))
+        setCopies(Math.min(60, Math.max(2, Math.ceil(vw / w) + 1)))
       }
     }
     measure()
@@ -178,6 +181,12 @@ export function ScrollingTextView(props: ScrollingTextProps) {
       style={{
         position: 'relative',
         overflow: 'hidden',
+        // The track is width:max-content; without inline-size containment its width counts
+        // toward its container's minimum width, so a banner placed in a Columns column made
+        // the column (and the banner) grow forever. The banner is exactly as wide as its container.
+        width: '100%',
+        maxWidth: '100%',
+        contain: 'inline-size',
         minHeight: minHeight > 0 ? minHeight : undefined,
         padding: `${paddingY ?? 24}px 0`,
         display: 'flex',
