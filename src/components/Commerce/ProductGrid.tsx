@@ -36,6 +36,9 @@ export type ProductGridProps = {
   // the previously-unconditional behaviour, so existing pages render unchanged).
   showAddToCart?:  boolean
   showPrices?:     boolean
+  // Absent (every grid saved before this field existed) = shown, which is what the
+  // published storefront card has always done when a product has a short description.
+  showDescription?: boolean
   categorySlug:    string
   showPlaceholder: boolean
   backgroundColor: string
@@ -48,7 +51,7 @@ export type ProductGridProps = {
 // byte-for-byte unchanged from before.
 // Exported for reuse by CollectionDetail.tsx, which renders the same real-
 // product card markup for a collection's resolved member products.
-export const Card = ({ index, product, showAddToCart, showPrices }: { index: number; product?: StoreProduct; showAddToCart: boolean; showPrices: boolean }) => {
+export const Card = ({ index, product, showAddToCart, showPrices, showDescription = false }: { index: number; product?: StoreProduct; showAddToCart: boolean; showPrices: boolean; showDescription?: boolean }) => {
   const [imgFailed, setImgFailed] = useState(false)
   const buyer = usePreviewBuyer() // "Preview as" in the editor header; never saved
   const showImage = product ? (product.image_url && !imgFailed) : false
@@ -70,7 +73,8 @@ export const Card = ({ index, product, showAddToCart, showPrices }: { index: num
       )}
       <div style={{ padding: 16 }}>
         <p style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 15, color: '#2d3748' }}>{product ? product.name : `Product ${index + 1}`}</p>
-        {!product && <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13 }}>Short product description</p>}
+        {!product && showDescription && <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13 }}>Short product description</p>}
+        {product && showDescription && product.short_description && <p style={{ margin: '0 0 12px', color: '#718096', fontSize: 13, lineHeight: 1.5 }}>{product.short_description}</p>}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {showPrices && <span style={{ fontWeight: 700, fontSize: 16, color: '#2d3748' }}>{previewPriceText(buyer, product ? `${product.currency_symbol ?? '$'} ${product.price}` : 'R 299.00')}</span>}
           {showAddToCart && previewBuyOffered(buyer) && (
@@ -90,6 +94,7 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
     headline:        { type: 'text',   label: 'Section Headline' },
     columns:         { type: 'number', label: 'Columns (1–6)' },
     rows:            { type: 'number', label: 'Rows (1–10)' },
+    showDescription: { type: 'radio', label: 'Show Product Description', options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
     categorySlug: {
       type: 'custom',
       label: 'Product Category (leave blank for all)',
@@ -105,15 +110,17 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
     headline:        'Our Products',
     columns:         3,
     rows:            2,
+    showDescription: true,
     categorySlug:    '',
     showPlaceholder: false,
     backgroundColor: '#f7f8fa',
     gap:             24,
   },
-  render({ headline, columns, rows, productCount, showAddToCart, showPrices, categorySlug, showPlaceholder, backgroundColor, gap }) {
+  render({ headline, columns, rows, productCount, showAddToCart, showPrices, showDescription, categorySlug, showPlaceholder, backgroundColor, gap }) {
     const count     = productCount ?? (columns * rows)
     const showCart  = showAddToCart ?? true
     const showPrice = showPrices ?? true
+    const showDesc  = showDescription ?? true
     // ?? not || : a page saved before this field existed has no showPlaceholder key
     // at all and must keep rendering exactly as it did before (fake grid).
     const useFake = showPlaceholder ?? true
@@ -125,7 +132,7 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
 
     let body: React.ReactNode
     if (useFake || status === 'loading' || status === 'error') {
-      body = Array.from({ length: count }).map((_, i) => <Card key={i} index={i} showAddToCart={showCart} showPrices={showPrice} />)
+      body = Array.from({ length: count }).map((_, i) => <Card key={i} index={i} showAddToCart={showCart} showPrices={showPrice} showDescription={showDesc} />)
     } else if (status === 'empty') {
       body = (
         <div style={{ gridColumn: '1 / -1', color: '#a0aec0', fontSize: 14, padding: 32, textAlign: 'center' }}>
@@ -133,7 +140,7 @@ export const ProductGrid: ComponentConfig<ProductGridProps> = {
         </div>
       )
     } else {
-      body = products.slice(0, count).map(p => <Card key={p.id} index={0} product={p} showAddToCart={showCart} showPrices={showPrice} />)
+      body = products.slice(0, count).map(p => <Card key={p.id} index={0} product={p} showAddToCart={showCart} showPrices={showPrice} showDescription={showDesc} />)
     }
 
     return (

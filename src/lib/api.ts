@@ -155,6 +155,9 @@ export interface StoreProduct {
   // see Store_builder_api::products(). Always present from the API, but
   // optional here since older cached/mocked callers may not have it.
   currency_symbol?: string
+  // Plain-text WooCommerce short description (max 240 chars), for the Product Grid
+  // preview. Absent until Store_builder_api::products() is deployed with it.
+  short_description?: string
 }
 
 // A tenant's manually-curated, cross-category product grouping — see
