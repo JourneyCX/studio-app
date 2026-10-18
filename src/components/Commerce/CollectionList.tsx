@@ -23,6 +23,58 @@ export type CollectionListProps = {
   // horizontally-scrolling row, added additively so stored 'strip' values render
   // meaningfully instead of silently falling back to grid.
   layout?: 'grid' | 'strip'
+  // Live mode only. Ids of the collections to show, in the order picked; empty
+  // or absent = every collection (what a page saved before this field existed
+  // did). maxItems then caps the list; 0 or absent = no cap.
+  collectionIds?: number[]
+  maxItems?: number
+}
+
+// Picks which live collections the list shows. The order they are ticked in is
+// the order they display in.
+function CollectionPickerField({ value, onChange }: { value: number[] | undefined; onChange: (v: number[]) => void }) {
+  const live = useTenantCollections()
+  const picked = Array.isArray(value) ? value : []
+
+  if (live.status === 'loading') return <p style={{ fontSize: 12, color: '#718096' }}>Loading collections…</p>
+  if (live.status === 'error') return <p style={{ fontSize: 12, color: '#dd6b20' }}>⚠ Couldn't load collections.</p>
+  if (live.status === 'empty') return <p style={{ fontSize: 12, color: '#718096' }}>No collections yet — create one in the Collections panel.</p>
+
+  const toggle = (id: number) => onChange(picked.includes(id) ? picked.filter(p => p !== id) : [...picked, id])
+
+  return (
+    <div>
+      <p style={{ fontSize: 12, color: '#718096', margin: '0 0 8px' }}>
+        {picked.length === 0 ? 'None picked: every collection is shown.' : `${picked.length} picked, shown in the order ticked.`}
+      </p>
+      {live.collections.map(c => {
+        const pos = picked.indexOf(c.id)
+        return (
+          <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '4px 0', fontSize: 13, cursor: 'pointer' }}>
+            <input type="checkbox" checked={pos !== -1} onChange={() => toggle(c.id)} />
+            <span style={{ flex: 1 }}>{c.name}{!c.page_slug && ' (not yet published)'}</span>
+            {pos !== -1 && <span style={{ fontSize: 11, color: '#718096' }}>#{pos + 1}</span>}
+          </label>
+        )
+      })}
+      {picked.length > 0 && (
+        <button type="button" onClick={() => onChange([])} style={{ marginTop: 6, fontSize: 12, background: 'none', border: 'none', color: '#2b6cb0', cursor: 'pointer', padding: 0 }}>
+          Clear picks (show all)
+        </button>
+      )}
+    </div>
+  )
+}
+
+// Same rule the storefront applies, so the canvas matches the live page.
+function pickLive(all: StoreCollection[], ids: number[] | undefined, maxItems: number | undefined): StoreCollection[] {
+  const picked = Array.isArray(ids) ? ids : []
+  let list = picked.length === 0
+    ? all
+    : picked.map(id => all.find(c => c.id === id)).filter((c): c is StoreCollection => !!c)
+  const max = Number(maxItems) || 0
+  if (max > 0) list = list.slice(0, max)
+  return list
 }
 
 function liveCard(c: StoreCollection, i: number, isStrip: boolean) {
@@ -56,6 +108,8 @@ export const CollectionList: ComponentConfig<CollectionListProps> = {
         { label: 'Live (from Collections manager)', value: 'live' },
       ],
     },
+    collectionIds:   { type: 'custom', label: 'Collections to show (Live mode)', render: ({ value, onChange }) => <CollectionPickerField value={value as number[] | undefined} onChange={onChange as (v: number[]) => void} /> },
+    maxItems:        { type: 'number', label: 'Max collections to show (0 = no limit, Live mode)', min: 0 },
     columns:         { type: 'number', label: 'Columns' },
     backgroundColor: { type: 'custom', label: 'Background Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     layout:          { type: 'select', label: 'Layout', options: [{ label: 'Grid', value: 'grid' }, { label: 'Scrolling Strip', value: 'strip' }] },
@@ -72,6 +126,8 @@ export const CollectionList: ComponentConfig<CollectionListProps> = {
   defaultProps: {
     headline:        'Shop by Category',
     mode:            'manual',
+    collectionIds:   [],
+    maxItems:        0,
     columns:         3,
     backgroundColor: '#ffffff',
     layout:          'grid',
@@ -81,7 +137,7 @@ export const CollectionList: ComponentConfig<CollectionListProps> = {
       { name: 'Sale',           imageUrl: '', url: '/category/sale' },
     ],
   },
-  render({ headline, mode, collections, columns, backgroundColor, layout }) {
+  render({ headline, mode, collections, columns, backgroundColor, layout, collectionIds, maxItems }) {
     const isStrip = layout === 'strip'
     // ?? not || : a page saved before `mode` existed has no key at all and
     // must keep rendering the manual tiles exactly as it did before.
@@ -111,7 +167,7 @@ export const CollectionList: ComponentConfig<CollectionListProps> = {
     } else if (live.status === 'empty') {
       body = <p style={{ gridColumn: '1 / -1', color: '#a0aec0', fontSize: 14, padding: 32, textAlign: 'center' }}>No collections yet — create one in the Collections panel.</p>
     } else {
-      body = live.collections.map((c, i) => liveCard(c, i, isStrip))
+      body = pickLive(live.collections, collectionIds, maxItems).map((c, i) => liveCard(c, i, isStrip))
     }
 
     return (
