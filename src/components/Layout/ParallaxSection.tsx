@@ -38,6 +38,14 @@ export type ParallaxSectionProps = {
   // storefront shoppers is a small minority; this exists for merchants who've
   // made that trade-off consciously, not as a silent way to defeat the guard.
   forceAnimation: boolean
+  // Absent (every page saved before these fields existed) = 'cover', the old
+  // behaviour. 'whole' shows the entire Background Image uncropped, e.g. a tall
+  // product cutout: sized to fit the section itself (no drift bleed above and
+  // below, no scroll drift, so nothing is clipped); sectionBackgroundColor fills
+  // the space around it. ('contain' is ParallaxCountdown's own option and keeps
+  // its original drift behaviour.)
+  backgroundFit?: 'cover' | 'contain' | 'whole'
+  sectionBackgroundColor?: string
 }
 
 // Max px the Background layer is allowed to drift, and the extra height
@@ -83,15 +91,15 @@ function contentBoxStyle(maxWidth: number, align: ContentHorizontalAlign = 'cent
 // instead of cropping it to fill the section.
 export type LayerOptions = {
   contentHorizontalAlign?: ContentHorizontalAlign
-  backgroundFit?: 'cover' | 'contain'
+  backgroundFit?: 'cover' | 'contain' | 'whole'
   sectionBackgroundColor?: string
 }
 
-function backgroundFillStyle(image: string, fit: 'cover' | 'contain' = 'cover', color?: string): CSSProperties {
+function backgroundFillStyle(image: string, fit: 'cover' | 'contain' | 'whole' = 'cover', color?: string): CSSProperties {
   return {
     backgroundColor: color || undefined,
     backgroundImage: image ? `url(${image})` : color ? undefined : 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%)',
-    backgroundSize: fit,
+    backgroundSize: fit === 'whole' ? 'contain' : fit,
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'center',
   }
@@ -146,6 +154,9 @@ function midgroundBaseTransform(position: MidgroundPosition): string {
 export function DriftInner({ children, contentHorizontalAlign, backgroundFit, sectionBackgroundColor, ...props }: ParallaxSectionProps & LayerOptions & { children: ReactNode }) {
   const { backgroundImage, backgroundSpeed, midgroundImage, midgroundSpeed, midgroundWidth, midgroundPosition, overlayColor, overlayOpacity, minHeight, contentAlign, contentMaxWidth, forceAnimation } = props
   const hasMidground = !!midgroundImage
+  // 'whole' fit: no drift bleed and no drift, so the image is never clipped.
+  const wholeImage = backgroundFit === 'whole'
+  const bleed = wholeImage ? 0 : MAX_SHIFT_PX
   const containerRef = useRef<HTMLDivElement>(null)
   const bgLayerRef = useRef<HTMLDivElement | null>(null)
   const midLayerRef = useRef<HTMLImageElement | null>(null)
@@ -162,7 +173,7 @@ export function DriftInner({ children, contentHorizontalAlign, backgroundFit, se
       const rect = container!.getBoundingClientRect()
 
       const bg = bgLayerRef.current
-      if (bg) {
+      if (bg && !wholeImage) {
         const factor = (backgroundSpeed / 100) * 0.5
         const clamped = Math.max(-MAX_SHIFT_PX, Math.min(MAX_SHIFT_PX, rect.top * factor))
         bg.style.transform = `translate3d(0, ${clamped}px, 0)`
@@ -188,7 +199,7 @@ export function DriftInner({ children, contentHorizontalAlign, backgroundFit, se
       win.removeEventListener('scroll', onScroll)
       win.removeEventListener('resize', onScroll)
     }
-  }, [backgroundSpeed, midgroundSpeed, midgroundPosition, forceAnimation])
+  }, [backgroundSpeed, midgroundSpeed, midgroundPosition, forceAnimation, wholeImage])
 
   return (
     <div
@@ -202,7 +213,7 @@ export function DriftInner({ children, contentHorizontalAlign, backgroundFit, se
         justifyContent: 'center',
       }}
     >
-      <div ref={bgLayerRef} style={{ position: 'absolute', top: -MAX_SHIFT_PX, bottom: -MAX_SHIFT_PX, left: 0, right: 0, willChange: 'transform', ...backgroundFillStyle(backgroundImage, backgroundFit, sectionBackgroundColor) }} />
+      <div ref={bgLayerRef} style={{ position: 'absolute', top: -bleed, bottom: -bleed, left: 0, right: 0, willChange: 'transform', ...backgroundFillStyle(backgroundImage, backgroundFit, sectionBackgroundColor) }} />
       {hasMidground && (
         <img
           ref={midLayerRef}
@@ -273,6 +284,8 @@ export const ParallaxSection: ComponentConfig<ParallaxSectionProps> = {
     },
     stickyScrollLength: { type: 'number', label: 'Scroll Length in vh — Sticky Reveal mode only (how many screen-heights the background stays pinned; try 200–300)' },
     backgroundImage:   { type: 'custom', label: 'Background Image (fills the section)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    backgroundFit:     { type: 'radio', label: 'Background Image Fit', options: [{ label: 'Cover — fill the section (may crop)', value: 'cover' }, { label: 'Whole image — nothing cropped, fitted inside the section (e.g. a tall cutout; scroll drift is off for the background)', value: 'whole' }] },
+    sectionBackgroundColor: { type: 'custom', label: 'Section Background Colour (hex) — shows around a "Whole image" background', render: ({ value, onChange }) => <ColorField value={(value as string) ?? ''} onChange={onChange as (v: string) => void} placeholder="none" /> },
     backgroundSpeed:   { type: 'number', label: 'Background Speed — Depth Drift mode only (0 = none, 100 = strongest)' },
     midgroundImage:    { type: 'custom', label: 'Midground Image (optional — a decorative element or product shot shown at its own size/aspect ratio; use a transparent PNG in Depth Drift mode so the Background layer stays visible around it)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
     midgroundSpeed:    { type: 'number', label: 'Midground Speed — Depth Drift mode only (0 = none, 100 = strongest)' },
@@ -289,6 +302,8 @@ export const ParallaxSection: ComponentConfig<ParallaxSectionProps> = {
     scrollMode: 'drift',
     stickyScrollLength: 200,
     backgroundImage: '',
+    backgroundFit: 'cover',
+    sectionBackgroundColor: '',
     backgroundSpeed: 30,
     midgroundImage: '',
     midgroundSpeed: 60,
