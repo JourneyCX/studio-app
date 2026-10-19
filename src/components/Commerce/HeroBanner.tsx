@@ -1,10 +1,17 @@
 import type { ComponentConfig } from '@measured/puck'
 import { ImageUploadField } from '../shared/ImageUploadField'
 import { ColorField } from '../shared/ColorField'
+import { FONT_OPTIONS } from '../SiteSettings/FontsSection'
 
 export type HeroBannerProps = {
   headline: string
   subheadline: string
+  // Blank = the original white headline / soft-white subheadline.
+  headlineColor: string
+  subheadlineColor: string
+  // Empty string keeps the theme's default font; anything else is a literal
+  // CSS font-family string (same convention as HeroSlider).
+  fontFamily: string
   buttonText: string
   buttonUrl: string
   buttonColor: string
@@ -27,8 +34,11 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
   fields: {
     headline:          { type: 'text',    label: 'Headline' },
     subheadline:       { type: 'textarea',label: 'Subheadline' },
+    headlineColor:     { type: 'custom',  label: 'Headline Colour (blank = white)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} placeholder="#ffffff" /> },
+    subheadlineColor:  { type: 'custom',  label: 'Subheadline Colour (blank = soft white)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} placeholder="#ffffff" /> },
+    fontFamily:        { type: 'select',  label: 'Text Font (headline, subheadline, button)', options: [{ label: 'Theme default', value: '' }, ...FONT_OPTIONS] },
     buttonText:        { type: 'text',    label: 'Button Text' },
-    buttonUrl:         { type: 'text',    label: 'Button URL' },
+    buttonUrl:        { type: 'text',    label: 'Button URL' },
     buttonColor:       { type: 'custom',  label: 'Button Background (hex, or "transparent")', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} placeholder="#3182ce or transparent" /> },
     buttonTextColor:   { type: 'custom',  label: 'Button Text Colour', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     buttonBorderColor: { type: 'custom',  label: 'Button Border Colour (blank = no border)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} placeholder="none" /> },
@@ -44,6 +54,9 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
   defaultProps: {
     headline:          'Welcome to Our Store',
     subheadline:       'Discover our latest collection of products.',
+    headlineColor:     '',
+    subheadlineColor:  '',
+    fontFamily:        '',
     buttonText:        'Shop Now',
     buttonUrl:         '/shop',
     buttonColor:       '#3182ce',
@@ -58,7 +71,7 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
     headlineFontSize:    0,
     subheadlineFontSize: 0,
   },
-  render({ headline, subheadline, buttonText, buttonUrl, buttonColor, buttonTextColor, buttonBorderColor, buttonBorderWidth, backgroundImage, overlayOpacity, textAlign, minHeight, borderRadius, headlineFontSize, subheadlineFontSize }) {
+  render({ headline, subheadline, headlineColor, subheadlineColor, fontFamily, buttonText, buttonUrl, buttonColor, buttonTextColor, buttonBorderColor, buttonBorderWidth, backgroundImage, overlayOpacity, textAlign, minHeight, borderRadius, headlineFontSize, subheadlineFontSize }) {
     return (
       <div
         style={{
@@ -83,8 +96,8 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 640 }}>
           {/* sb-text-fluid-lg (styles/responsive.css) scales this down on
               narrow screens instead of staying fixed at 48px. */}
-          <h1 className="sb-text-fluid-lg" style={{ color: '#fff', fontWeight: 800, margin: '0 0 16px', lineHeight: 1.15, ...(headlineFontSize ? { fontSize: headlineFontSize } : {}) }}>{headline}</h1>
-          <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: subheadlineFontSize || 18, margin: '0 0 32px', lineHeight: 1.6 }}>{subheadline}</p>
+          <h1 className="sb-text-fluid-lg" style={{ color: headlineColor || '#fff', fontWeight: 800, margin: '0 0 16px', lineHeight: 1.15, ...(fontFamily ? { fontFamily } : {}), ...(headlineFontSize ? { fontSize: headlineFontSize } : {}) }}>{headline}</h1>
+          <p style={{ color: subheadlineColor || 'rgba(255,255,255,0.85)', fontSize: subheadlineFontSize || 18, margin: '0 0 32px', lineHeight: 1.6, ...(fontFamily ? { fontFamily } : {}) }}>{subheadline}</p>
           {buttonText && (
             <a
               href={buttonUrl}
@@ -98,6 +111,7 @@ export const HeroBanner: ComponentConfig<HeroBannerProps> = {
                 textDecoration: 'none',
                 fontWeight: 600,
                 fontSize: 16,
+                ...(fontFamily ? { fontFamily } : {}),
               }}
             >
               {buttonText}
