@@ -46,7 +46,16 @@ export function SiteSettingsPanel({ tenantId, token, initialSettings, onClose, o
     setSaving(true)
     setError('')
     try {
-      await stratumApi.saveSiteSettings(tenantId, settings, token)
+      // Send only what this form actually changed. This panel works from the settings loaded when the
+      // editor tab opened, so sending the whole object would overwrite newer values (a logo, the business
+      // name, colours) saved from another tab or session with this tab’s older copy.
+      const changed: Record<string, unknown> = {}
+      for (const key of Object.keys(settings) as (keyof SiteSettings)[]) {
+        if (JSON.stringify(settings[key]) !== JSON.stringify(initialSettings[key])) changed[key] = settings[key]
+      }
+      if (Object.keys(changed).length > 0) {
+        await stratumApi.saveSiteSettings(tenantId, changed as Partial<SiteSettings>, token)
+      }
       onSaved(settings)
       onClose()
     } catch (err: unknown) {

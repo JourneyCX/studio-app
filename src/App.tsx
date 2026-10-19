@@ -212,6 +212,17 @@ export default function App() {
   const [pageName,   setPageName]   = useState('Page')
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SITE_SETTINGS)
   const [siteSettingsOpen, setSiteSettingsOpen] = useState(false)
+  // Re-read the saved settings every time the panel opens, so it never shows (or edits from) the older copy
+  // loaded when this tab started. Falls back to what this tab already has if the fetch fails.
+  const openSiteSettings = async () => {
+    if (session && token) {
+      try {
+        const r = await stratumApi.getSiteSettings(session.tenantId, token)
+        setSiteSettings({ ...DEFAULT_SITE_SETTINGS, ...(r.settings ?? {}) })
+      } catch { /* keep the loaded copy */ }
+    }
+    setSiteSettingsOpen(true)
+  }
   const previewBuyer = usePreviewBuyer() // B2B preview ("Preview as"), header selector below; never saved
   const [pagesOpen, setPagesOpen] = useState(false)
   const [collectionsOpen, setCollectionsOpen] = useState(false)
@@ -638,7 +649,7 @@ export default function App() {
                   {PREVIEW_BUYER_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
               </label>
-              <button onClick={() => setSiteSettingsOpen(true)} title="Site Settings" style={headerIconButtonStyle}>
+              <button onClick={openSiteSettings} title="Site Settings" style={headerIconButtonStyle}>
                 <span style={{ fontSize: 15 }}>⚙️</span> Site Settings
               </button>
 
