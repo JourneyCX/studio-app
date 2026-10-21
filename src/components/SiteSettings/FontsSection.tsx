@@ -25,6 +25,33 @@ export const FONT_OPTIONS: { label: string; value: string }[] = [
   { label: 'Lora', value: "'Lora', serif" },
   { label: 'Arial', value: 'Arial, Helvetica, sans-serif' },
   { label: 'Georgia', value: "Georgia, 'Times New Roman', serif" },
+  // Second batch. Sans-serif:
+  { label: 'DM Sans', value: "'DM Sans', sans-serif" },
+  { label: 'Raleway', value: "'Raleway', sans-serif" },
+  { label: 'Open Sans', value: "'Open Sans', sans-serif" },
+  { label: 'Lato', value: "'Lato', sans-serif" },
+  { label: 'Work Sans', value: "'Work Sans', sans-serif" },
+  { label: 'Manrope', value: "'Manrope', sans-serif" },
+  { label: 'Outfit', value: "'Outfit', sans-serif" },
+  { label: 'Space Grotesk', value: "'Space Grotesk', sans-serif" },
+  { label: 'Rubik', value: "'Rubik', sans-serif" },
+  { label: 'Quicksand (rounded)', value: "'Quicksand', sans-serif" },
+  // Serif:
+  { label: 'Merriweather', value: "'Merriweather', serif" },
+  { label: 'Cormorant Garamond (elegant)', value: "'Cormorant Garamond', serif" },
+  { label: 'DM Serif Display', value: "'DM Serif Display', serif" },
+  { label: 'Libre Baskerville', value: "'Libre Baskerville', serif" },
+  { label: 'Cinzel (classic caps)', value: "'Cinzel', serif" },
+  { label: 'Abril Fatface (heavy display)', value: "'Abril Fatface', serif" },
+  // Display / script / mono:
+  { label: 'Righteous (retro display)', value: "'Righteous', sans-serif" },
+  { label: 'Dancing Script (script)', value: "'Dancing Script', cursive" },
+  { label: 'Pacifico (script)', value: "'Pacifico', cursive" },
+  { label: 'Lobster (script)', value: "'Lobster', cursive" },
+  { label: 'Great Vibes (formal script)', value: "'Great Vibes', cursive" },
+  { label: 'Caveat (handwritten)', value: "'Caveat', cursive" },
+  { label: 'Permanent Marker', value: "'Permanent Marker', cursive" },
+  { label: 'Space Mono (monospace)', value: "'Space Mono', monospace" },
 ]
 
 const label: React.CSSProperties = { display: 'block', fontSize: 13, fontWeight: 700, color: '#0f172a', marginBottom: 8 }
