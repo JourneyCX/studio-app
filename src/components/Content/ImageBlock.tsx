@@ -10,6 +10,9 @@ export type ImageBlockProps = {
   // Where a narrower-than-full-width image sits in its column. Absent (every image
   // saved before this field existed) = left, which is where it always sat.
   align?: 'left' | 'center' | 'right'
+  // Optional link: the whole image becomes clickable on the storefront. Absent/empty = no link.
+  linkUrl?: string
+  openInNewTab?: boolean
 }
 
 // The image is display:block, so auto margins place it; mirrored in nuxt-storefront's ImageBlock.vue.
@@ -32,6 +35,8 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
     borderRadius: { type: 'number', label: 'Border Radius (px)' },
     objectFit:    { type: 'select', label: 'Object Fit', options: [{ label: 'Cover', value: 'cover' }, { label: 'Contain', value: 'contain' }, { label: 'Fill', value: 'fill' }] },
     align:        { type: 'radio',  label: 'Alignment (when narrower than its column)', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
+    linkUrl:      { type: 'text',   label: 'Link URL (optional, e.g. /shop or https://…)' },
+    openInNewTab: { type: 'radio',  label: 'Open Link', options: [{ label: 'Same tab', value: false }, { label: 'New tab', value: true }] },
   },
   defaultProps: {
     src: '',
@@ -40,6 +45,8 @@ export const ImageBlock: ComponentConfig<ImageBlockProps> = {
     borderRadius: 0,
     objectFit: 'cover',
     align: 'left',
+    linkUrl: '',
+    openInNewTab: false,
   },
   render({ src, alt, width, borderRadius, objectFit, align }) {
     if (!src) {
