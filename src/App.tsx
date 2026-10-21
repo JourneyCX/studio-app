@@ -200,8 +200,23 @@ const INITIAL_PUCK_UI = {
 // landed offset and 25% oversized under the cursor, stole the mouse-over from
 // the block and flickered/jumped. With the zoom on a wrapper, the outline
 // lives outside it and the measurements match.
+//
+// Auto-scrolling blocks (Logo Strip, Scrolling Product Strip, Scrolling Text)
+// are frozen on the editor canvas only. Their content slides under a still
+// cursor, which the browser reports as a stream of mouseout/mouseover events;
+// Puck turns each one into its hover outline switching off and on and jumping.
+// Paused, not removed, so the layout is identical; the live storefront never
+// loads this rule and keeps scrolling.
+const EDITOR_FREEZE_MARQUEES = `
+.sb-logo-track, .psm-track, .sb-marquee-track { animation-play-state: paused !important; }
+`
 function PuckIframeZoom({ children }: { children: ReactNode; document?: Document }) {
-  return <div style={{ zoom: 1.25 }}>{children}</div>
+  return (
+    <>
+      <style>{EDITOR_FREEZE_MARQUEES}</style>
+      <div style={{ zoom: 1.25 }}>{children}</div>
+    </>
+  )
 }
 
 export default function App() {
