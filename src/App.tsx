@@ -192,15 +192,16 @@ const INITIAL_PUCK_UI = {
 // inline definition does on every single re-render (e.g. every Puck
 // onChange), destroying and recreating the iframe's document and wiping
 // the rendered page content.
-function PuckIframeZoom({ children, document }: { children: ReactNode; document?: Document }) {
-  useEffect(() => {
-    if (!document) return
-    const style = document.createElement('style')
-    style.textContent = 'body { zoom: 1.25; }'
-    document.head.appendChild(style)
-    return () => { document.head.removeChild(style) }
-  }, [document])
-  return <>{children}</>
+//
+// The zoom sits on a wrapper around the page content, NOT on <body>. Puck
+// portals its hover/selection outline and action bar into the iframe's <body>
+// and positions them from getBoundingClientRect() (zoomed viewport pixels in
+// current Chrome). With body zoom the outline was zoomed a second time, so it
+// landed offset and 25% oversized under the cursor, stole the mouse-over from
+// the block and flickered/jumped. With the zoom on a wrapper, the outline
+// lives outside it and the measurements match.
+function PuckIframeZoom({ children }: { children: ReactNode; document?: Document }) {
+  return <div style={{ zoom: 1.25 }}>{children}</div>
 }
 
 export default function App() {
