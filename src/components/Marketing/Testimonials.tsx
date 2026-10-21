@@ -13,7 +13,7 @@ type TestimonialItem = {
 export type TestimonialsProps = {
   headline: string
   subheadline: string
-  columns: 2 | 3
+  columns: 1 | 2 | 3
   backgroundColor: string
   cardColor: string
   textColor: string
@@ -36,7 +36,7 @@ export const Testimonials: ComponentConfig<TestimonialsProps> = {
   fields: {
     headline:       { type: 'text',    label: 'Section Headline' },
     subheadline:    { type: 'textarea', label: 'Section Subheadline' },
-    columns:        { type: 'select',  label: 'Columns', options: [{ label: '2', value: 2 }, { label: '3', value: 3 }] },
+    columns:        { type: 'select',  label: 'Columns', options: [{ label: '1', value: 1 }, { label: '2', value: 2 }, { label: '3', value: 3 }] },
     backgroundColor: { type: 'custom', label: 'Section Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardColor:      { type: 'custom',  label: 'Card Background (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     textColor:      { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
