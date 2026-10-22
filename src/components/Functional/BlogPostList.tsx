@@ -36,6 +36,9 @@ export type BlogPostListProps = {
   // (same convention as HeroBanner / ScrollingText). Additive, so older pages are unchanged.
   headlineFont?: string
   subheadlineFont?: string
+  // px; 0/absent = automatic (headline keeps its fluid sb-text-fluid-md size, subheadline 17px).
+  headlineFontSize?: number
+  subheadlineFontSize?: number
   layout: 'grid' | 'list' | 'featured'
   columns: 2 | 3
   showAuthor: boolean
@@ -130,6 +133,8 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     subheadline:  { type: 'textarea', label: 'Section Subheadline' },
     headlineFont:    { type: 'select', label: 'Headline Font',    options: [{ label: 'Theme default', value: '' }, ...DISPLAY_FONT_OPTIONS, ...FONT_OPTIONS] },
     subheadlineFont: { type: 'select', label: 'Subheadline Font', options: [{ label: 'Theme default', value: '' }, ...DISPLAY_FONT_OPTIONS, ...FONT_OPTIONS] },
+    headlineFontSize:    { type: 'number', label: 'Headline Font Size (px, 0 = auto)' },
+    subheadlineFontSize: { type: 'number', label: 'Subheadline Font Size (px, 0 = auto)' },
     layout:       { type: 'select',  label: 'Layout', options: [{ label: 'Grid', value: 'grid' }, { label: 'List (horizontal cards)', value: 'list' }, { label: 'Featured (first post large)', value: 'featured' }] },
     columns:      { type: 'select',  label: 'Grid Columns', options: [{ label: '2', value: 2 }, { label: '3', value: 3 }] },
     showAuthor:   { type: 'radio',   label: 'Show Author',   options: [{ label: 'Yes', value: true }, { label: 'No', value: false }] },
@@ -210,6 +215,8 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
     subheadline:  'Tips, stories, and news from our team.',
     headlineFont:    '',
     subheadlineFont: '',
+    headlineFontSize:    0,
+    subheadlineFontSize: 0,
     layout:       'grid',
     columns:      3,
     showAuthor:   true,
@@ -233,7 +240,7 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
       { title: 'Sustainable Packaging: Why It Matters', excerpt: 'How we\'re rethinking our packaging to reduce waste without compromising on quality or presentation.', thumbnail: '', date: '2 May 2025', author: 'Jordan L.', category: 'Sustainability', url: '/blog/packaging' },
     ],
   },
-  render({ headline, subheadline, headlineFont, subheadlineFont, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, rowsToShow, postsSource, categorySlug, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
+  render({ headline, subheadline, headlineFont, subheadlineFont, headlineFontSize, subheadlineFontSize, layout, columns, showAuthor, showDate, showCategory, showExcerpt, readMoreText, ctaText, ctaUrl, postCount, rowsToShow, postsSource, categorySlug, accentColor, backgroundColor, cardColor, textColor, borderRadius, posts: manualPosts }) {
     const cardProps = { layout, showAuthor, showDate, showCategory, showExcerpt, readMoreText, accentColor, cardColor, textColor, borderRadius }
     // ?? 'manual' (not 'auto'): a page saved before this field existed has no
     // postsSource key at all and must keep rendering its hand-typed posts
@@ -293,8 +300,8 @@ export const BlogPostList: ComponentConfig<BlogPostListProps> = {
               <div>
                 {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
                     mobile and desktop instead of staying fixed at 32px */}
-                {headline    && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 12px', ...(headlineFont ? { fontFamily: headlineFont } : {}) }}>{headline}</h2>}
-                {subheadline && <p  style={{ color: textColor, opacity: 0.65, fontSize: 17, margin: 0, ...(subheadlineFont ? { fontFamily: subheadlineFont } : {}) }}>{subheadline}</p>}
+                {headline    && <h2 className="sb-text-fluid-md" style={{ color: textColor, fontWeight: 800, margin: '0 0 12px', ...(headlineFont ? { fontFamily: headlineFont } : {}), ...(headlineFontSize ? { fontSize: headlineFontSize } : {}) }}>{headline}</h2>}
+                {subheadline && <p  style={{ color: textColor, opacity: 0.65, fontSize: subheadlineFontSize || 17, margin: 0, ...(subheadlineFont ? { fontFamily: subheadlineFont } : {}) }}>{subheadline}</p>}
               </div>
               {ctaText && (
                 <a href={ctaUrl || '#'} style={{ color: accentColor, fontSize: 14, fontWeight: 700, textDecoration: 'none', whiteSpace: 'nowrap' }}>
