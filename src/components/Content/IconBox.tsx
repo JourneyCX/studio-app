@@ -19,6 +19,9 @@ export type IconBoxProps = {
   backgroundColor: string
   padding: number
   borderRadius: number
+  showBorder: boolean
+  borderColor: string
+  borderWidth: number
 }
 
 export const IconBox: ComponentConfig<IconBoxProps> = {
@@ -47,6 +50,9 @@ export const IconBox: ComponentConfig<IconBoxProps> = {
     backgroundColor: { type: 'custom', label: 'Background Colour (hex, empty = none)', render: ({ value, onChange }) => <ColorField label="Background Colour (hex, empty = none)" placeholder="transparent" value={value as string} onChange={onChange as (v: string) => void} /> },
     padding:      { type: 'number', label: 'Inner Padding (px)' },
     borderRadius: { type: 'number', label: 'Corner Radius (px)' },
+    showBorder: { type: 'radio', label: 'Border', options: [{ label: 'Off', value: false }, { label: 'On', value: true }] },
+    borderColor: { type: 'custom', label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField label="Border Colour (hex)" value={value as string} onChange={onChange as (v: string) => void} /> },
+    borderWidth: { type: 'number', label: 'Border Width (px)' },
     minHeight: { type: 'number', label: 'Box Min Height (px, 0 = auto — never clips content, just pads shorter boxes to match)' },
   },
   defaultProps: {
@@ -66,11 +72,14 @@ export const IconBox: ComponentConfig<IconBoxProps> = {
     backgroundColor: '',
     padding: 0,
     borderRadius: 0,
+    showBorder: false,
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
   },
-  render({ icon, iconImage, iconSize, iconColor, title, titleFontSize, titleColor, description, descriptionFontSize, descriptionColor, align, gap, minHeight, backgroundColor, padding, borderRadius }) {
+  render({ icon, iconImage, iconSize, iconColor, title, titleFontSize, titleColor, description, descriptionFontSize, descriptionColor, align, gap, minHeight, backgroundColor, padding, borderRadius, showBorder, borderColor, borderWidth }) {
     const alignItems = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start'
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems, justifyContent: 'center', textAlign: align, gap, minHeight: minHeight || undefined, boxSizing: 'border-box', backgroundColor: backgroundColor || undefined, padding: padding || undefined, borderRadius: borderRadius || undefined }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems, justifyContent: 'center', textAlign: align, gap, minHeight: minHeight || undefined, boxSizing: 'border-box', backgroundColor: backgroundColor || undefined, padding: padding || undefined, borderRadius: borderRadius || undefined, border: showBorder ? `${borderWidth || 1}px solid ${borderColor || '#e2e8f0'}` : undefined }}>
         {iconImage ? (
           <img src={iconImage} alt="" style={{ width: iconSize, height: iconSize, objectFit: 'contain' }} />
         ) : icon ? (
