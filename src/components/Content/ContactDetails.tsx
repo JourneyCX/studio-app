@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { FONT_OPTIONS } from '../SiteSettings/FontsSection'
 import { stratumApi, getActiveTenantId, getActiveToken } from '../../lib/api'
 
 // A card listing the store's contact details (address, phone, email, optional opening hours), each with an
@@ -27,6 +28,12 @@ export type ContactDetailsProps = {
   iconBackground: string
   dividerColor: string
   cardRadius: number
+  // Empty = the theme's font. Sizes are px; 0 = the built-in responsive size.
+  fontFamily: string
+  headingFontSize: number
+  introFontSize: number
+  labelFontSize: number
+  valueFontSize: number
 }
 
 type Contact = { phone: string | null; email: string | null; address: string | null }
@@ -53,13 +60,13 @@ const ICONS = {
   hours:   svg(<><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>),
 }
 
-function Row({ icon, label, value, muted, iconBg, divider }: { icon: ReactNode; label: string; value: string; muted?: boolean; iconBg: string; divider: string | null }) {
+function Row({ icon, label, value, muted, iconBg, divider, labelSize, valueSize }: { icon: ReactNode; label: string; value: string; muted?: boolean; iconBg: string; divider: string | null; labelSize: number; valueSize: number }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 28, padding: '28px 0', borderTop: divider ? `1px solid ${divider}` : undefined }}>
       <div style={{ flex: '0 0 auto', width: 68, height: 68, borderRadius: '50%', background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{icon}</div>
       <div style={{ minWidth: 0, opacity: muted ? 0.45 : 1 }}>
-        <div style={{ fontSize: 16, marginBottom: 8 }}>{label}</div>
-        <div style={{ fontSize: 'clamp(17px, 1.7vw, 22px)', lineHeight: 1.5, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>{value}</div>
+        <div style={{ fontSize: labelSize || 16, marginBottom: 8 }}>{label}</div>
+        <div style={{ fontSize: valueSize || 'clamp(17px, 1.7vw, 22px)', lineHeight: 1.5, whiteSpace: 'pre-line', wordBreak: 'break-word' }}>{value}</div>
       </div>
     </div>
   )
@@ -86,6 +93,11 @@ export const ContactDetails: ComponentConfig<ContactDetailsProps> = {
     iconBackground:  { type: 'custom', label: 'Icon Circle Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     dividerColor:    { type: 'custom', label: 'Divider Line Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     cardRadius:      { type: 'number', label: 'Card Corner Radius (px)', min: 0 },
+    fontFamily:      { type: 'select', label: 'Font', options: [{ label: 'Theme default', value: '' }, ...FONT_OPTIONS] },
+    headingFontSize: { type: 'number', label: 'Heading Font Size (px, 0 = automatic)', min: 0 },
+    introFontSize:   { type: 'number', label: 'Text Under Heading Font Size (px, 0 = automatic)', min: 0 },
+    labelFontSize:   { type: 'number', label: 'Label Font Size (px, 0 = default 16)', min: 0 },
+    valueFontSize:   { type: 'number', label: 'Details Font Size (px, 0 = automatic)', min: 0 },
   },
   defaultProps: {
     heading: 'Need Help?',
@@ -106,6 +118,11 @@ export const ContactDetails: ComponentConfig<ContactDetailsProps> = {
     iconBackground: '#f1f2f5',
     dividerColor: '#e5e7eb',
     cardRadius: 20,
+    fontFamily: '',
+    headingFontSize: 0,
+    introFontSize: 0,
+    labelFontSize: 0,
+    valueFontSize: 0,
   },
   render(p) {
     const contact = useStoreContact()
@@ -121,11 +138,11 @@ export const ContactDetails: ComponentConfig<ContactDetailsProps> = {
     if (p.hours?.trim()) rows.push({ key: 'h', icon: ICONS.hours, label: p.hoursLabel,   value: p.hours.trim(),  muted: false })
 
     return (
-      <div style={{ background: p.backgroundColor, color: p.textColor, borderRadius: p.cardRadius, padding: 'clamp(24px, 4vw, 56px)' }}>
-        {p.heading && <h2 style={{ margin: '0 0 18px', fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 600, lineHeight: 1.15 }}>{p.heading}</h2>}
-        {p.intro && <p style={{ margin: '0 0 12px', fontSize: 'clamp(16px, 1.5vw, 19px)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{p.intro}</p>}
+      <div style={{ background: p.backgroundColor, color: p.textColor, borderRadius: p.cardRadius, padding: 'clamp(24px, 4vw, 56px)', ...(p.fontFamily ? { fontFamily: p.fontFamily } : {}) }}>
+        {p.heading && <h2 style={{ margin: '0 0 18px', fontSize: p.headingFontSize || 'clamp(28px, 4vw, 48px)', fontWeight: 600, lineHeight: 1.15 }}>{p.heading}</h2>}
+        {p.intro && <p style={{ margin: '0 0 12px', fontSize: p.introFontSize || 'clamp(16px, 1.5vw, 19px)', lineHeight: 1.6, whiteSpace: 'pre-line' }}>{p.intro}</p>}
         <div style={{ marginTop: 24 }}>
-          {rows.map((r, i) => <Row key={r.key} icon={r.icon} label={r.label} value={r.value} muted={r.muted} iconBg={p.iconBackground} divider={i === 0 ? null : p.dividerColor} />)}
+          {rows.map((r, i) => <Row key={r.key} icon={r.icon} label={r.label} value={r.value} muted={r.muted} iconBg={p.iconBackground} divider={i === 0 ? null : p.dividerColor} labelSize={p.labelFontSize} valueSize={p.valueFontSize} />)}
         </div>
       </div>
     )
