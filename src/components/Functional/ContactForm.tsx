@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
+import { ImageUploadField } from '../shared/ImageUploadField'
 
 export type ContactFormProps = {
   headline: string
@@ -19,6 +20,15 @@ export type ContactFormProps = {
   textColor: string
   borderColor: string
   borderRadius: number
+  backgroundImage?: string
+  overlayColor?: string
+  overlayOpacity?: number
+}
+
+function hexToRgb(hex: string): string {
+  const h = (hex || '#000000').replace('#', '')
+  const full = h.length === 3 ? h.split('').map((c) => c + c).join('') : h.padEnd(6, '0')
+  return `${parseInt(full.slice(0, 2), 16) || 0},${parseInt(full.slice(2, 4), 16) || 0},${parseInt(full.slice(4, 6), 16) || 0}`
 }
 
 interface FormState { name: string; email: string; phone: string; company: string; subject: string; message: string }
@@ -33,7 +43,7 @@ function SendIcon() {
 }
 
 function FormInner(props: ContactFormProps) {
-  const { headline, subheadline, showPhone, showSubject, showCompany, submitEndpoint, submitButtonText, successMessage, errorMessage, layout, accentColor, backgroundColor, cardColor, textColor, borderColor, borderRadius } = props
+  const { headline, subheadline, showPhone, showSubject, showCompany, submitEndpoint, submitButtonText, successMessage, errorMessage, layout, accentColor, backgroundColor, cardColor, textColor, borderColor, borderRadius, backgroundImage, overlayColor = '#000000', overlayOpacity = 0 } = props
 
   const [form, setForm]     = useState<FormState>({ name: '', email: '', phone: '', company: '', subject: '', message: '' })
   const [status, setStatus] = useState<Status>('idle')
@@ -122,8 +132,11 @@ function FormInner(props: ContactFormProps) {
   )
 
   return (
-    <section style={{ backgroundColor, padding: '64px 24px' }}>
-      <div style={{ maxWidth: isCard ? 680 : 900, margin: '0 auto' }}>
+    <section style={{ backgroundColor, padding: '64px 24px', position: 'relative', ...(backgroundImage ? { backgroundImage: `url(${backgroundImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}) }}>
+      {backgroundImage && overlayOpacity > 0 && (
+        <div style={{ position: 'absolute', inset: 0, backgroundColor: `rgba(${hexToRgb(overlayColor)},${overlayOpacity / 100})`, pointerEvents: 'none' }} />
+      )}
+      <div style={{ maxWidth: isCard ? 680 : 900, margin: '0 auto', position: 'relative' }}>
         {(headline || subheadline) && (
           <div style={{ marginBottom: 40, textAlign: isCard ? 'center' : 'left' }}>
             {/* sb-text-fluid-md (styles/responsive.css) scales this headline between
@@ -159,6 +172,9 @@ export const ContactForm: ComponentConfig<ContactFormProps> = {
     textColor:        { type: 'custom',  label: 'Text Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderColor:      { type: 'custom',  label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
     borderRadius:     { type: 'number',  label: 'Border Radius (px)' },
+    backgroundImage:  { type: 'custom',  label: 'Background Image (optional, fills the section behind the form)', render: ({ value, onChange }) => <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} /> },
+    overlayColor:     { type: 'custom',  label: 'Image Overlay Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    overlayOpacity:   { type: 'number',  label: 'Image Overlay Opacity (0–100)' },
   },
   defaultProps: {
     headline:         'Get in Touch',
@@ -177,6 +193,9 @@ export const ContactForm: ComponentConfig<ContactFormProps> = {
     textColor:        '#1e293b',
     borderColor:      '#e2e8f0',
     borderRadius:     12,
+    backgroundImage:  '',
+    overlayColor:     '#000000',
+    overlayOpacity:   0,
   },
   render(props) { return <FormInner {...props} /> },
 }
