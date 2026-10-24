@@ -12,6 +12,7 @@ import { usePreviewBuyer, previewPriceText, previewBuyOffered, previewBuyNote } 
 // (the tenant's first available one) purely for WYSIWYG purposes.
 export type ProductDetailProps = {
   layout: 'gallery-left' | 'gallery-right'
+  thumbnailPosition: 'below' | 'beside' | 'grid'
 }
 
 export const ProductDetail: ComponentConfig<ProductDetailProps> = {
@@ -25,11 +26,21 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
         { label: 'Gallery Right', value: 'gallery-right' },
       ],
     },
+    thumbnailPosition: {
+      type: 'radio',
+      label: 'Additional images',
+      options: [
+        { label: 'Thumbnails below image', value: 'below' },
+        { label: 'Thumbnails beside image', value: 'beside' },
+        { label: 'Large grid below image', value: 'grid' },
+      ],
+    },
   },
   defaultProps: {
     layout: 'gallery-left',
+    thumbnailPosition: 'below',
   },
-  render({ layout }) {
+  render({ layout, thumbnailPosition = 'below' }) {
     const { status, products } = useTenantProducts('', 1)
     const buyer = usePreviewBuyer() // "Preview as" in the editor header; never saved
     const sample = status === 'success' ? products[0] : undefined
@@ -38,12 +49,32 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
     const price = previewPriceText(buyer, sample ? `${sample.currency_symbol ?? '$'} ${sample.price}` : '$0.00')
     const image = sample?.image_url ?? null
 
-    const gallery = (
-      <div style={{ aspectRatio: '1/1', borderRadius: 12, overflow: 'hidden', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    const main = (
+      <div style={{ aspectRatio: '1/1', borderRadius: 12, overflow: 'hidden', background: '#f7f8fa', display: 'flex', alignItems: 'center', justifyContent: 'center', ...(thumbnailPosition === 'beside' ? { flex: 1, minWidth: 0 } : {}) }}>
         {image
           ? <img src={image} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           : <span style={{ color: '#a0aec0', fontSize: 13 }}>📷 Product Gallery</span>
         }
+      </div>
+    )
+    // Placeholder tiles: the editor only knows one sample image.
+    const tile = (size: number | string, i: number) => (
+      <div key={i} style={{ width: size, aspectRatio: '1/1', borderRadius: thumbnailPosition === 'grid' ? 12 : 6, background: '#edf0f4', border: '1px solid #e2e8f0' }} />
+    )
+    const gallery = thumbnailPosition === 'beside' ? (
+      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        {main}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>{[0, 1, 2].map(i => tile(64, i))}</div>
+      </div>
+    ) : thumbnailPosition === 'grid' ? (
+      <div>
+        <div style={{ marginBottom: 12 }}>{main}</div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>{[0, 1, 2, 3].map(i => tile('100%', i))}</div>
+      </div>
+    ) : (
+      <div>
+        <div style={{ marginBottom: 12 }}>{main}</div>
+        <div style={{ display: 'flex', gap: 8 }}>{[0, 1, 2].map(i => tile(64, i))}</div>
       </div>
     )
 
