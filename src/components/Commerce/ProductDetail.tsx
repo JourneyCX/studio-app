@@ -13,6 +13,7 @@ import { usePreviewBuyer, previewPriceText, previewBuyOffered, previewBuyNote } 
 export type ProductDetailProps = {
   layout: 'gallery-left' | 'gallery-right'
   thumbnailPosition: 'below' | 'beside' | 'grid'
+  showDescription: boolean
 }
 
 export const ProductDetail: ComponentConfig<ProductDetailProps> = {
@@ -35,10 +36,19 @@ export const ProductDetail: ComponentConfig<ProductDetailProps> = {
         { label: 'Large grid below image', value: 'grid' },
       ],
     },
+    showDescription: {
+      type: 'radio',
+      label: 'Full description under Add to Cart',
+      options: [
+        { label: 'Show', value: true },
+        { label: 'Hide', value: false },
+      ],
+    },
   },
   defaultProps: {
     layout: 'gallery-left',
     thumbnailPosition: 'below',
+    showDescription: true,
   },
   render({ layout, thumbnailPosition = 'below' }) {
     const { status, products } = useTenantProducts('', 1)
