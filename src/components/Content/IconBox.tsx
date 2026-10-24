@@ -1,4 +1,4 @@
-import type { ComponentConfig } from '@measured/puck'
+import { FieldLabel, type ComponentConfig } from '@measured/puck'
 import { ColorField } from '../shared/ColorField'
 import { ImageUploadField } from '../shared/ImageUploadField'
 
@@ -16,6 +16,12 @@ export type IconBoxProps = {
   align: 'left' | 'center' | 'right'
   gap: number
   minHeight: number
+  backgroundColor: string
+  padding: number
+  borderRadius: number
+  showBorder: boolean
+  borderColor: string
+  borderWidth: number
 }
 
 export const IconBox: ComponentConfig<IconBoxProps> = {
@@ -26,19 +32,27 @@ export const IconBox: ComponentConfig<IconBoxProps> = {
       type: 'custom',
       label: 'Icon Image (optional — overrides the emoji above if set)',
       render: ({ value, onChange }) => (
-        <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} />
+        <FieldLabel label="Icon Image (optional — overrides the emoji above if set)" el="div">
+          <ImageUploadField value={value as string} onChange={onChange as (v: string) => void} />
+        </FieldLabel>
       ),
     },
     iconSize:  { type: 'number', label: 'Icon Size (px)' },
-    iconColor: { type: 'custom', label: 'Icon Colour (hex, emoji only)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    iconColor: { type: 'custom', label: 'Icon Colour (hex, emoji only)', render: ({ value, onChange }) => <ColorField label="Icon Colour (hex, emoji only)" value={value as string} onChange={onChange as (v: string) => void} /> },
     title:         { type: 'text',    label: 'Title' },
     titleFontSize: { type: 'number', label: 'Title Font Size (px)' },
-    titleColor:    { type: 'custom', label: 'Title Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    titleColor:    { type: 'custom', label: 'Title Colour (hex)', render: ({ value, onChange }) => <ColorField label="Title Colour (hex)" value={value as string} onChange={onChange as (v: string) => void} /> },
     description:         { type: 'textarea', label: 'Description' },
     descriptionFontSize: { type: 'number',   label: 'Description Font Size (px)' },
-    descriptionColor:    { type: 'custom',   label: 'Description Colour (hex)', render: ({ value, onChange }) => <ColorField value={value as string} onChange={onChange as (v: string) => void} /> },
+    descriptionColor:    { type: 'custom',   label: 'Description Colour (hex)', render: ({ value, onChange }) => <ColorField label="Description Colour (hex)" value={value as string} onChange={onChange as (v: string) => void} /> },
     align: { type: 'select', label: 'Alignment', options: [{ label: 'Left', value: 'left' }, { label: 'Centre', value: 'center' }, { label: 'Right', value: 'right' }] },
     gap:   { type: 'number', label: 'Spacing Between Elements (px)' },
+    backgroundColor: { type: 'custom', label: 'Background Colour (hex, empty = none)', render: ({ value, onChange }) => <ColorField label="Background Colour (hex, empty = none)" placeholder="transparent" value={value as string} onChange={onChange as (v: string) => void} /> },
+    padding:      { type: 'number', label: 'Inner Padding (px)' },
+    borderRadius: { type: 'number', label: 'Corner Radius (px)' },
+    showBorder: { type: 'radio', label: 'Border', options: [{ label: 'Off', value: false }, { label: 'On', value: true }] },
+    borderColor: { type: 'custom', label: 'Border Colour (hex)', render: ({ value, onChange }) => <ColorField label="Border Colour (hex)" value={value as string} onChange={onChange as (v: string) => void} /> },
+    borderWidth: { type: 'number', label: 'Border Width (px)' },
     minHeight: { type: 'number', label: 'Box Min Height (px, 0 = auto — never clips content, just pads shorter boxes to match)' },
   },
   defaultProps: {
@@ -55,11 +69,17 @@ export const IconBox: ComponentConfig<IconBoxProps> = {
     align: 'center',
     gap: 10,
     minHeight: 0,
+    backgroundColor: '',
+    padding: 0,
+    borderRadius: 0,
+    showBorder: false,
+    borderColor: '#e2e8f0',
+    borderWidth: 1,
   },
-  render({ icon, iconImage, iconSize, iconColor, title, titleFontSize, titleColor, description, descriptionFontSize, descriptionColor, align, gap, minHeight }) {
+  render({ icon, iconImage, iconSize, iconColor, title, titleFontSize, titleColor, description, descriptionFontSize, descriptionColor, align, gap, minHeight, backgroundColor, padding, borderRadius, showBorder, borderColor, borderWidth }) {
     const alignItems = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start'
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems, justifyContent: 'center', textAlign: align, gap, minHeight: minHeight || undefined, boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems, justifyContent: 'center', textAlign: align, gap, minHeight: minHeight || undefined, boxSizing: 'border-box', backgroundColor: backgroundColor || undefined, padding: padding || undefined, borderRadius: borderRadius || undefined, border: showBorder ? `${borderWidth || 1}px solid ${borderColor || '#e2e8f0'}` : undefined }}>
         {iconImage ? (
           <img src={iconImage} alt="" style={{ width: iconSize, height: iconSize, objectFit: 'contain' }} />
         ) : icon ? (
